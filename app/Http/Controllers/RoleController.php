@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RoleController extends Controller
 {
@@ -12,7 +13,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json(Role::latest()->get());
     }
 
     /**
@@ -20,7 +21,7 @@ class RoleController extends Controller
      */
     public function create()
     {
-        //
+        return response()->json(['message' => 'Utiliser POST /roles pour créer un rôle.']);
     }
 
     /**
@@ -28,7 +29,13 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100', 'unique:roles,name'],
+        ]);
+
+        $role = Role::create($validated);
+
+        return response()->json($role, 201);
     }
 
     /**
@@ -36,7 +43,7 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
-        //
+        return response()->json($role);
     }
 
     /**
@@ -44,7 +51,10 @@ class RoleController extends Controller
      */
     public function edit(Role $role)
     {
-        //
+        return response()->json([
+            'message' => 'Utiliser PUT/PATCH /roles/{role} pour modifier ce rôle.',
+            'data' => $role,
+        ]);
     }
 
     /**
@@ -52,7 +62,13 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
-        //
+        $validated = $request->validate([
+            'name' => ['sometimes', 'required', 'string', 'max:100', Rule::unique('roles', 'name')->ignore($role->id)],
+        ]);
+
+        $role->update($validated);
+
+        return response()->json($role);
     }
 
     /**
@@ -60,6 +76,8 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        //
+        $role->delete();
+
+        return response()->noContent();
     }
 }

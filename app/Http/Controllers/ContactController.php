@@ -12,7 +12,7 @@ class ContactController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json(Contact::latest()->get());
     }
 
     /**
@@ -20,7 +20,7 @@ class ContactController extends Controller
      */
     public function create()
     {
-        //
+        return response()->json(['message' => 'Utiliser POST /contacts pour créer un message de contact.']);
     }
 
     /**
@@ -28,7 +28,15 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nom' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'message' => ['required', 'string'],
+        ]);
+
+        $contact = Contact::create($validated);
+
+        return response()->json($contact, 201);
     }
 
     /**
@@ -36,7 +44,7 @@ class ContactController extends Controller
      */
     public function show(Contact $contact)
     {
-        //
+        return response()->json($contact);
     }
 
     /**
@@ -44,7 +52,10 @@ class ContactController extends Controller
      */
     public function edit(Contact $contact)
     {
-        //
+        return response()->json([
+            'message' => 'Utiliser PUT/PATCH /contacts/{contact} pour modifier ce message.',
+            'data' => $contact,
+        ]);
     }
 
     /**
@@ -52,7 +63,15 @@ class ContactController extends Controller
      */
     public function update(Request $request, Contact $contact)
     {
-        //
+        $validated = $request->validate([
+            'nom' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => ['sometimes', 'required', 'email', 'max:255'],
+            'message' => ['sometimes', 'required', 'string'],
+        ]);
+
+        $contact->update($validated);
+
+        return response()->json($contact);
     }
 
     /**
@@ -60,6 +79,8 @@ class ContactController extends Controller
      */
     public function destroy(Contact $contact)
     {
-        //
+        $contact->delete();
+
+        return response()->noContent();
     }
 }

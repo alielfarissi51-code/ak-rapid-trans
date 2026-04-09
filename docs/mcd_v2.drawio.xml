@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="MCD-v2" id="mcdv2RapidTrans">
+    <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="u1" parent="1" style="shape=table;container=1;" value="UTILISATEUR &#xa;--&#xa; id_utilisateur (PK)&#xa; nom&#xa; prenom&#xa; email (UQ)&#xa; mot_de_passe&#xa; role&#xa; langue&#xa; cree_le" vertex="1">
+          <mxGeometry x="80" y="40" width="260" height="190" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u2" parent="1" style="shape=table;container=1;" value="CLIENT &#xa;--&#xa; id_client (PK/FK)&#xa; telephone&#xa; adresse" vertex="1">
+          <mxGeometry x="80" y="290" width="240" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u3" parent="1" style="shape=table;container=1;" value="COMMANDE &#xa;--&#xa; id_commande (PK)&#xa; date_commande&#xa; depart&#xa; destination&#xa; statut&#xa; description&#xa; id_client (FK)&#xa; id_camion (FK, nullable)" vertex="1">
+          <mxGeometry x="430" y="270" width="300" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u4" parent="1" style="shape=table;container=1;" value="CAMION &#xa;--&#xa; id_camion (PK)&#xa; immatriculation (UQ)&#xa; marque&#xa; modele&#xa; capacite&#xa; statut" vertex="1">
+          <mxGeometry x="860" y="280" width="250" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u5" parent="1" style="shape=table;container=1;" value="DEVIS &#xa;--&#xa; id_devis (PK)&#xa; montant&#xa; date_emission&#xa; statut&#xa; id_commande (FK, UQ)" vertex="1">
+          <mxGeometry x="430" y="560" width="250" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u6" parent="1" style="shape=table;container=1;" value="SERVICE &#xa;--&#xa; id_service (PK)&#xa; nom&#xa; description&#xa; tarif_base&#xa; actif" vertex="1">
+          <mxGeometry x="810" y="560" width="250" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u8" parent="1" style="shape=table;container=1;" value="COMMANDE_SERVICE &#xa;--&#xa; id_commande (PK/FK)&#xa; id_service (PK/FK)" vertex="1">
+          <mxGeometry x="680" y="790" width="280" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u7" parent="1" style="shape=table;container=1;" value="MESSAGE_CONTACT &#xa;--&#xa; id_message (PK)&#xa; nom&#xa; email&#xa; sujet&#xa; message&#xa; date_envoi" vertex="1">
+          <mxGeometry x="1130" y="560" width="270" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_est_un" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="est un" vertex="1">
+          <mxGeometry x="160" y="235" width="100" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_genere" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="genere" vertex="1">
+          <mxGeometry x="520" y="495" width="95" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_inclut" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="inclut" vertex="1">
+          <mxGeometry x="645" y="700" width="95" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1a" edge="1" parent="1" source="u1" target="r_est_un" style="startArrow=classic;startFill=1;endArrow=classic;endFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" />
+        <mxCell id="e1b" edge="1" parent="1" source="r_est_un" target="u2" style="startArrow=classic;startFill=1;endArrow=classic;endFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" />
+        <mxCell id="e2" edge="1" parent="1" source="u2" target="u3" style="startArrow=classic;startFill=1;endArrow=classic;endFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" />
+        <mxCell id="e3" edge="1" parent="1" source="u4" target="u3" style="startArrow=classic;startFill=1;endArrow=classic;endFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" />
+        <mxCell id="e4a" edge="1" parent="1" source="u3" target="r_genere" style="startArrow=classic;startFill=1;endArrow=classic;endFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" />
+        <mxCell id="e4b" edge="1" parent="1" source="r_genere" target="u5" style="startArrow=classic;startFill=1;endArrow=classic;endFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" />
+        <mxCell id="e5a" edge="1" parent="1" source="u3" target="r_inclut" style="startArrow=classic;startFill=1;endArrow=classic;endFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" />
+        <mxCell id="e5b" edge="1" parent="1" source="r_inclut" target="u8" style="startArrow=classic;startFill=1;endArrow=classic;endFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" />
+        <mxCell id="e6" edge="1" parent="1" source="u6" target="u8" style="startArrow=classic;startFill=1;endArrow=classic;endFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" />
+
+        <mxCell id="c1" parent="1" style="text;html=1;" value="1,1" vertex="1">
+          <mxGeometry x="210" y="245" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" parent="1" style="text;html=1;" value="0,1" vertex="1">
+          <mxGeometry x="210" y="275" width="40" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c3" parent="1" style="text;html=1;" value="1,1" vertex="1">
+          <mxGeometry x="340" y="335" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" parent="1" style="text;html=1;" value="0,N" vertex="1">
+          <mxGeometry x="390" y="335" width="40" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c5" parent="1" style="text;html=1;" value="1,1" vertex="1">
+          <mxGeometry x="760" y="335" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" parent="1" style="text;html=1;" value="0,N" vertex="1">
+          <mxGeometry x="810" y="335" width="40" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c7" parent="1" style="text;html=1;" value="1,1" vertex="1">
+          <mxGeometry x="520" y="505" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c8" parent="1" style="text;html=1;" value="0,1" vertex="1">
+          <mxGeometry x="520" y="535" width="40" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c9" parent="1" style="text;html=1;" value="1,N" vertex="1">
+          <mxGeometry x="640" y="720" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c10" parent="1" style="text;html=1;" value="1,N" vertex="1">
+          <mxGeometry x="890" y="720" width="40" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
 {
@@ -12,7 +13,7 @@ class ClientController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json(Client::latest()->get());
     }
 
     /**
@@ -20,7 +21,7 @@ class ClientController extends Controller
      */
     public function create()
     {
-        //
+        return response()->json(['message' => 'Utiliser POST /clients pour créer un client.']);
     }
 
     /**
@@ -28,7 +29,16 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nom' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:clients,email'],
+            'telephone' => ['required', 'string', 'max:50'],
+            'adresse' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $client = Client::create($validated);
+
+        return response()->json($client, 201);
     }
 
     /**
@@ -36,7 +46,7 @@ class ClientController extends Controller
      */
     public function show(Client $client)
     {
-        //
+        return response()->json($client);
     }
 
     /**
@@ -44,7 +54,10 @@ class ClientController extends Controller
      */
     public function edit(Client $client)
     {
-        //
+        return response()->json([
+            'message' => 'Utiliser PUT/PATCH /clients/{client} pour modifier ce client.',
+            'data' => $client,
+        ]);
     }
 
     /**
@@ -52,7 +65,16 @@ class ClientController extends Controller
      */
     public function update(Request $request, Client $client)
     {
-        //
+        $validated = $request->validate([
+            'nom' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('clients', 'email')->ignore($client->id)],
+            'telephone' => ['sometimes', 'required', 'string', 'max:50'],
+            'adresse' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $client->update($validated);
+
+        return response()->json($client);
     }
 
     /**
@@ -60,6 +82,8 @@ class ClientController extends Controller
      */
     public function destroy(Client $client)
     {
-        //
+        $client->delete();
+
+        return response()->noContent();
     }
 }

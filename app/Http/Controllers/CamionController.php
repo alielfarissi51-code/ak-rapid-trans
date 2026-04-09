@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Camion;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CamionController extends Controller
 {
@@ -12,7 +13,7 @@ class CamionController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json(Camion::latest()->get());
     }
 
     /**
@@ -20,7 +21,7 @@ class CamionController extends Controller
      */
     public function create()
     {
-        //
+        return response()->json(['message' => 'Utiliser POST /camions pour créer un camion.']);
     }
 
     /**
@@ -28,7 +29,16 @@ class CamionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'matricule' => ['required', 'string', 'max:50', 'unique:camions,matricule'],
+            'marque' => ['required', 'string', 'max:255'],
+            'capacite' => ['required', 'integer', 'min:1'],
+            'statut' => ['nullable', Rule::in(['disponible', 'en_maintenance', 'indisponible'])],
+        ]);
+
+        $camion = Camion::create($validated);
+
+        return response()->json($camion, 201);
     }
 
     /**
@@ -36,7 +46,7 @@ class CamionController extends Controller
      */
     public function show(Camion $camion)
     {
-        //
+        return response()->json($camion);
     }
 
     /**
@@ -44,7 +54,10 @@ class CamionController extends Controller
      */
     public function edit(Camion $camion)
     {
-        //
+        return response()->json([
+            'message' => 'Utiliser PUT/PATCH /camions/{camion} pour modifier ce camion.',
+            'data' => $camion,
+        ]);
     }
 
     /**
@@ -52,7 +65,16 @@ class CamionController extends Controller
      */
     public function update(Request $request, Camion $camion)
     {
-        //
+        $validated = $request->validate([
+            'matricule' => ['sometimes', 'required', 'string', 'max:50', Rule::unique('camions', 'matricule')->ignore($camion->id)],
+            'marque' => ['sometimes', 'required', 'string', 'max:255'],
+            'capacite' => ['sometimes', 'required', 'integer', 'min:1'],
+            'statut' => ['sometimes', 'required', Rule::in(['disponible', 'en_maintenance', 'indisponible'])],
+        ]);
+
+        $camion->update($validated);
+
+        return response()->json($camion);
     }
 
     /**
@@ -60,6 +82,8 @@ class CamionController extends Controller
      */
     public function destroy(Camion $camion)
     {
-        //
+        $camion->delete();
+
+        return response()->noContent();
     }
 }

@@ -1,10 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Camion;
-use App\Models\Client;
+
 use App\Models\Commande;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CommandeController extends Controller
 {
@@ -13,8 +13,9 @@ class CommandeController extends Controller
      */
     public function index()
     {
-        $commandes = Commande::with(['client', 'camion'])->get();
-        return view('commandes.index', compact('commandes'));
+        return response()->json(
+            Commande::with(['client', 'camion'])->latest()->get()
+        );
     }
 
     /**
@@ -22,9 +23,7 @@ class CommandeController extends Controller
      */
     public function create()
     {
-        $clients = Client::all();
-        $camions = Camion::all();
-        return view('commandes.create', compact('clients', 'camions'));
+        return response()->json(['message' => 'Utiliser POST /commandes pour créer une commande.']);
     }
 
     /**
@@ -32,25 +31,27 @@ class CommandeController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'lieu_depart' => 'required|string|max:255',
-            'lieu_arrivee' => 'required|string|max:255',
-            'date_transport' => 'required|date',
+        $validated = $request->validate([
+            'client_id' => ['required', 'exists:clients,id'],
+            'camion_id' => ['nullable', 'exists:camions,id'],
+            'lieu_depart' => ['required', 'string', 'max:255'],
+            'lieu_arrivee' => ['required', 'string', 'max:255'],
+            'date_transport' => ['required', 'date'],
+            'prix' => ['nullable', 'numeric', 'min:0'],
+            'statut' => ['nullable', Rule::in(['en_attente', 'validee', 'en_cours', 'livree', 'annulee'])],
         ]);
 
-        Commande::create($request->all());
+        $commande = Commande::create($validated);
 
-        return redirect()->route('commandes.index');
+        return response()->json($commande->load(['client', 'camion']), 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Commande $commande)
     {
-        $commande=Commande::findOrFail($id);
-        return view('commandes.show', compact('commande'));
+        return response()->json($commande->load(['client', 'camion']));
     }
 
     /**
@@ -58,7 +59,10 @@ class CommandeController extends Controller
      */
     public function edit(Commande $commande)
     {
-        //
+        return response()->json([
+            'message' => 'Utiliser PUT/PATCH /commandes/{commande} pour modifier cette commande.',
+            'data' => $commande->load(['client', 'camion']),
+        ]);
     }
 
     /**
@@ -66,16 +70,28 @@ class CommandeController extends Controller
      */
     public function update(Request $request, Commande $commande)
     {
-        //
+        $validated = $request->validate([
+            'client_id' => ['sometimes', 'required', 'exists:clients,id'],
+            'camion_id' => ['nullable', 'exists:camions,id'],
+            'lieu_depart' => ['sometimes', 'required', 'string', 'max:255'],
+            'lieu_arrivee' => ['sometimes', 'required', 'string', 'max:255'],
+            'date_transport' => ['sometimes', 'required', 'date'],
+            'prix' => ['nullable', 'numeric', 'min:0'],
+            'statut' => ['sometimes', 'required', Rule::in(['en_attente', 'validee', 'en_cours', 'livree', 'annulee'])],
+        ]);
+
+        $commande->update($validated);
+
+        return response()->json($commande->load(['client', 'camion']));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
-
+    public function destroy(Commande $commande)
     {
-        Commande::destroy($id);
-        return back();
+        $commande->delete();
+
+        return response()->noContent();
     }
 }

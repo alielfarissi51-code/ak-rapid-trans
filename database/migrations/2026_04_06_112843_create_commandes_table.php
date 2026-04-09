@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('commandes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->foreignId('camion_id')->constrained()->onDelete('cascade');
+            $table->foreignId('camion_id')->nullable()->constrained()->nullOnDelete();
 
             $table->string('lieu_depart');
             $table->string('lieu_arrivee');

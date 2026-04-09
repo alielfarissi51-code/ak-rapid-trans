@@ -16,6 +16,11 @@ class Commande extends Model
         'statut'
     ];
 
+    protected $casts = [
+        'date_transport' => 'date',
+        'prix' => 'decimal:2',
+    ];
+
     public function client()
     {
         return $this->belongsTo(Client::class);
