@@ -1,53 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { clearToken, getMe, logout as apiLogout } from "../services/api";
-
-const adminStats = [
-    {
-        label: "Total Orders",
-        value: "1,284",
-        delta: "+12.4%",
-        icon: OrdersStatIcon,
-        accent: "from-sky-500/30 to-blue-500/10",
-    },
-    {
-        label: "Active Deliveries",
-        value: "86",
-        delta: "+8.1%",
-        icon: TruckStatIcon,
-        accent: "from-cyan-500/25 to-sky-500/10",
-    },
-    {
-        label: "Clients",
-        value: "342",
-        delta: "+4.7%",
-        icon: ClientsStatIcon,
-        accent: "from-indigo-500/25 to-sky-500/10",
-    },
-    {
-        label: "Revenue",
-        value: "$128.4K",
-        delta: "+18.2%",
-        icon: RevenueStatIcon,
-        accent: "from-sky-400/25 to-emerald-400/10",
-    },
-];
-
-const recentOrders = [
-    { id: "#ORD-1048", client: "Nova Freight", status: "Delivered", date: "Apr 11, 2026" },
-    { id: "#ORD-1047", client: "Aster Logistics", status: "Pending", date: "Apr 11, 2026" },
-    { id: "#ORD-1046", client: "Metro Supply", status: "Cancelled", date: "Apr 10, 2026" },
-    { id: "#ORD-1045", client: "North Bridge", status: "Delivered", date: "Apr 10, 2026" },
-    { id: "#ORD-1044", client: "Blue Harbor", status: "Pending", date: "Apr 09, 2026" },
-];
-
-const activity = [
-    { title: "Fleet check completed", time: "12 min ago", tone: "bg-sky-400" },
-    { title: "Shipment #1047 assigned", time: "28 min ago", tone: "bg-cyan-400" },
-    { title: "Invoice batch generated", time: "1 hour ago", tone: "bg-indigo-400" },
-    { title: "Client onboarding approved", time: "3 hours ago", tone: "bg-emerald-400" },
-];
+import { clearToken, getCamions, getCommandes, getMe, getUsers, logout as apiLogout } from "../services/api";
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -57,6 +11,10 @@ function Dashboard() {
     const [user, setUser] = useState(location.state?.user || null);
     const [loadingUser, setLoadingUser] = useState(!location.state?.user);
     const [authError, setAuthError] = useState("");
+    const [counts, setCounts] = useState({ users: 0, camions: 0, commandes: 0 });
+    const [loadingStats, setLoadingStats] = useState(true);
+    const [recentOrders, setRecentOrders] = useState([]);
+    const [activity, setActivity] = useState([]);
     const roleName = user?.role_name || user?.role || null;
 
     useEffect(() => {
@@ -116,8 +74,101 @@ function Dashboard() {
         };
     }, [navigate, roleName, user]);
 
+    useEffect(() => {
+        if (roleName !== "admin") {
+            return;
+        }
+
+        let active = true;
+
+        const loadDashboardData = async () => {
+            try {
+                setLoadingStats(true);
+                const [users, camions, commandes] = await Promise.all([
+                    getUsers(),
+                    getCamions(),
+                    getCommandes(),
+                ]);
+
+                if (active) {
+                    const pendingOrders = commandes.filter((item) => item.statut === "en_attente").length;
+                    const deliveredOrders = commandes.filter((item) => item.statut === "livree").length;
+                    const availableCamions = camions.filter((item) => item.statut === "disponible").length;
+
+                    setCounts({
+                        users: users.length,
+                        camions: camions.length,
+                        commandes: commandes.length,
+                    });
+
+                    setRecentOrders(commandes.slice(0, 5));
+                    setActivity([
+                        {
+                            title: `${pendingOrders} pending orders to process`,
+                            time: "Live",
+                            tone: "bg-amber-400",
+                        },
+                        {
+                            title: `${deliveredOrders} orders delivered`,
+                            time: "Live",
+                            tone: "bg-emerald-400",
+                        },
+                        {
+                            title: `${availableCamions} trucks available`,
+                            time: "Live",
+                            tone: "bg-cyan-400",
+                        },
+                        {
+                            title: `${users.length} users registered`,
+                            time: "Live",
+                            tone: "bg-indigo-400",
+                        },
+                    ]);
+                }
+            } catch (error) {
+                if (active) {
+                    setCounts({ users: 0, camions: 0, commandes: 0 });
+                    setRecentOrders([]);
+                    setActivity([]);
+                }
+            } finally {
+                if (active) {
+                    setLoadingStats(false);
+                }
+            }
+        };
+
+        loadDashboardData();
+
+        return () => {
+            active = false;
+        };
+    }, [roleName]);
+
     const isAdmin = roleName === "admin";
-    const stats = adminStats;
+    const stats = [
+        {
+            label: "Total Users",
+            value: loadingStats ? "..." : counts.users.toLocaleString(),
+            delta: "Registered accounts",
+            icon: ClientsStatIcon,
+            accent: "from-indigo-500/25 to-sky-500/10",
+        },
+        {
+            label: "Total Camions",
+            value: loadingStats ? "..." : counts.camions.toLocaleString(),
+            delta: "Fleet size",
+            icon: TruckStatIcon,
+            accent: "from-cyan-500/25 to-sky-500/10",
+        },
+        {
+            label: "Total Orders",
+            value: loadingStats ? "..." : counts.commandes.toLocaleString(),
+            delta: "All commandes",
+            icon: OrdersStatIcon,
+            accent: "from-sky-500/30 to-blue-500/10",
+        },
+    ];
     const pageSubtitle = "Overview of your logistics operations";
     const pageEyebrow = "Admin Intelligence";
     const liveBadge = "Live sync enabled";
@@ -209,7 +260,38 @@ function Dashboard() {
                                     </div>
                                 </div>
 
-                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                <div className="mb-6 grid gap-3 md:grid-cols-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate("/admin/users")}
+                                        className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-sky-500/10"
+                                    >
+                                        Manage Users
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate("/admin/camions")}
+                                        className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-sky-500/10"
+                                    >
+                                        Manage Camions
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate("/admin/commandes")}
+                                        className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-sky-500/10"
+                                    >
+                                        Manage Orders
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate(0)}
+                                        className="rounded-2xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-semibold text-sky-100 transition hover:border-sky-300/40 hover:bg-sky-500/25"
+                                    >
+                                        Refresh Data
+                                    </button>
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                     {stats.map((stat) => {
                                         const Icon = stat.icon;
 
@@ -231,7 +313,7 @@ function Dashboard() {
                                                     </div>
                                                 </div>
 
-                                                <p className="text-sm text-emerald-300">{stat.delta} this week</p>
+                                                <p className="text-sm text-emerald-300">{stat.delta}</p>
                                             </article>
                                         );
                                     })}
@@ -265,19 +347,37 @@ function Dashboard() {
                                                         <th className="px-5 py-4 font-medium">Client</th>
                                                         <th className="px-5 py-4 font-medium">Status</th>
                                                         <th className="px-5 py-4 font-medium">Date</th>
+                                                        <th className="px-5 py-4 font-medium">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-white/5">
-                                                    {recentOrders.map((order) => (
+                                                    {recentOrders.length > 0 ? recentOrders.map((order) => (
                                                         <tr key={order.id} className="transition hover:bg-white/[0.03]">
-                                                            <td className="px-5 py-4 font-medium text-white">{order.id}</td>
-                                                            <td className="px-5 py-4 text-slate-300">{order.client}</td>
+                                                            <td className="px-5 py-4 font-medium text-white">#{order.id}</td>
+                                                            <td className="px-5 py-4 text-slate-300">{order.client?.nom || "N/A"}</td>
                                                             <td className="px-5 py-4">
-                                                                <StatusPill status={order.status} />
+                                                                <StatusPill status={order.statut} />
                                                             </td>
-                                                            <td className="px-5 py-4 text-slate-400">{order.date}</td>
+                                                            <td className="px-5 py-4 text-slate-400">
+                                                                {new Date(order.date_transport).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="px-5 py-4">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => navigate("/admin/commandes")}
+                                                                    className="text-sm font-medium text-sky-300 transition hover:text-sky-200"
+                                                                >
+                                                                    Open
+                                                                </button>
+                                                            </td>
                                                         </tr>
-                                                    ))}
+                                                    )) : (
+                                                        <tr>
+                                                            <td className="px-5 py-6 text-center text-slate-400" colSpan="5">
+                                                                No recent orders available.
+                                                            </td>
+                                                        </tr>
+                                                    )}
                                                 </tbody>
                                             </table>
                                         </div>
@@ -329,14 +429,24 @@ function Dashboard() {
 
 function StatusPill({ status }) {
     const styles = {
-        Delivered: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-        Pending: "border-amber-400/20 bg-amber-400/10 text-amber-300",
-        Cancelled: "border-rose-400/20 bg-rose-400/10 text-rose-300",
+        livree: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
+        en_attente: "border-amber-400/20 bg-amber-400/10 text-amber-300",
+        annulee: "border-rose-400/20 bg-rose-400/10 text-rose-300",
+        validee: "border-blue-400/20 bg-blue-400/10 text-blue-300",
+        en_cours: "border-cyan-400/20 bg-cyan-400/10 text-cyan-300",
+    };
+
+    const labels = {
+        livree: "Delivered",
+        en_attente: "Pending",
+        annulee: "Cancelled",
+        validee: "Validated",
+        en_cours: "In Progress",
     };
 
     return (
-        <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${styles[status]}`}>
-            {status}
+        <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${styles[status] || "border-white/10 bg-white/5 text-slate-300"}`}>
+            {labels[status] || status}
         </span>
     );
 }
@@ -374,15 +484,6 @@ function ClientsStatIcon({ className }) {
         <svg viewBox="0 0 24 24" fill="none" className={className}>
             <path d="M12 12.5a3.6 3.6 0 1 0 0-7.2 3.6 3.6 0 0 0 0 7.2Z" stroke="currentColor" strokeWidth="1.8" />
             <path d="M4.5 19.5c.7-3.1 3.2-5 7.5-5s6.8 1.9 7.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        </svg>
-    );
-}
-
-function RevenueStatIcon({ className }) {
-    return (
-        <svg viewBox="0 0 24 24" fill="none" className={className}>
-            <path d="M6 16.5 10.5 12l3 3 4.5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M18 9h-3V6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }

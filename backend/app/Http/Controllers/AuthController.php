@@ -190,4 +190,45 @@ class AuthController extends Controller
             'message' => 'Déconnexion réussie.',
         ]);
     }
+
+    public function apiUpdateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        ]);
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Informations mises a jour avec succes.',
+            'user' => $this->userPayload($user->fresh()),
+        ]);
+    }
+
+    public function apiUpdatePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Le mot de passe actuel est incorrect.'],
+            ]);
+        }
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return response()->json([
+            'message' => 'Mot de passe mis a jour avec succes.',
+        ]);
+    }
 }

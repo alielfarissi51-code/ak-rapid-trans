@@ -1,14 +1,16 @@
+import { useNavigate, useLocation } from "react-router-dom";
+
 const navigationItems = [
-  { label: "Dashboard", active: true, icon: DashboardIcon },
-  { label: "Commandes", icon: OrdersIcon },
-  { label: "Clients", icon: ClientsIcon },
-  { label: "Livraisons", icon: DeliveriesIcon },
-  { label: "Véhicules", icon: VehiclesIcon },
-  { label: "Factures", icon: InvoicesIcon },
-  { label: "Settings", icon: SettingsIcon },
+  { label: "Dashboard", path: "/dashboard", icon: DashboardIcon },
+  { label: "Orders", path: "/admin/commandes", icon: OrdersIcon },
+  { label: "Users", path: "/admin/users", icon: ClientsIcon },
+  { label: "Trucks", path: "/admin/camions", icon: VehiclesIcon },
+  { label: "Settings", path: "/settings", icon: SettingsIcon },
 ];
 
 function Sidebar({ mobileOpen = false, onClose = () => {}, user, isAdmin = false, onLogout = () => {} }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   return (
     <>
       <aside
@@ -43,20 +45,25 @@ function Sidebar({ mobileOpen = false, onClose = () => {}, user, isAdmin = false
           <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
             {navigationItems.map((item) => {
               const Icon = item.icon;
+                  const isActive = location.pathname === item.path;
 
               return (
                 <button
                   key={item.label}
                   type="button"
-                  className={`group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                    item.active
+                      onClick={() => {
+                        navigate(item.path);
+                        onClose();
+                      }}
+                      className={`group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                        isActive
                       ? "bg-gradient-to-r from-sky-500/20 to-blue-500/10 text-white shadow-[0_0_0_1px_rgba(56,189,248,0.2)]"
                       : "text-slate-400 hover:bg-white/5 hover:text-white"
                   }`}
                 >
                   <span
                     className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
-                      item.active
+                          isActive
                         ? "bg-sky-500/15 text-sky-300"
                         : "bg-white/5 text-slate-400 group-hover:bg-sky-500/10 group-hover:text-sky-300"
                     }`}
@@ -64,7 +71,7 @@ function Sidebar({ mobileOpen = false, onClose = () => {}, user, isAdmin = false
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="flex-1 text-left">{item.label}</span>
-                  {item.active && (
+                      {isActive && (
                     <span className="h-2.5 w-2.5 rounded-full bg-sky-400 shadow-[0_0_18px_rgba(56,189,248,0.8)]" />
                   )}
                 </button>
