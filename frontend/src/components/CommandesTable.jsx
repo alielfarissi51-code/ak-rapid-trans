@@ -79,9 +79,9 @@ export default function CommandesTable({ commandes, onEdit, onDelete }) {
     };
 
     return (
-        <div className="overflow-hidden rounded-3xl border border-white/8 bg-[#0b1324]/70 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
             <table className="min-w-full divide-y divide-white/5 text-left text-sm">
-                <thead className="bg-white/[0.03] text-slate-400">
+            <thead className="bg-slate-50 text-slate-500">
                     <tr>
                         <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
                             {t.orderId}
@@ -112,23 +112,23 @@ export default function CommandesTable({ commandes, onEdit, onDelete }) {
                 <tbody className="divide-y divide-white/5">
                     {commandes.length > 0 ? (
                         commandes.map((commande) => (
-                            <tr key={commande.id} className="transition hover:bg-white/[0.03]">
-                                <td className="whitespace-nowrap px-5 py-4 font-medium text-white">
+                            <tr key={commande.id} className="transition hover:bg-slate-50">
+                                <td className="whitespace-nowrap px-5 py-4 font-medium text-slate-900">
                                     #{commande.id}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
                                     {commande.client?.nom || t.na}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
                                     {commande.camion?.matricule || t.notAssigned}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
                                     {commande.lieu_depart} → {commande.lieu_arrivee}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-400">
+                                <td className="whitespace-nowrap px-5 py-4 text-slate-500">
                                     {new Date(commande.date_transport).toLocaleDateString()}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
                                     {commande.prix ? (
                                         <>DZD {parseFloat(commande.prix).toLocaleString()}</>
                                     ) : (
@@ -147,14 +147,14 @@ export default function CommandesTable({ commandes, onEdit, onDelete }) {
                                 <td className="whitespace-nowrap px-5 py-4 text-sm font-medium">
                                     <button
                                         onClick={() => onEdit(commande)}
-                                        className="mr-2 inline-flex items-center gap-1.5 rounded-lg border border-sky-400/25 bg-sky-500/10 px-2.5 py-1 text-sky-200 transition hover:bg-sky-500/20"
+                                        className="mr-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-700 transition hover:border-sky-300/50 hover:bg-slate-50"
                                     >
                                         <EditIcon className="h-3.5 w-3.5" />
                                         {t.edit}
                                     </button>
                                     <button
                                         onClick={() => onDelete(commande.id)}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-rose-400/30 bg-rose-500/10 px-2.5 py-1 text-rose-200 transition hover:bg-rose-500/20"
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-rose-600 transition hover:border-rose-200 hover:bg-rose-50"
                                     >
                                         <DeleteIcon className="h-3.5 w-3.5" />
                                         {t.delete}
@@ -164,7 +164,7 @@ export default function CommandesTable({ commandes, onEdit, onDelete }) {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="8" className="px-5 py-8 text-center text-slate-400">
+                            <td colSpan="8" className="px-5 py-8 text-center text-slate-500">
                                 {t.noOrders}
                             </td>
                         </tr>

@@ -121,7 +121,7 @@ function Sidebar({
     <>
       <aside
         className={`app-sidebar fixed inset-y-0 left-0 z-40 w-[260px] border-r backdrop-blur-2xl transition-transform duration-300 lg:translate-x-0 ${
-          theme === "light" ? "border-slate-200 bg-white/95" : "border-white/10 bg-[#08111f]/95"
+          theme === "light" ? "border-slate-200/80 bg-white/80 shadow-[0_20px_50px_rgba(15,23,42,0.05)]" : "border-white/10 bg-[#08111f]/95"
         } ${
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
@@ -145,7 +145,7 @@ function Sidebar({
               onClick={onClose}
               className={`rounded-xl border p-2 transition lg:hidden ${
                 theme === "light"
-                  ? "border-slate-200 bg-slate-100 text-slate-600 hover:border-sky-400/40 hover:bg-sky-100"
+                  ? "border-slate-200 bg-slate-50 text-slate-600 hover:border-sky-300/40 hover:bg-sky-100"
                   : "border-white/10 bg-white/5 text-slate-300 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-white"
               }`}
               aria-label={t.closeSidebar}
@@ -170,10 +170,10 @@ function Sidebar({
                       className={`group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
                         isActive
                       ? theme === "light"
-                        ? "bg-gradient-to-r from-sky-100 to-cyan-100 text-slate-900 shadow-[0_0_0_1px_rgba(56,189,248,0.32)]"
+                            ? "bg-slate-100 text-slate-900 shadow-[0_0_0_1px_rgba(148,163,184,0.22)]"
                         : "bg-gradient-to-r from-sky-500/20 to-blue-500/10 text-white shadow-[0_0_0_1px_rgba(56,189,248,0.2)]"
                       : theme === "light"
-                        ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            ? "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         : "text-slate-400 hover:bg-white/5 hover:text-white"
                   }`}
                 >
@@ -181,10 +181,10 @@ function Sidebar({
                     className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
                           isActive
                         ? theme === "light"
-                          ? "bg-sky-200 text-sky-700"
+                          ? "bg-slate-200 text-slate-700"
                           : "bg-sky-500/15 text-sky-300"
                         : theme === "light"
-                          ? "bg-slate-100 text-slate-500 group-hover:bg-sky-100 group-hover:text-sky-700"
+                          ? "bg-slate-50 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-900"
                           : "bg-white/5 text-slate-400 group-hover:bg-sky-500/10 group-hover:text-sky-300"
                     }`}
                   >
@@ -199,7 +199,7 @@ function Sidebar({
             })}
           </nav>
 
-          <div className={`mt-6 rounded-3xl border p-4 shadow-[0_20px_60px_rgba(0,0,0,0.22)] ${theme === "light" ? "border-slate-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.08)]" : "border-white/10 bg-white/5"}`}>
+          <div className={`mt-6 rounded-3xl border p-4 shadow-[0_20px_60px_rgba(0,0,0,0.22)] ${theme === "light" ? "border-slate-200/80 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.05)]" : "border-white/10 bg-white/5"}`}>
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-sm font-semibold text-white">
                 {(user?.name || "AK").slice(0, 2).toUpperCase()}
@@ -222,7 +222,7 @@ function Sidebar({
                   onClick={toggleTheme}
                   className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
                     theme === "light"
-                      ? "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                       : "border-white/10 bg-white/5 text-slate-200 hover:bg-sky-500/10"
                   }`}
                 >
@@ -239,7 +239,7 @@ function Sidebar({
                   onClick={toggleLanguage}
                   className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
                     theme === "light"
-                      ? "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                       : "border-white/10 bg-white/5 text-slate-200 hover:bg-sky-500/10"
                   }`}
                 >
@@ -256,7 +256,7 @@ function Sidebar({
               onClick={onLogout}
               className={`mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
                 theme === "light"
-                  ? "border-slate-200 bg-white text-slate-700 hover:border-sky-400/40 hover:bg-sky-50"
+                  ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                   : "border-white/10 bg-[#0d1728] text-slate-200 hover:border-sky-400/40 hover:bg-sky-500/10 hover:text-white"
               }`}
             >

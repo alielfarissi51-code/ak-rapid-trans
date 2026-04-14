@@ -61,9 +61,9 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
     };
 
     return (
-        <div className="overflow-hidden rounded-3xl border border-white/8 bg-[#0b1324]/70 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
             <table className="min-w-full divide-y divide-white/5 text-left text-sm">
-                <thead className="bg-white/[0.03] text-slate-400">
+            <thead className="bg-slate-50 text-slate-500">
                     <tr>
                         <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
                             {t.licensePlate}
@@ -85,14 +85,14 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
                 <tbody className="divide-y divide-white/5">
                     {camions.length > 0 ? (
                         camions.map((camion) => (
-                            <tr key={camion.id} className="transition hover:bg-white/[0.03]">
-                                <td className="whitespace-nowrap px-5 py-4 font-medium text-white">
+                            <tr key={camion.id} className="transition hover:bg-slate-50">
+                                <td className="whitespace-nowrap px-5 py-4 font-medium text-slate-900">
                                     {camion.matricule}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
                                     {camion.marque}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
                                     {camion.capacite.toLocaleString()}
                                 </td>
                                 <td className="whitespace-nowrap px-5 py-4">
@@ -103,14 +103,14 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
                                 <td className="whitespace-nowrap px-5 py-4 text-sm font-medium">
                                     <button
                                         onClick={() => onEdit(camion)}
-                                        className="mr-2 inline-flex items-center gap-1.5 rounded-lg border border-sky-400/25 bg-sky-500/10 px-2.5 py-1 text-sky-200 transition hover:bg-sky-500/20"
+                                        className="mr-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-700 transition hover:border-sky-300/50 hover:bg-slate-50"
                                     >
                                         <EditIcon className="h-3.5 w-3.5" />
                                         {t.edit}
                                     </button>
                                     <button
                                         onClick={() => onDelete(camion.id)}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-rose-400/30 bg-rose-500/10 px-2.5 py-1 text-rose-200 transition hover:bg-rose-500/20"
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-rose-600 transition hover:border-rose-200 hover:bg-rose-50"
                                     >
                                         <DeleteIcon className="h-3.5 w-3.5" />
                                         {t.delete}
@@ -120,7 +120,7 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="5" className="px-5 py-8 text-center text-slate-400">
+                            <td colSpan="5" className="px-5 py-8 text-center text-slate-500">
                                 {t.noTrucks}
                             </td>
                         </tr>

@@ -203,11 +203,11 @@ function Dashboard() {
     };
 
     return (
-        <div className={`app-dashboard relative h-screen overflow-hidden ${theme === "light" ? "bg-slate-100 text-slate-900" : "bg-[#050814] text-slate-100"}`}>
+        <div className={`app-dashboard relative h-screen overflow-hidden ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-[#050814] text-slate-100"}`}>
             <div className="pointer-events-none absolute inset-0">
-                <div className={`absolute -left-16 -top-16 h-72 w-72 rounded-full blur-3xl ${theme === "light" ? "bg-sky-200/70" : "bg-sky-500/20"}`} />
-                <div className={`absolute right-0 top-24 h-80 w-80 rounded-full blur-3xl ${theme === "light" ? "bg-cyan-200/70" : "bg-cyan-500/15"}`} />
-                <div className={`absolute bottom-[-120px] left-1/3 h-80 w-80 rounded-full blur-3xl ${theme === "light" ? "bg-indigo-200/60" : "bg-indigo-500/15"}`} />
+                <div className={`absolute -left-16 -top-16 h-72 w-72 rounded-full blur-3xl ${theme === "light" ? "bg-slate-200/30" : "bg-sky-500/20"}`} />
+                <div className={`absolute right-0 top-24 h-80 w-80 rounded-full blur-3xl ${theme === "light" ? "bg-slate-100/40" : "bg-cyan-500/15"}`} />
+                <div className={`absolute bottom-[-120px] left-1/3 h-80 w-80 rounded-full blur-3xl ${theme === "light" ? "bg-slate-200/22" : "bg-indigo-500/15"}`} />
             </div>
             <div className="flex h-full">
                 <Sidebar
@@ -221,7 +221,7 @@ function Dashboard() {
                 />
 
                 <div className="flex min-w-0 flex-1 flex-col lg:pl-[260px]">
-                    <header className={`border-b px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8 ${theme === "light" ? "border-slate-200 bg-white/85" : "border-white/5 bg-[#050814]/80"}`}>
+                    <header className={`border-b px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8 ${theme === "light" ? "border-slate-200/70 bg-white/86" : "border-white/5 bg-[#050814]/80"}`}>
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex min-w-0 items-center gap-3">
                                 <button
@@ -242,7 +242,7 @@ function Dashboard() {
                             </div>
 
                             <div className="hidden items-center gap-3 sm:flex">
-                                <div className={`rounded-2xl border px-4 py-2 text-sm backdrop-blur-xl ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                                <div className={`rounded-full border px-4 py-2 text-sm backdrop-blur-xl ${theme === "light" ? "border-slate-200 bg-white text-slate-600 shadow-[0_8px_18px_rgba(15,23,42,0.05)]" : "border-white/10 bg-white/5 text-slate-300"}`}>
                                     {user ? `${user.name} • ${t.admin}` : t.loadingAccount}
                                 </div>
                             </div>
@@ -269,18 +269,19 @@ function Dashboard() {
                                 </div>
                             )}
 
-                            <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white/85" : "border-white/8 bg-white/[0.03]"}`}>
+                            <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200/80 bg-white/96 shadow-[0_18px_40px_rgba(15,23,42,0.05)]" : "border-white/8 bg-white/[0.03]"}`}>
                                 <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
-                                        <p className="text-sm uppercase tracking-[0.28em] text-sky-300/70">
+                                        <p className={`text-sm uppercase tracking-[0.28em] ${theme === "light" ? "text-slate-500" : "text-sky-300/70"}`}>
                                             {pageEyebrow}
                                         </p>
-                                        <h2 className={`mt-2 text-2xl font-semibold sm:text-3xl ${theme === "light" ? "text-slate-900" : "text-white"}`}>
+                                        <h2 className={`mt-2 text-2xl font-semibold tracking-tight sm:text-3xl ${theme === "light" ? "text-slate-900" : "text-white"}`}>
                                             {pageSubtitle}
                                         </h2>
                                     </div>
 
-                                    <div className={`rounded-2xl border px-4 py-3 text-sm ${theme === "light" ? "border-sky-300/50 bg-sky-100 text-sky-700" : "border-sky-400/15 bg-sky-400/10 text-sky-200"}`}>
+                                    <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 text-sm font-medium ${theme === "light" ? "border-slate-200 bg-white text-slate-700" : "border-sky-400/15 bg-sky-400/10 text-sky-200"}`}>
+                                        <SparkIcon className="h-4 w-4" />
                                         {liveBadge}
                                     </div>
                                 </div>
@@ -289,29 +290,33 @@ function Dashboard() {
                                     <button
                                         type="button"
                                         onClick={() => navigate("/admin/users")}
-                                        className={`rounded-2xl border px-4 py-3 text-sm transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-sky-400/30 hover:bg-sky-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
+                                        className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(15,23,42,0.08)] ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
                                     >
+                                        <UsersIcon className="h-4 w-4" />
                                         {t.manageUsers}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => navigate("/admin/camions")}
-                                        className={`rounded-2xl border px-4 py-3 text-sm transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-sky-400/30 hover:bg-sky-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
+                                        className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(15,23,42,0.08)] ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
                                     >
+                                        <TruckActionIcon className="h-4 w-4" />
                                         {t.manageTrucks}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => navigate("/admin/commandes")}
-                                        className={`rounded-2xl border px-4 py-3 text-sm transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-sky-400/30 hover:bg-sky-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
+                                        className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(15,23,42,0.08)] ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
                                     >
+                                        <OrdersActionIcon className="h-4 w-4" />
                                         {t.manageOrders}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => navigate(0)}
-                                        className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${theme === "light" ? "border-sky-300/60 bg-sky-100 text-sky-700 hover:border-sky-400/70 hover:bg-sky-200" : "border-sky-400/20 bg-sky-500/15 text-sky-100 hover:border-sky-300/40 hover:bg-sky-500/25"}`}
+                                        className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(15,23,42,0.08)] ${theme === "light" ? "border-slate-200 bg-slate-900 text-white hover:bg-slate-800" : "border-sky-400/20 bg-sky-500/15 text-sky-100 hover:border-sky-300/40 hover:bg-sky-500/25"}`}
                                     >
+                                        <RefreshIcon className="h-4 w-4" />
                                         {t.refreshData}
                                     </button>
                                 </div>
@@ -323,22 +328,22 @@ function Dashboard() {
                                         return (
                                             <article
                                                 key={stat.label}
-                                                className={`rounded-3xl border p-5 transition hover:-translate-y-0.5 ${theme === "light" ? "border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)] hover:border-sky-300/40" : `border-white/8 bg-gradient-to-br ${stat.accent} shadow-[0_18px_60px_rgba(0,0,0,0.22)] hover:border-sky-300/20`}`}
+                                                className={`rounded-[20px] border p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(15,23,42,0.12)] ${theme === "light" ? "border-slate-200 bg-white shadow-[0_16px_35px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:scale-[1.01]" : `border-white/8 bg-gradient-to-br ${stat.accent} shadow-[0_18px_60px_rgba(0,0,0,0.22)] hover:border-sky-300/20`}`}
                                             >
-                                                <div className="mb-6 flex items-start justify-between gap-4">
+                                                <div className="mb-5 flex items-start justify-between gap-4">
                                                     <div>
-                                                        <p className="text-sm text-slate-300">{stat.label}</p>
-                                                        <p className="mt-3 text-3xl font-semibold tracking-tight text-white">
+                                                        <p className={`text-sm font-medium ${theme === "light" ? "text-slate-500" : "text-slate-300"}`}>{stat.label}</p>
+                                                        <p className={`mt-3 text-3xl font-semibold tracking-tight ${theme === "light" ? "text-slate-900" : "text-white"}`}>
                                                             {stat.value}
                                                         </p>
                                                     </div>
 
-                                                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border shadow-[0_12px_30px_rgba(2,132,199,0.18)] ${theme === "light" ? "border-sky-200 bg-sky-50 text-sky-600" : "border-white/10 bg-white/10 text-sky-200"}`}>
+                                                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border shadow-[0_12px_24px_rgba(2,132,199,0.14)] ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/10 bg-white/10 text-sky-200"}`}>
                                                         <Icon className="h-6 w-6" />
                                                     </div>
                                                 </div>
 
-                                                <p className="text-sm text-emerald-300">{stat.delta}</p>
+                                                <p className={`text-sm font-medium ${theme === "light" ? "text-slate-500" : "text-emerald-300"}`}>{stat.delta}</p>
                                             </article>
                                         );
                                     })}
@@ -369,27 +374,27 @@ function Dashboard() {
                             </section>
 
                             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.9fr)]">
-                                <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
+                                <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.05)]" : "border-white/8 bg-white/[0.03]"}`}>
                                     <div className="mb-6 flex items-center justify-between gap-4">
                                         <div>
-                                            <h3 className="text-lg font-semibold text-white">{t.recentOrders}</h3>
-                                            <p className="mt-1 text-sm text-slate-400">
+                                            <h3 className={`text-lg font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{t.recentOrders}</h3>
+                                                <p className={`mt-1 text-sm ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>
                                                 {t.recentOrdersSubtitle}
                                             </p>
                                         </div>
 
                                         <button
                                             type="button"
-                                            className={`rounded-2xl border px-4 py-2 text-sm transition ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700 hover:border-sky-400/30 hover:bg-sky-50" : "border-white/10 bg-white/5 text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10 hover:text-white"}`}
+                                            className={`rounded-full border px-4 py-2 text-sm transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-white/10 bg-white/5 text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10 hover:text-white"}`}
                                         >
                                             {t.viewAll}
                                         </button>
                                     </div>
 
-                                    <div className={`overflow-hidden rounded-3xl border ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-[#0b1324]/70"}`}>
+                                    <div className={`overflow-hidden rounded-3xl border ${theme === "light" ? "border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.05)]" : "border-white/8 bg-[#0b1324]/70"}`}>
                                         <div className="overflow-x-auto">
-                                            <table className="min-w-full divide-y divide-white/5 text-left text-sm">
-                                                <thead className="bg-white/[0.03] text-slate-400">
+                                            <table className={`min-w-full divide-y text-left text-sm ${theme === "light" ? "divide-slate-100" : "divide-white/5"}`}>
+                                                <thead className={`${theme === "light" ? "bg-slate-50 text-slate-500" : "bg-white/[0.03] text-slate-400"}`}>
                                                     <tr>
                                                         <th className="px-5 py-4 font-medium">ID</th>
                                                         <th className="px-5 py-4 font-medium">{t.client}</th>
@@ -398,22 +403,22 @@ function Dashboard() {
                                                         <th className="px-5 py-4 font-medium">{t.action}</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-white/5">
+                                                <tbody className={`divide-y ${theme === "light" ? "divide-slate-100" : "divide-white/5"}`}>
                                                     {recentOrders.length > 0 ? recentOrders.map((order) => (
-                                                        <tr key={order.id} className="transition hover:bg-white/[0.03]">
-                                                            <td className="px-5 py-4 font-medium text-white">#{order.id}</td>
-                                                            <td className="px-5 py-4 text-slate-300">{order.client?.nom || "N/A"}</td>
+                                                        <tr key={order.id} className={`transition ${theme === "light" ? "hover:bg-slate-50" : "hover:bg-white/[0.03]"}`}>
+                                                            <td className={`px-5 py-4 font-medium ${theme === "light" ? "text-slate-900" : "text-white"}`}>#{order.id}</td>
+                                                            <td className={`px-5 py-4 ${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>{order.client?.nom || "N/A"}</td>
                                                             <td className="px-5 py-4">
                                                                 <StatusPill status={order.statut} lang={lang} />
                                                             </td>
-                                                            <td className="px-5 py-4 text-slate-400">
+                                                            <td className={`px-5 py-4 ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>
                                                                 {new Date(order.date_transport).toLocaleDateString()}
                                                             </td>
                                                             <td className="px-5 py-4">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => navigate("/admin/commandes")}
-                                                                    className="text-sm font-medium text-sky-300 transition hover:text-sky-200"
+                                                                    className={`text-sm font-medium transition ${theme === "light" ? "text-slate-700 hover:text-slate-900" : "text-sky-300 hover:text-sky-200"}`}
                                                                 >
                                                                     {t.open}
                                                                 </button>
@@ -421,7 +426,7 @@ function Dashboard() {
                                                         </tr>
                                                     )) : (
                                                         <tr>
-                                                            <td className="px-5 py-6 text-center text-slate-400" colSpan="5">
+                                                            <td className={`px-5 py-6 text-center ${theme === "light" ? "text-slate-500" : "text-slate-400"}`} colSpan="5">
                                                                 {t.noRecentOrders}
                                                             </td>
                                                         </tr>
@@ -433,32 +438,32 @@ function Dashboard() {
                                 </section>
 
                                 <aside className="space-y-6">
-                                    <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
+                                    <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]" : "border-white/8 bg-white/[0.03]"}`}>
                                         <div className="mb-5 flex items-center justify-between">
                                             <div>
-                                                <h3 className="text-lg font-semibold text-white">{t.activity}</h3>
-                                                <p className="mt-1 text-sm text-slate-400">{t.activitySubtitle}</p>
+                                                <h3 className={`text-lg font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{t.activity}</h3>
+                                                <p className={`mt-1 text-sm ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{t.activitySubtitle}</p>
                                             </div>
-                                            <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-xs font-medium text-sky-200">
+                                            <span className={`rounded-full border px-3 py-1 text-xs font-medium ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-sky-400/20 bg-sky-400/10 text-sky-200"}`}>
                                                 {t.live}
                                             </span>
                                         </div>
 
                                         <div className="space-y-4">
                                             {activity.map((item) => (
-                                                <div key={item.title} className="flex items-start gap-3 rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                                                <div key={item.title} className={`flex items-start gap-3 rounded-2xl border p-4 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/5 bg-white/[0.02]"}`}>
                                                     <span className={`mt-1 h-2.5 w-2.5 rounded-full ${item.tone} shadow-[0_0_18px_currentColor]`} />
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="text-sm font-medium text-white">{item.title}</p>
-                                                        <p className="mt-1 text-xs text-slate-400">{item.time}</p>
+                                                        <p className={`text-sm font-medium ${theme === "light" ? "text-slate-800" : "text-white"}`}>{item.title}</p>
+                                                        <p className={`mt-1 text-xs ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{item.time}</p>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     </section>
 
-                                    <section className="rounded-[28px] border border-sky-400/15 bg-gradient-to-br from-sky-500/15 to-blue-500/10 p-6 shadow-[0_24px_80px_rgba(14,165,233,0.1)] backdrop-blur-2xl">
-                                        <p className="text-sm uppercase tracking-[0.24em] text-sky-200/70">{t.quickStats}</p>
+                                    <section className={`rounded-[28px] border p-6 backdrop-blur-2xl ${theme === "light" ? "border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]" : "border-sky-400/15 bg-gradient-to-br from-sky-500/15 to-blue-500/10 shadow-[0_24px_80px_rgba(14,165,233,0.1)]"}`}>
+                                        <p className={`text-sm uppercase tracking-[0.24em] ${theme === "light" ? "text-slate-500" : "text-sky-200/70"}`}>{t.quickStats}</p>
                                         <div className="mt-4 space-y-4 text-sm text-slate-300">
                                             <MetricRow label={t.fleetUtilization} value="92%" theme={theme} />
                                             <MetricRow label={t.onTimeDelivery} value="97.6%" theme={theme} />
@@ -543,12 +548,12 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
             </div>
 
             {loading ? (
-                <div className={`rounded-2xl border px-4 py-6 text-sm ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-600" : "border-white/10 bg-white/[0.02] text-slate-300"}`}>
+                                        <div className={`rounded-2xl border px-4 py-6 text-sm ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-white/10 bg-white/[0.02] text-slate-300"}`}>
                     {chartText.loadingData}
                 </div>
             ) : (
                 <div className="grid items-start gap-5 lg:grid-cols-[350px_minmax(0,1fr)]">
-                    <div className={`rounded-2xl border p-3 ${theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/10 bg-[#0b1324]/70"}`}>
+                    <div className={`rounded-2xl border p-3 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/10 bg-[#0b1324]/70"}`}>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 {chartType === "line" ? (
@@ -643,7 +648,7 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
                                 </div>
                             );
                         }) : (
-                            <div className={`rounded-2xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-500" : "border-white/10 bg-white/[0.02] text-slate-400"}`}>
+                            <div className={`rounded-2xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-white text-slate-500" : "border-white/10 bg-white/[0.02] text-slate-400"}`}>
                                 {chartText.noRecords}
                             </div>
                         )}
@@ -843,6 +848,52 @@ function MenuIcon({ className }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" className={className}>
             <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+function SparkIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function UsersIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M3.5 20c.7-3.2 3.2-5 5.5-5 2 0 3.7.9 4.8 2.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            <path d="M14.5 20c.4-2.5 2.1-4.2 4.5-4.2 1.4 0 2.8.6 3.5 1.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+function TruckActionIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M3 9h12v7H3V9Z" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M15 11h3l3 3v2h-6v-5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="M7 18a1.6 1.6 0 1 0 0-3.2A1.6 1.6 0 0 0 7 18Zm10 0a1.6 1.6 0 1 0 0-3.2A1.6 1.6 0 0 0 17 18Z" fill="currentColor" />
+        </svg>
+    );
+}
+
+function OrdersActionIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M5 6h14l-1 12H6L5 6Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="M9 6a3 3 0 0 1 6 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+function RefreshIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M20 12a8 8 0 0 0-14-5M4 5v4h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 12a8 8 0 0 0 14 5m2-5v4h-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }
