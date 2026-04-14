@@ -82,7 +82,7 @@ export default function CommandesManagement() {
     };
 
     return (
-        <div className="h-screen overflow-hidden bg-[#050814] text-slate-100">
+        <div className="app-dashboard h-screen overflow-hidden bg-[#050814] text-slate-100">
             <Sidebar />
             <div className="flex min-w-0 flex-1 flex-col lg:pl-[260px]">
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">

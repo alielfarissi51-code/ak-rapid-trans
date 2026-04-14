@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { BarChart, Bar, LineChart, Line, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 import Sidebar from "../components/Sidebar";
 import { clearToken, getCamions, getCommandes, getMe, getUsers, logout as apiLogout } from "../services/api";
+import { applyDocumentTheme, getStoredPreferences } from "../utils/preferences";
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -14,8 +16,18 @@ function Dashboard() {
     const [counts, setCounts] = useState({ users: 0, camions: 0, commandes: 0 });
     const [loadingStats, setLoadingStats] = useState(true);
     const [recentOrders, setRecentOrders] = useState([]);
+    const [truckStatusData, setTruckStatusData] = useState([]);
+    const [orderStatusData, setOrderStatusData] = useState([]);
     const [activity, setActivity] = useState([]);
+    const [preferences, setPreferences] = useState(() => getStoredPreferences());
     const roleName = user?.role_name || user?.role || null;
+    const theme = preferences.theme === "light" ? "light" : "dark";
+    const lang = preferences.lang === "fr" ? "fr" : "en";
+    const t = useMemo(() => getDashboardTranslations(lang), [lang]);
+
+    useEffect(() => {
+        applyDocumentTheme(theme);
+    }, [theme]);
 
     useEffect(() => {
         if (!successMessage) {
@@ -94,6 +106,8 @@ function Dashboard() {
                     const pendingOrders = commandes.filter((item) => item.statut === "en_attente").length;
                     const deliveredOrders = commandes.filter((item) => item.statut === "livree").length;
                     const availableCamions = camions.filter((item) => item.statut === "disponible").length;
+                    const trucksDistribution = buildStatusChartData(camions, CAMION_STATUS_META, lang);
+                    const ordersDistribution = buildStatusChartData(commandes, ORDER_STATUS_META, lang);
 
                     setCounts({
                         users: users.length,
@@ -102,25 +116,27 @@ function Dashboard() {
                     });
 
                     setRecentOrders(commandes.slice(0, 5));
+                    setTruckStatusData(trucksDistribution);
+                    setOrderStatusData(ordersDistribution);
                     setActivity([
                         {
-                            title: `${pendingOrders} pending orders to process`,
-                            time: "Live",
+                            title: t.pendingOrders(pendingOrders),
+                            time: t.live,
                             tone: "bg-amber-400",
                         },
                         {
-                            title: `${deliveredOrders} orders delivered`,
-                            time: "Live",
+                            title: t.deliveredOrders(deliveredOrders),
+                            time: t.live,
                             tone: "bg-emerald-400",
                         },
                         {
-                            title: `${availableCamions} trucks available`,
-                            time: "Live",
+                            title: t.availableTrucks(availableCamions),
+                            time: t.live,
                             tone: "bg-cyan-400",
                         },
                         {
-                            title: `${users.length} users registered`,
-                            time: "Live",
+                            title: t.registeredUsers(users.length),
+                            time: t.live,
                             tone: "bg-indigo-400",
                         },
                     ]);
@@ -129,6 +145,8 @@ function Dashboard() {
                 if (active) {
                     setCounts({ users: 0, camions: 0, commandes: 0 });
                     setRecentOrders([]);
+                    setTruckStatusData([]);
+                    setOrderStatusData([]);
                     setActivity([]);
                 }
             } finally {
@@ -143,35 +161,35 @@ function Dashboard() {
         return () => {
             active = false;
         };
-    }, [roleName]);
+    }, [lang, roleName, t]);
 
     const isAdmin = roleName === "admin";
     const stats = [
         {
-            label: "Total Users",
+            label: t.totalUsers,
             value: loadingStats ? "..." : counts.users.toLocaleString(),
-            delta: "Registered accounts",
+            delta: t.registeredAccounts,
             icon: ClientsStatIcon,
             accent: "from-indigo-500/25 to-sky-500/10",
         },
         {
-            label: "Total Camions",
+            label: t.totalTrucks,
             value: loadingStats ? "..." : counts.camions.toLocaleString(),
-            delta: "Fleet size",
+            delta: t.fleetSize,
             icon: TruckStatIcon,
             accent: "from-cyan-500/25 to-sky-500/10",
         },
         {
-            label: "Total Orders",
+            label: t.totalOrders,
             value: loadingStats ? "..." : counts.commandes.toLocaleString(),
-            delta: "All commandes",
+            delta: t.allOrders,
             icon: OrdersStatIcon,
             accent: "from-sky-500/30 to-blue-500/10",
         },
     ];
-    const pageSubtitle = "Overview of your logistics operations";
-    const pageEyebrow = "Admin Intelligence";
-    const liveBadge = "Live sync enabled";
+    const pageSubtitle = t.pageSubtitle;
+    const pageEyebrow = t.pageEyebrow;
+    const liveBadge = t.liveSync;
 
     const handleLogout = async () => {
         try {
@@ -185,7 +203,12 @@ function Dashboard() {
     };
 
     return (
-        <div className="h-screen overflow-hidden bg-[#050814] text-slate-100">
+        <div className={`app-dashboard relative h-screen overflow-hidden ${theme === "light" ? "bg-slate-100 text-slate-900" : "bg-[#050814] text-slate-100"}`}>
+            <div className="pointer-events-none absolute inset-0">
+                <div className={`absolute -left-16 -top-16 h-72 w-72 rounded-full blur-3xl ${theme === "light" ? "bg-sky-200/70" : "bg-sky-500/20"}`} />
+                <div className={`absolute right-0 top-24 h-80 w-80 rounded-full blur-3xl ${theme === "light" ? "bg-cyan-200/70" : "bg-cyan-500/15"}`} />
+                <div className={`absolute bottom-[-120px] left-1/3 h-80 w-80 rounded-full blur-3xl ${theme === "light" ? "bg-indigo-200/60" : "bg-indigo-500/15"}`} />
+            </div>
             <div className="flex h-full">
                 <Sidebar
                     mobileOpen={mobileSidebarOpen}
@@ -193,32 +216,34 @@ function Dashboard() {
                     user={user}
                     isAdmin={isAdmin}
                     onLogout={handleLogout}
+                    preferences={preferences}
+                    onPreferencesChange={setPreferences}
                 />
 
                 <div className="flex min-w-0 flex-1 flex-col lg:pl-[260px]">
-                    <header className="border-b border-white/5 bg-[#050814]/80 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
+                    <header className={`border-b px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8 ${theme === "light" ? "border-slate-200 bg-white/85" : "border-white/5 bg-[#050814]/80"}`}>
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex min-w-0 items-center gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setMobileSidebarOpen(true)}
-                                    className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-sky-400/40 hover:bg-sky-500/10 lg:hidden"
-                                    aria-label="Open sidebar"
+                                    className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border transition lg:hidden ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-sky-400/40 hover:bg-sky-50" : "border-white/10 bg-white/5 text-slate-200 hover:border-sky-400/40 hover:bg-sky-500/10"}`}
+                                    aria-label={t.openSidebar}
                                 >
                                     <MenuIcon className="h-5 w-5" />
                                 </button>
 
                                 <div className="min-w-0">
-                                    <p className="text-sm font-medium text-slate-400">Operations HQ</p>
-                                    <h1 className="truncate text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                                        Dashboard
+                                    <p className="text-sm font-medium text-slate-400">{t.operationsHq}</p>
+                                    <h1 className={`truncate text-2xl font-semibold tracking-tight sm:text-3xl ${theme === "light" ? "text-slate-900" : "text-white"}`}>
+                                        {t.dashboard}
                                     </h1>
                                 </div>
                             </div>
 
                             <div className="hidden items-center gap-3 sm:flex">
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 backdrop-blur-xl">
-                                    {user ? `${user.name} • Admin` : "Loading account..."}
+                                <div className={`rounded-2xl border px-4 py-2 text-sm backdrop-blur-xl ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                                    {user ? `${user.name} • ${t.admin}` : t.loadingAccount}
                                 </div>
                             </div>
                         </div>
@@ -227,8 +252,8 @@ function Dashboard() {
                     <main className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
                         <div className="mx-auto flex max-w-7xl flex-col gap-6">
                             {loadingUser && !user && (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300 backdrop-blur-xl">
-                                    Loading your account...
+                                <div className={`rounded-2xl border px-4 py-3 text-sm backdrop-blur-xl ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                                    {t.loadingYourAccount}
                                 </div>
                             )}
 
@@ -244,18 +269,18 @@ function Dashboard() {
                                 </div>
                             )}
 
-                            <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
+                            <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white/85" : "border-white/8 bg-white/[0.03]"}`}>
                                 <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
                                         <p className="text-sm uppercase tracking-[0.28em] text-sky-300/70">
                                             {pageEyebrow}
                                         </p>
-                                        <h2 className="mt-2 text-2xl font-semibold text-white sm:text-3xl">
+                                        <h2 className={`mt-2 text-2xl font-semibold sm:text-3xl ${theme === "light" ? "text-slate-900" : "text-white"}`}>
                                             {pageSubtitle}
                                         </h2>
                                     </div>
 
-                                    <div className="rounded-2xl border border-sky-400/15 bg-sky-400/10 px-4 py-3 text-sm text-sky-200">
+                                    <div className={`rounded-2xl border px-4 py-3 text-sm ${theme === "light" ? "border-sky-300/50 bg-sky-100 text-sky-700" : "border-sky-400/15 bg-sky-400/10 text-sky-200"}`}>
                                         {liveBadge}
                                     </div>
                                 </div>
@@ -264,30 +289,30 @@ function Dashboard() {
                                     <button
                                         type="button"
                                         onClick={() => navigate("/admin/users")}
-                                        className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-sky-500/10"
+                                        className={`rounded-2xl border px-4 py-3 text-sm transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-sky-400/30 hover:bg-sky-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
                                     >
-                                        Manage Users
+                                        {t.manageUsers}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => navigate("/admin/camions")}
-                                        className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-sky-500/10"
+                                        className={`rounded-2xl border px-4 py-3 text-sm transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-sky-400/30 hover:bg-sky-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
                                     >
-                                        Manage Camions
+                                        {t.manageTrucks}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => navigate("/admin/commandes")}
-                                        className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-sky-500/10"
+                                        className={`rounded-2xl border px-4 py-3 text-sm transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-sky-400/30 hover:bg-sky-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
                                     >
-                                        Manage Orders
+                                        {t.manageOrders}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => navigate(0)}
-                                        className="rounded-2xl border border-sky-400/20 bg-sky-500/15 px-4 py-3 text-sm font-semibold text-sky-100 transition hover:border-sky-300/40 hover:bg-sky-500/25"
+                                        className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${theme === "light" ? "border-sky-300/60 bg-sky-100 text-sky-700 hover:border-sky-400/70 hover:bg-sky-200" : "border-sky-400/20 bg-sky-500/15 text-sky-100 hover:border-sky-300/40 hover:bg-sky-500/25"}`}
                                     >
-                                        Refresh Data
+                                        {t.refreshData}
                                     </button>
                                 </div>
 
@@ -298,7 +323,7 @@ function Dashboard() {
                                         return (
                                             <article
                                                 key={stat.label}
-                                                className={`rounded-3xl border border-white/8 bg-gradient-to-br ${stat.accent} p-5 shadow-[0_18px_60px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:border-sky-300/20`}
+                                                className={`rounded-3xl border p-5 transition hover:-translate-y-0.5 ${theme === "light" ? "border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)] hover:border-sky-300/40" : `border-white/8 bg-gradient-to-br ${stat.accent} shadow-[0_18px_60px_rgba(0,0,0,0.22)] hover:border-sky-300/20`}`}
                                             >
                                                 <div className="mb-6 flex items-start justify-between gap-4">
                                                     <div>
@@ -308,7 +333,7 @@ function Dashboard() {
                                                         </p>
                                                     </div>
 
-                                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-sky-200 shadow-[0_12px_30px_rgba(2,132,199,0.18)]">
+                                                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border shadow-[0_12px_30px_rgba(2,132,199,0.18)] ${theme === "light" ? "border-sky-200 bg-sky-50 text-sky-600" : "border-white/10 bg-white/10 text-sky-200"}`}>
                                                         <Icon className="h-6 w-6" />
                                                     </div>
                                                 </div>
@@ -318,36 +343,59 @@ function Dashboard() {
                                         );
                                     })}
                                 </div>
+
+                                <div className="mt-6 grid gap-4 xl:grid-cols-2">
+                                    <StatusDistributionChart
+                                        title={t.trucksStatus}
+                                        subtitle={t.trucksStatusSubtitle}
+                                        data={truckStatusData}
+                                        total={counts.camions}
+                                        loading={loadingStats}
+                                        chartType="bar"
+                                        lang={lang}
+                                        theme={theme}
+                                    />
+                                    <StatusDistributionChart
+                                        title={t.ordersStatus}
+                                        subtitle={t.ordersStatusSubtitle}
+                                        data={orderStatusData}
+                                        total={counts.commandes}
+                                        loading={loadingStats}
+                                        chartType="line"
+                                        lang={lang}
+                                        theme={theme}
+                                    />
+                                </div>
                             </section>
 
                             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.9fr)]">
-                                <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl">
+                                <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
                                     <div className="mb-6 flex items-center justify-between gap-4">
                                         <div>
-                                            <h3 className="text-lg font-semibold text-white">Recent Orders</h3>
+                                            <h3 className="text-lg font-semibold text-white">{t.recentOrders}</h3>
                                             <p className="mt-1 text-sm text-slate-400">
-                                                Latest dispatch activity and shipping status
+                                                {t.recentOrdersSubtitle}
                                             </p>
                                         </div>
 
                                         <button
                                             type="button"
-                                            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:border-sky-400/30 hover:bg-sky-500/10 hover:text-white"
+                                            className={`rounded-2xl border px-4 py-2 text-sm transition ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700 hover:border-sky-400/30 hover:bg-sky-50" : "border-white/10 bg-white/5 text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10 hover:text-white"}`}
                                         >
-                                            View all
+                                            {t.viewAll}
                                         </button>
                                     </div>
 
-                                    <div className="overflow-hidden rounded-3xl border border-white/8 bg-[#0b1324]/70">
+                                    <div className={`overflow-hidden rounded-3xl border ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-[#0b1324]/70"}`}>
                                         <div className="overflow-x-auto">
                                             <table className="min-w-full divide-y divide-white/5 text-left text-sm">
                                                 <thead className="bg-white/[0.03] text-slate-400">
                                                     <tr>
                                                         <th className="px-5 py-4 font-medium">ID</th>
-                                                        <th className="px-5 py-4 font-medium">Client</th>
-                                                        <th className="px-5 py-4 font-medium">Status</th>
-                                                        <th className="px-5 py-4 font-medium">Date</th>
-                                                        <th className="px-5 py-4 font-medium">Action</th>
+                                                        <th className="px-5 py-4 font-medium">{t.client}</th>
+                                                        <th className="px-5 py-4 font-medium">{t.status}</th>
+                                                        <th className="px-5 py-4 font-medium">{t.date}</th>
+                                                        <th className="px-5 py-4 font-medium">{t.action}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-white/5">
@@ -356,7 +404,7 @@ function Dashboard() {
                                                             <td className="px-5 py-4 font-medium text-white">#{order.id}</td>
                                                             <td className="px-5 py-4 text-slate-300">{order.client?.nom || "N/A"}</td>
                                                             <td className="px-5 py-4">
-                                                                <StatusPill status={order.statut} />
+                                                                <StatusPill status={order.statut} lang={lang} />
                                                             </td>
                                                             <td className="px-5 py-4 text-slate-400">
                                                                 {new Date(order.date_transport).toLocaleDateString()}
@@ -367,14 +415,14 @@ function Dashboard() {
                                                                     onClick={() => navigate("/admin/commandes")}
                                                                     className="text-sm font-medium text-sky-300 transition hover:text-sky-200"
                                                                 >
-                                                                    Open
+                                                                    {t.open}
                                                                 </button>
                                                             </td>
                                                         </tr>
                                                     )) : (
                                                         <tr>
                                                             <td className="px-5 py-6 text-center text-slate-400" colSpan="5">
-                                                                No recent orders available.
+                                                                {t.noRecentOrders}
                                                             </td>
                                                         </tr>
                                                     )}
@@ -385,14 +433,14 @@ function Dashboard() {
                                 </section>
 
                                 <aside className="space-y-6">
-                                    <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl">
+                                    <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
                                         <div className="mb-5 flex items-center justify-between">
                                             <div>
-                                                <h3 className="text-lg font-semibold text-white">Activity</h3>
-                                                <p className="mt-1 text-sm text-slate-400">Recent operational events</p>
+                                                <h3 className="text-lg font-semibold text-white">{t.activity}</h3>
+                                                <p className="mt-1 text-sm text-slate-400">{t.activitySubtitle}</p>
                                             </div>
                                             <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-xs font-medium text-sky-200">
-                                                Live
+                                                {t.live}
                                             </span>
                                         </div>
 
@@ -410,11 +458,11 @@ function Dashboard() {
                                     </section>
 
                                     <section className="rounded-[28px] border border-sky-400/15 bg-gradient-to-br from-sky-500/15 to-blue-500/10 p-6 shadow-[0_24px_80px_rgba(14,165,233,0.1)] backdrop-blur-2xl">
-                                        <p className="text-sm uppercase tracking-[0.24em] text-sky-200/70">Quick Stats</p>
+                                        <p className="text-sm uppercase tracking-[0.24em] text-sky-200/70">{t.quickStats}</p>
                                         <div className="mt-4 space-y-4 text-sm text-slate-300">
-                                            <MetricRow label="Fleet utilization" value="92%" />
-                                            <MetricRow label="On-time delivery" value="97.6%" />
-                                            <MetricRow label="Open incidents" value="04" />
+                                            <MetricRow label={t.fleetUtilization} value="92%" theme={theme} />
+                                            <MetricRow label={t.onTimeDelivery} value="97.6%" theme={theme} />
+                                            <MetricRow label={t.openIncidents} value="04" theme={theme} />
                                         </div>
                                     </section>
                                 </aside>
@@ -427,7 +475,7 @@ function Dashboard() {
     );
 }
 
-function StatusPill({ status }) {
+function StatusPill({ status, lang = "en" }) {
     const styles = {
         livree: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
         en_attente: "border-amber-400/20 bg-amber-400/10 text-amber-300",
@@ -436,13 +484,21 @@ function StatusPill({ status }) {
         en_cours: "border-cyan-400/20 bg-cyan-400/10 text-cyan-300",
     };
 
-    const labels = {
-        livree: "Delivered",
-        en_attente: "Pending",
-        annulee: "Cancelled",
-        validee: "Validated",
-        en_cours: "In Progress",
-    };
+    const labels = lang === "fr"
+        ? {
+            livree: "Livree",
+            en_attente: "En attente",
+            annulee: "Annulee",
+            validee: "Validee",
+            en_cours: "En cours",
+        }
+        : {
+            livree: "Delivered",
+            en_attente: "Pending",
+            annulee: "Cancelled",
+            validee: "Validated",
+            en_cours: "In Progress",
+        };
 
     return (
         <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${styles[status] || "border-white/10 bg-white/5 text-slate-300"}`}>
@@ -451,13 +507,308 @@ function StatusPill({ status }) {
     );
 }
 
-function MetricRow({ label, value }) {
+function MetricRow({ label, value, theme = "dark" }) {
     return (
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+        <div className={`flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 ${theme === "light" ? "border-slate-200 bg-white text-slate-700" : "border-white/10 bg-white/[0.03]"}`}>
             <span>{label}</span>
-            <span className="font-semibold text-white">{value}</span>
+            <span className={`font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{value}</span>
         </div>
     );
+}
+
+function StatusDistributionChart({ title, subtitle, data, total, loading, chartType = "bar", lang = "en", theme = "dark" }) {
+    const normalizedTotal = total || data.reduce((sum, item) => sum + item.value, 0);
+    const leadingItem = data[0] || null;
+    const chartText = getChartTranslations(lang);
+    const axisTickColor = theme === "light" ? "#475569" : "#cbd5e1";
+    const axisLineColor = theme === "light" ? "rgba(100,116,139,0.35)" : "rgba(148,163,184,0.25)";
+    const gridColor = theme === "light" ? "rgba(100,116,139,0.18)" : "rgba(148,163,184,0.15)";
+    const tooltipStyles = {
+        backgroundColor: theme === "light" ? "#ffffff" : "#0f172a",
+        border: theme === "light" ? "1px solid rgba(148,163,184,0.4)" : "1px solid rgba(148,163,184,0.35)",
+        borderRadius: "14px",
+        color: theme === "light" ? "#0f172a" : "#e2e8f0",
+    };
+
+    return (
+        <article className={`rounded-3xl border p-6 shadow-[0_28px_85px_rgba(0,0,0,0.24)] ${theme === "light" ? "border-slate-200 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.08)]" : "border-white/8 bg-gradient-to-b from-white/[0.05] to-white/[0.015]"}`}>
+            <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                    <h3 className={`text-lg font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{title}</h3>
+                    <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+                </div>
+                <span className={`rounded-full border px-3 py-1 text-xs font-medium ${theme === "light" ? "border-sky-300/60 bg-sky-100 text-sky-700" : "border-sky-400/20 bg-sky-500/10 text-sky-200"}`}>
+                    {normalizedTotal} {chartText.records}
+                </span>
+            </div>
+
+            {loading ? (
+                <div className={`rounded-2xl border px-4 py-6 text-sm ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-600" : "border-white/10 bg-white/[0.02] text-slate-300"}`}>
+                    {chartText.loadingData}
+                </div>
+            ) : (
+                <div className="grid items-start gap-5 lg:grid-cols-[350px_minmax(0,1fr)]">
+                    <div className={`rounded-2xl border p-3 ${theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/10 bg-[#0b1324]/70"}`}>
+                        <div className="h-[300px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                {chartType === "line" ? (
+                                    <LineChart
+                                        data={data}
+                                        margin={{ top: 12, right: 18, left: 0, bottom: 12 }}
+                                    >
+                                        <CartesianGrid stroke={gridColor} strokeDasharray="4 4" vertical={false} />
+                                        <XAxis
+                                            dataKey="label"
+                                            tick={{ fill: axisTickColor, fontSize: 11 }}
+                                            axisLine={{ stroke: axisLineColor }}
+                                            tickLine={false}
+                                            interval={0}
+                                            angle={-15}
+                                            height={56}
+                                        />
+                                        <YAxis
+                                            allowDecimals={false}
+                                            tick={{ fill: axisTickColor, fontSize: 11 }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+                                        <Tooltip
+                                            formatter={(value) => [`${value} ${chartText.records}`, chartText.orders]}
+                                            contentStyle={tooltipStyles}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="value"
+                                            stroke="#38bdf8"
+                                            strokeWidth={3}
+                                            dot={{ r: 5, strokeWidth: 2, stroke: theme === "light" ? "#ffffff" : "#0f172a" }}
+                                            activeDot={{ r: 7 }}
+                                        />
+                                    </LineChart>
+                                ) : (
+                                    <BarChart
+                                        data={data}
+                                        margin={{ top: 12, right: 18, left: 0, bottom: 12 }}
+                                    >
+                                        <CartesianGrid stroke={gridColor} strokeDasharray="4 4" vertical={false} />
+                                        <XAxis
+                                            dataKey="label"
+                                            tick={{ fill: axisTickColor, fontSize: 11 }}
+                                            axisLine={{ stroke: axisLineColor }}
+                                            tickLine={false}
+                                            interval={0}
+                                            angle={-15}
+                                            height={56}
+                                        />
+                                        <YAxis
+                                            allowDecimals={false}
+                                            tick={{ fill: axisTickColor, fontSize: 11 }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+                                        <Tooltip
+                                            formatter={(value, name) => [`${value} ${chartText.records}`, name]}
+                                            contentStyle={tooltipStyles}
+                                        />
+                                        <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={46}>
+                                            {data.map((item) => (
+                                                <Cell key={`${title}-${item.key}`} fill={item.color} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                )}
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3 pt-1">
+                        {data.length > 0 ? data.map((item) => {
+                            const percentage = normalizedTotal > 0 ? Math.round((item.value / normalizedTotal) * 100) : 0;
+
+                            return (
+                                <div key={`${title}-${item.key}`} className={`rounded-2xl border p-3.5 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/10 bg-white/[0.02]"}`}>
+                                    <div className="mb-2.5 flex items-center justify-between gap-3 text-sm">
+                                        <span className={`flex items-center gap-2 ${theme === "light" ? "text-slate-700" : "text-slate-200"}`}>
+                                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
+                                            {item.label}
+                                        </span>
+                                        <span className={`${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>{item.value} ({percentage}%)</span>
+                                    </div>
+                                    <div className={`h-2.5 rounded-full ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`}>
+                                        <div
+                                            className="h-2.5 rounded-full"
+                                            style={{ width: `${percentage}%`, backgroundColor: item.color }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        }) : (
+                            <div className={`rounded-2xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-500" : "border-white/10 bg-white/[0.02] text-slate-400"}`}>
+                                {chartText.noRecords}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {!loading && leadingItem && normalizedTotal > 0 && (
+                <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                    {chartText.dominantStatus}: <span className="font-semibold">{leadingItem.label}</span> ({Math.round((leadingItem.value / normalizedTotal) * 100)}%)
+                </div>
+            )}
+        </article>
+    );
+}
+
+function getChartTranslations(lang) {
+    const chartTranslations = {
+        en: {
+            records: "records",
+            orders: "Orders",
+            loadingData: "Loading chart data...",
+            noRecords: "No records available yet.",
+            dominantStatus: "Dominant status",
+        },
+        fr: {
+            records: "enregistrements",
+            orders: "Commandes",
+            loadingData: "Chargement des donnees du graphique...",
+            noRecords: "Aucun enregistrement disponible.",
+            dominantStatus: "Statut dominant",
+        },
+    };
+
+    return chartTranslations[lang] || chartTranslations.en;
+}
+
+function getDashboardTranslations(lang) {
+    const dashboardTranslations = {
+        en: {
+            pageEyebrow: "Admin Intelligence",
+            pageSubtitle: "Overview of your logistics operations",
+            liveSync: "Live sync enabled",
+            openSidebar: "Open sidebar",
+            operationsHq: "Operations HQ",
+            dashboard: "Dashboard",
+            admin: "Admin",
+            loadingAccount: "Loading account...",
+            loadingYourAccount: "Loading your account...",
+            manageUsers: "Manage Users",
+            manageTrucks: "Manage Trucks",
+            manageOrders: "Manage Orders",
+            refreshData: "Refresh Data",
+            totalUsers: "Total Users",
+            totalTrucks: "Total Trucks",
+            totalOrders: "Total Orders",
+            registeredAccounts: "Registered accounts",
+            fleetSize: "Fleet size",
+            allOrders: "All orders",
+            trucksStatus: "Trucks Status",
+            trucksStatusSubtitle: "Fleet availability and maintenance load",
+            ordersStatus: "Orders Status",
+            ordersStatusSubtitle: "Current order pipeline by stage",
+            recentOrders: "Recent Orders",
+            recentOrdersSubtitle: "Latest dispatch activity and shipping status",
+            viewAll: "View all",
+            client: "Client",
+            status: "Status",
+            date: "Date",
+            action: "Action",
+            open: "Open",
+            noRecentOrders: "No recent orders available.",
+            activity: "Activity",
+            activitySubtitle: "Recent operational events",
+            live: "Live",
+            quickStats: "Quick Stats",
+            fleetUtilization: "Fleet utilization",
+            onTimeDelivery: "On-time delivery",
+            openIncidents: "Open incidents",
+            pendingOrders: (count) => `${count} pending orders to process`,
+            deliveredOrders: (count) => `${count} orders delivered`,
+            availableTrucks: (count) => `${count} trucks available`,
+            registeredUsers: (count) => `${count} users registered`,
+        },
+        fr: {
+            pageEyebrow: "Pilotage Admin",
+            pageSubtitle: "Vue d'ensemble de vos operations logistiques",
+            liveSync: "Synchronisation en direct activee",
+            openSidebar: "Ouvrir la barre laterale",
+            operationsHq: "Centre operations",
+            dashboard: "Tableau de bord",
+            admin: "Admin",
+            loadingAccount: "Chargement du compte...",
+            loadingYourAccount: "Chargement de votre compte...",
+            manageUsers: "Gerer les utilisateurs",
+            manageTrucks: "Gerer les camions",
+            manageOrders: "Gerer les commandes",
+            refreshData: "Actualiser les donnees",
+            totalUsers: "Total utilisateurs",
+            totalTrucks: "Total camions",
+            totalOrders: "Total commandes",
+            registeredAccounts: "Comptes enregistres",
+            fleetSize: "Taille de flotte",
+            allOrders: "Toutes les commandes",
+            trucksStatus: "Statut des camions",
+            trucksStatusSubtitle: "Disponibilite de la flotte et maintenance",
+            ordersStatus: "Statut des commandes",
+            ordersStatusSubtitle: "Pipeline actuel des commandes",
+            recentOrders: "Commandes recentes",
+            recentOrdersSubtitle: "Derniere activite d'expedition et statut",
+            viewAll: "Voir tout",
+            client: "Client",
+            status: "Statut",
+            date: "Date",
+            action: "Action",
+            open: "Ouvrir",
+            noRecentOrders: "Aucune commande recente.",
+            activity: "Activite",
+            activitySubtitle: "Evenements operationnels recents",
+            live: "Direct",
+            quickStats: "Statistiques rapides",
+            fleetUtilization: "Utilisation flotte",
+            onTimeDelivery: "Livraison a l'heure",
+            openIncidents: "Incidents ouverts",
+            pendingOrders: (count) => `${count} commandes en attente`,
+            deliveredOrders: (count) => `${count} commandes livrees`,
+            availableTrucks: (count) => `${count} camions disponibles`,
+            registeredUsers: (count) => `${count} utilisateurs enregistres`,
+        },
+    };
+
+    return dashboardTranslations[lang] || dashboardTranslations.en;
+}
+
+const CAMION_STATUS_META = {
+    disponible: { label: { en: "Available", fr: "Disponible" }, color: "#22c55e" },
+    en_maintenance: { label: { en: "Maintenance", fr: "Maintenance" }, color: "#f59e0b" },
+    indisponible: { label: { en: "Unavailable", fr: "Indisponible" }, color: "#ef4444" },
+};
+
+const ORDER_STATUS_META = {
+    en_attente: { label: { en: "Pending", fr: "En attente" }, color: "#f59e0b" },
+    validee: { label: { en: "Validated", fr: "Validee" }, color: "#38bdf8" },
+    en_cours: { label: { en: "In Progress", fr: "En cours" }, color: "#06b6d4" },
+    livree: { label: { en: "Delivered", fr: "Livree" }, color: "#22c55e" },
+    annulee: { label: { en: "Cancelled", fr: "Annulee" }, color: "#ef4444" },
+};
+
+const FALLBACK_COLORS = ["#8b5cf6", "#f97316", "#14b8a6", "#eab308", "#a855f7", "#ec4899"];
+
+function buildStatusChartData(items, statusMeta, lang) {
+    const countsByStatus = items.reduce((acc, item) => {
+        const statusKey = item?.statut || "unknown";
+        acc[statusKey] = (acc[statusKey] || 0) + 1;
+        return acc;
+    }, {});
+
+    return Object.entries(countsByStatus)
+        .map(([key, value], index) => ({
+            key,
+            value,
+            label: statusMeta[key]?.label?.[lang] || statusMeta[key]?.label?.en || key,
+            color: statusMeta[key]?.color || FALLBACK_COLORS[index % FALLBACK_COLORS.length],
+        }))
+        .sort((a, b) => b.value - a.value);
 }
 
 function OrdersStatIcon({ className }) {

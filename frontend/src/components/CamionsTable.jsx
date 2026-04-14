@@ -1,4 +1,47 @@
+import { useEffect, useState } from "react";
+import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
+
 export default function CamionsTable({ camions, onEdit, onDelete }) {
+    const [lang, setLang] = useState(() => getStoredPreferences().lang || "en");
+
+    useEffect(() => {
+        const handlePreferencesChanged = (event) => {
+            const nextLang = event?.detail?.lang || getStoredPreferences().lang || "en";
+            setLang(nextLang);
+        };
+
+        window.addEventListener(PREFERENCES_EVENT, handlePreferencesChanged);
+        return () => window.removeEventListener(PREFERENCES_EVENT, handlePreferencesChanged);
+    }, []);
+
+    const t = lang === "fr"
+        ? {
+            licensePlate: "Matricule",
+            brand: "Marque",
+            capacity: "Capacite (kg)",
+            status: "Statut",
+            actions: "Actions",
+            edit: "Modifier",
+            delete: "Supprimer",
+            noTrucks: "Aucun camion",
+            available: "Disponible",
+            maintenance: "Maintenance",
+            unavailable: "Indisponible",
+        }
+        : {
+            licensePlate: "License Plate",
+            brand: "Brand",
+            capacity: "Capacity (kg)",
+            status: "Status",
+            actions: "Actions",
+            edit: "Edit",
+            delete: "Delete",
+            noTrucks: "No trucks found",
+            available: "Available",
+            maintenance: "In Maintenance",
+            unavailable: "Unavailable",
+        };
+
     const getStatusBadgeColor = (status) => {
         const colors = {
             disponible: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
@@ -10,9 +53,9 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
 
     const formatStatus = (status) => {
         const labels = {
-            disponible: "Available",
-            en_maintenance: "In Maintenance",
-            indisponible: "Unavailable",
+            disponible: t.available,
+            en_maintenance: t.maintenance,
+            indisponible: t.unavailable,
         };
         return labels[status] || status;
     };
@@ -23,19 +66,19 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
                 <thead className="bg-white/[0.03] text-slate-400">
                     <tr>
                         <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            License Plate
+                            {t.licensePlate}
                         </th>
                         <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Brand
+                            {t.brand}
                         </th>
                         <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Capacity (kg)
+                            {t.capacity}
                         </th>
                         <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Status
+                            {t.status}
                         </th>
                         <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Actions
+                            {t.actions}
                         </th>
                     </tr>
                 </thead>
@@ -57,18 +100,20 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
                                         {formatStatus(camion.statut)}
                                     </span>
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-sm font-medium space-x-3">
+                                <td className="whitespace-nowrap px-5 py-4 text-sm font-medium">
                                     <button
                                         onClick={() => onEdit(camion)}
-                                        className="text-sky-300 transition hover:text-sky-200"
+                                        className="mr-2 inline-flex items-center gap-1.5 rounded-lg border border-sky-400/25 bg-sky-500/10 px-2.5 py-1 text-sky-200 transition hover:bg-sky-500/20"
                                     >
-                                        Edit
+                                        <EditIcon className="h-3.5 w-3.5" />
+                                        {t.edit}
                                     </button>
                                     <button
                                         onClick={() => onDelete(camion.id)}
-                                        className="text-rose-300 transition hover:text-rose-200"
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-rose-400/30 bg-rose-500/10 px-2.5 py-1 text-rose-200 transition hover:bg-rose-500/20"
                                     >
-                                        Delete
+                                        <DeleteIcon className="h-3.5 w-3.5" />
+                                        {t.delete}
                                     </button>
                                 </td>
                             </tr>
@@ -76,12 +121,29 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
                     ) : (
                         <tr>
                             <td colSpan="5" className="px-5 py-8 text-center text-slate-400">
-                                No trucks found
+                                {t.noTrucks}
                             </td>
                         </tr>
                     )}
                 </tbody>
             </table>
         </div>
+    );
+}
+
+function EditIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="m12.5 7.5 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+function DeleteIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M5 7h14M9 7V5h6v2M8 7l1 12h6l1-12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
     );
 }
