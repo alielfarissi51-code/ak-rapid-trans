@@ -125,7 +125,7 @@ export default function CamionForm({ camion, onSubmit, onCancel }) {
                             className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-slate-100 focus:outline-none focus:border-sky-400/40"
                         >
                             {statuses.map((status) => (
-                                <option key={status.value} value={status.value}>
+                                <option key={status.value} value={status.value} className="bg-slate-100 text-slate-900">
                                     {status.label}
                                 </option>
                             ))}

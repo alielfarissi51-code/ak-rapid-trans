@@ -37,60 +37,62 @@ export default function UsersTable({ users, onEdit, onDelete }) {
         };
 
     return (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-            <table className="min-w-full divide-y divide-white/5 text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(2,6,23,0.05)]">
+            <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-slate-200 bg-slate-100 text-slate-600">
                     <tr>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.name}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.email}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.role}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.actions}
                         </th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody>
                     {users.length > 0 ? (
                         users.map((user) => (
-                            <tr key={user.id} className="transition hover:bg-slate-50">
-                                <td className="whitespace-nowrap px-5 py-4 font-medium text-slate-900">
+                            <tr key={user.id} className="border-b border-slate-200/70 bg-transparent transition duration-200 hover:scale-[1.002] hover:bg-slate-50">
+                                <td className="whitespace-nowrap px-5 py-4.5 font-semibold text-slate-900">
                                     {user.name}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {user.email}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
-                                    <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
+                                    <span className="inline-flex rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700">
                                         {user.role?.name || t.na}
                                     </span>
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-sm font-medium">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-sm font-medium">
                                     <button
                                         onClick={() => onEdit(user)}
-                                        className="mr-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-700 transition hover:border-sky-300/50 hover:bg-slate-50"
+                                        className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-blue-600 transition duration-200 hover:scale-105 hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                                        aria-label={t.edit}
+                                        title={t.edit}
                                     >
                                         <EditIcon className="h-3.5 w-3.5" />
-                                        {t.edit}
                                     </button>
                                     <button
                                         onClick={() => onDelete(user.id)}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-rose-600 transition hover:border-rose-200 hover:bg-rose-50"
+                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-red-600 transition duration-200 hover:scale-105 hover:border-red-300 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
+                                        aria-label={t.delete}
+                                        title={t.delete}
                                     >
                                         <DeleteIcon className="h-3.5 w-3.5" />
-                                        {t.delete}
                                     </button>
                                 </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="4" className="px-5 py-8 text-center text-slate-500">
+                            <td colSpan="4" className="px-5 py-10 text-center text-slate-500">
                                 {t.noUsers}
                             </td>
                         </tr>

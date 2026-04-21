@@ -44,11 +44,11 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
 
     const getStatusBadgeColor = (status) => {
         const colors = {
-            disponible: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-            en_maintenance: "border-amber-400/20 bg-amber-400/10 text-amber-300",
-            indisponible: "border-rose-400/20 bg-rose-400/10 text-rose-300",
+            disponible: "border-emerald-200 bg-emerald-50 text-emerald-700",
+            en_maintenance: "border-amber-200 bg-amber-50 text-amber-700",
+            indisponible: "border-rose-200 bg-rose-50 text-rose-700",
         };
-        return colors[status] || "border-white/10 bg-white/5 text-slate-300";
+        return colors[status] || "border-slate-200 bg-slate-50 text-slate-700";
     };
 
     const formatStatus = (status) => {
@@ -61,66 +61,68 @@ export default function CamionsTable({ camions, onEdit, onDelete }) {
     };
 
     return (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-            <table className="min-w-full divide-y divide-white/5 text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(2,6,23,0.05)]">
+            <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-slate-200 bg-slate-100 text-slate-600">
                     <tr>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.licensePlate}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.brand}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.capacity}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.status}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.actions}
                         </th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody>
                     {camions.length > 0 ? (
                         camions.map((camion) => (
-                            <tr key={camion.id} className="transition hover:bg-slate-50">
-                                <td className="whitespace-nowrap px-5 py-4 font-medium text-slate-900">
+                            <tr key={camion.id} className="border-b border-slate-200/70 bg-transparent transition duration-200 hover:scale-[1.002] hover:bg-slate-50">
+                                <td className="whitespace-nowrap px-5 py-4.5 font-semibold text-slate-900">
                                     {camion.matricule}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {camion.marque}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {camion.capacite.toLocaleString()}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4">
-                                    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusBadgeColor(camion.statut)}`}>
+                                <td className="whitespace-nowrap px-5 py-4.5">
+                                    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${getStatusBadgeColor(camion.statut)}`}>
                                         {formatStatus(camion.statut)}
                                     </span>
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-sm font-medium">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-sm font-medium">
                                     <button
                                         onClick={() => onEdit(camion)}
-                                        className="mr-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-700 transition hover:border-sky-300/50 hover:bg-slate-50"
+                                        className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-blue-600 transition duration-200 hover:scale-105 hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                                        aria-label={t.edit}
+                                        title={t.edit}
                                     >
                                         <EditIcon className="h-3.5 w-3.5" />
-                                        {t.edit}
                                     </button>
                                     <button
                                         onClick={() => onDelete(camion.id)}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-rose-600 transition hover:border-rose-200 hover:bg-rose-50"
+                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-red-600 transition duration-200 hover:scale-105 hover:border-red-300 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
+                                        aria-label={t.delete}
+                                        title={t.delete}
                                     >
                                         <DeleteIcon className="h-3.5 w-3.5" />
-                                        {t.delete}
                                     </button>
                                 </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="5" className="px-5 py-8 text-center text-slate-500">
+                            <td colSpan="5" className="px-5 py-10 text-center text-slate-500">
                                 {t.noTrucks}
                             </td>
                         </tr>

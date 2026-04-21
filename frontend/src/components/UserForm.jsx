@@ -108,9 +108,9 @@ export default function UserForm({ user, roles, onSubmit, onCancel }) {
                                 errors.role_id ? "border-rose-500/70" : "border-white/10 focus:border-sky-400/40"
                             }`}
                         >
-                            <option value="">Select Role</option>
+                            <option value="" className="bg-slate-100 text-slate-900">Select Role</option>
                             {roles.map((role) => (
-                                <option key={role.id} value={role.id}>
+                                <option key={role.id} value={role.id} className="bg-slate-100 text-slate-900">
                                     {role.name}
                                 </option>
                             ))}

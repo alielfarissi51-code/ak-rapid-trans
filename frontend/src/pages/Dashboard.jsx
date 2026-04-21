@@ -530,25 +530,47 @@ function MetricRow({ label, value, theme = "dark" }) {
 }
 
 function StatusDistributionChart({ title, subtitle, data, total, loading, chartType = "bar", lang = "en", theme = "dark" }) {
+    const [activeKey, setActiveKey] = useState(null);
     const normalizedTotal = total || data.reduce((sum, item) => sum + item.value, 0);
     const leadingItem = data[0] || null;
     const chartText = getChartTranslations(lang);
-    const axisTickColor = theme === "light" ? "#475569" : "#cbd5e1";
+    const axisTickColor = theme === "light" ? "#475569" : "#e2e8f0";
     const axisLineColor = theme === "light" ? "rgba(100,116,139,0.35)" : "rgba(148,163,184,0.25)";
     const gridColor = theme === "light" ? "rgba(100,116,139,0.18)" : "rgba(148,163,184,0.15)";
     const tooltipStyles = {
-        backgroundColor: theme === "light" ? "#ffffff" : "#0f172a",
-        border: theme === "light" ? "1px solid rgba(148,163,184,0.4)" : "1px solid rgba(148,163,184,0.35)",
-        borderRadius: "14px",
-        color: theme === "light" ? "#0f172a" : "#e2e8f0",
+        backgroundColor: theme === "light" ? "#0f172a" : "#020617",
+        borderRadius: "10px",
+        padding: "10px 12px",
+        boxShadow: "0 10px 28px rgba(2, 6, 23, 0.38)",
+        color: "#f8fafc",
+        border: "1px solid rgba(148,163,184,0.3)",
+    };
+
+    const renderTooltip = ({ active, payload, label }) => {
+        if (!active || !payload || payload.length === 0) {
+            return null;
+        }
+
+        const rawPoint = payload[0]?.payload || {};
+        const itemLabel = rawPoint.label || label || chartText.orders;
+        const value = Number(payload[0]?.value ?? rawPoint.value ?? 0);
+        const percentage = normalizedTotal > 0 ? Math.round((value / normalizedTotal) * 100) : 0;
+
+        return (
+            <div style={tooltipStyles}>
+                <p className="text-[13px] font-semibold text-slate-50">{itemLabel}</p>
+                <p className="mt-1 text-[13px] text-slate-200">{value} {chartText.records}</p>
+                <p className="text-[13px] font-medium text-sky-300">{percentage}%</p>
+            </div>
+        );
     };
 
     return (
-        <article className={`rounded-xl border p-5 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-900"}`}>
+        <article className={`rounded-xl border p-5 shadow-sm ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-900"}`}>
             <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
                     <h3 className={`text-lg font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{title}</h3>
-                    <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+                    <p className={`mt-1 text-sm ${theme === "light" ? "text-slate-500" : "text-slate-300"}`}>{subtitle}</p>
                 </div>
                 <span className={`rounded-full border px-3 py-1 text-xs font-medium ${theme === "light" ? "border-slate-300 bg-slate-100 text-slate-700" : "border-slate-700 bg-slate-950 text-slate-300"}`}>
                     {normalizedTotal} {chartText.records}
@@ -560,49 +582,66 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
                     {chartText.loadingData}
                 </div>
             ) : (
-                <div className="grid items-start gap-5 lg:grid-cols-[330px_minmax(0,1fr)]">
-                    <div className={`rounded-xl border p-3 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-950"}`}>
-                        <div className="h-[300px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
+                <div className={`rounded-xl border p-4 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-950"}`}>
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
                                 {chartType === "line" ? (
                                     <LineChart
                                         data={data}
-                                        margin={{ top: 12, right: 18, left: 0, bottom: 12 }}
+                                        margin={{ top: 12, right: 12, left: 0, bottom: 24 }}
                                     >
                                         <CartesianGrid stroke={gridColor} strokeDasharray="4 4" vertical={false} />
                                         <XAxis
                                             dataKey="label"
-                                            tick={{ fill: axisTickColor, fontSize: 11 }}
+                                            tick={{ fill: axisTickColor, fontSize: 12, fontWeight: 500 }}
                                             axisLine={{ stroke: axisLineColor }}
                                             tickLine={false}
                                             interval={0}
-                                            angle={-15}
-                                            height={56}
+                                            angle={-24}
+                                            textAnchor="end"
+                                            height={66}
+                                            tickMargin={12}
+                                            minTickGap={10}
                                         />
                                         <YAxis
                                             allowDecimals={false}
-                                            tick={{ fill: axisTickColor, fontSize: 11 }}
+                                            tick={{ fill: axisTickColor, fontSize: 12, fontWeight: 500 }}
                                             axisLine={false}
                                             tickLine={false}
+                                            width={36}
                                         />
                                         <Tooltip
-                                            formatter={(value) => [`${value} ${chartText.records}`, chartText.orders]}
-                                            contentStyle={tooltipStyles}
+                                            content={renderTooltip}
+                                            cursor={{ stroke: theme === "light" ? "#94a3b8" : "#475569", strokeWidth: 1 }}
                                         />
                                         <Line
                                             type="monotone"
                                             dataKey="value"
                                             stroke="#38bdf8"
                                             strokeWidth={3}
-                                            dot={{ r: 5, strokeWidth: 2, stroke: theme === "light" ? "#ffffff" : "#0f172a" }}
-                                            activeDot={{ r: 7 }}
+                                            dot={(dotProps) => {
+                                                const isActive = !activeKey || activeKey === dotProps.payload?.key;
+
+                                                return (
+                                                    <circle
+                                                        cx={dotProps.cx}
+                                                        cy={dotProps.cy}
+                                                        r={isActive ? 4.6 : 3.8}
+                                                        fill="#e0f2fe"
+                                                        stroke={theme === "light" ? "#0f172a" : "#082f49"}
+                                                        strokeWidth={isActive ? 2.2 : 1.8}
+                                                        opacity={isActive ? 1 : 0.55}
+                                                    />
+                                                );
+                                            }}
+                                            activeDot={{ r: 6.5, strokeWidth: 2, stroke: theme === "light" ? "#0f172a" : "#082f49" }}
+                                            isAnimationActive={false}
                                         />
                                     </LineChart>
                                 ) : chartType === "pie" ? (
                                     <PieChart>
                                         <Tooltip
-                                            formatter={(value) => [`${value} ${chartText.records}`, chartText.orders]}
-                                            contentStyle={tooltipStyles}
+                                            content={renderTooltip}
                                         />
                                         <Pie
                                             data={data}
@@ -610,70 +649,88 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
                                             nameKey="label"
                                             cx="50%"
                                             cy="50%"
-                                            outerRadius={95}
-                                            innerRadius={40}
-                                            paddingAngle={2}
+                                            outerRadius={92}
+                                            innerRadius={54}
+                                            paddingAngle={3}
+                                            onMouseLeave={() => setActiveKey(null)}
                                         >
                                             {data.map((item) => (
-                                                <Cell key={`pie-${title}-${item.key}`} fill={item.color} />
+                                                <Cell
+                                                    key={`pie-${title}-${item.key}`}
+                                                    fill={item.color}
+                                                    opacity={!activeKey || activeKey === item.key ? 1 : 0.58}
+                                                    stroke={theme === "light" ? "#ffffff" : "#0b1220"}
+                                                    strokeWidth={!activeKey || activeKey === item.key ? 2 : 1}
+                                                    onMouseEnter={() => setActiveKey(item.key)}
+                                                />
                                             ))}
                                         </Pie>
                                     </PieChart>
                                 ) : (
                                     <BarChart
                                         data={data}
-                                        margin={{ top: 12, right: 18, left: 0, bottom: 12 }}
+                                        margin={{ top: 12, right: 12, left: 0, bottom: 24 }}
+                                        barCategoryGap="24%"
                                     >
                                         <CartesianGrid stroke={gridColor} strokeDasharray="4 4" vertical={false} />
                                         <XAxis
                                             dataKey="label"
-                                            tick={{ fill: axisTickColor, fontSize: 11 }}
+                                            tick={{ fill: axisTickColor, fontSize: 12, fontWeight: 500 }}
                                             axisLine={{ stroke: axisLineColor }}
                                             tickLine={false}
                                             interval={0}
-                                            angle={-15}
-                                            height={56}
+                                            angle={-24}
+                                            textAnchor="end"
+                                            height={66}
+                                            tickMargin={12}
+                                            minTickGap={10}
                                         />
                                         <YAxis
                                             allowDecimals={false}
-                                            tick={{ fill: axisTickColor, fontSize: 11 }}
+                                            tick={{ fill: axisTickColor, fontSize: 12, fontWeight: 500 }}
                                             axisLine={false}
                                             tickLine={false}
+                                            width={36}
                                         />
                                         <Tooltip
-                                            formatter={(value, name) => [`${value} ${chartText.records}`, name]}
-                                            contentStyle={tooltipStyles}
+                                            content={renderTooltip}
                                         />
-                                        <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={46}>
+                                        <Bar
+                                            dataKey="value"
+                                            radius={[9, 9, 0, 0]}
+                                            maxBarSize={44}
+                                            onMouseLeave={() => setActiveKey(null)}
+                                        >
                                             {data.map((item) => (
-                                                <Cell key={`${title}-${item.key}`} fill={item.color} />
+                                                <Cell
+                                                    key={`${title}-${item.key}`}
+                                                    fill={item.color}
+                                                    opacity={!activeKey || activeKey === item.key ? 1 : 0.58}
+                                                    onMouseEnter={() => setActiveKey(item.key)}
+                                                />
                                             ))}
                                         </Bar>
                                     </BarChart>
                                 )}
-                            </ResponsiveContainer>
-                        </div>
+                        </ResponsiveContainer>
                     </div>
 
-                    <div className="space-y-3 pt-1">
+                    <div className="mt-4 space-y-2.5">
                         {data.length > 0 ? data.map((item) => {
                             const percentage = normalizedTotal > 0 ? Math.round((item.value / normalizedTotal) * 100) : 0;
 
                             return (
-                                <div key={`${title}-${item.key}`} className={`rounded-xl border p-3.5 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-950"}`}>
-                                    <div className="mb-2.5 flex items-center justify-between gap-3 text-sm">
-                                        <span className={`flex items-center gap-2 ${theme === "light" ? "text-slate-700" : "text-slate-200"}`}>
-                                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                                            {item.label}
-                                        </span>
-                                        <span className={`${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>{item.value} ({percentage}%)</span>
-                                    </div>
-                                    <div className={`h-2.5 rounded-full ${theme === "light" ? "bg-slate-200" : "bg-slate-800"}`}>
-                                        <div
-                                            className="h-2.5 rounded-full"
-                                            style={{ width: `${percentage}%`, backgroundColor: item.color }}
-                                        />
-                                    </div>
+                                <div
+                                    key={`${title}-${item.key}`}
+                                    className={`flex items-center justify-between rounded-lg px-2 py-1.5 transition ${activeKey === item.key ? (theme === "light" ? "bg-slate-100" : "bg-slate-900") : ""}`}
+                                    onMouseEnter={() => setActiveKey(item.key)}
+                                    onMouseLeave={() => setActiveKey(null)}
+                                >
+                                    <span className={`flex items-center gap-2 text-[12px] font-medium ${theme === "light" ? "text-slate-700" : "text-slate-100"}`}>
+                                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                                        {item.label}
+                                    </span>
+                                    <span className={`text-[12px] font-semibold tabular-nums ${theme === "light" ? "text-slate-700" : "text-slate-200"}`}>{item.value} ({percentage}%)</span>
                                 </div>
                             );
                         }) : (
@@ -686,7 +743,7 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
             )}
 
             {!loading && leadingItem && normalizedTotal > 0 && (
-                <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+                <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${theme === "light" ? "border-emerald-300/70 bg-emerald-50 text-emerald-700" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"}`}>
                     {chartText.dominantStatus}: <span className="font-semibold">{leadingItem.label}</span> ({Math.round((leadingItem.value / normalizedTotal) * 100)}%)
                 </div>
             )}

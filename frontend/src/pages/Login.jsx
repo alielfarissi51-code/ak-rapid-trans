@@ -2,19 +2,24 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { login, setToken } from "../services/api";
 import logo from "../assets/logo.png";
+import { useToast } from "../components/ToastProvider";
 
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (location.state?.errorMessage) {
-      setError(location.state.errorMessage);
+      addToast({
+        type: "error",
+        title: "Session expired",
+        description: location.state.errorMessage,
+      });
     }
-  }, [location.state]);
+  }, [location.state, addToast]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -23,7 +28,6 @@ function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
@@ -36,7 +40,11 @@ function Login() {
         state: { successMessage: "Logged in successfully.", user: result.user },
       });
     } catch (err) {
-      setError(err.message || "Erreur de connexion");
+      addToast({
+        type: "error",
+        title: "Sign in failed",
+        description: err.message || "Erreur de connexion",
+      });
     } finally {
       setLoading(false);
     }
@@ -95,10 +103,6 @@ function Login() {
                     className="w-full rounded-2xl border border-white/10 bg-[#0b1220]/90 px-4 py-3 text-sm text-white outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-500/15"
                   />
                 </div>
-
-                {error && (
-                  <div className="text-sm text-red-400">{error}</div>
-                )}
 
                 <button
                   type="submit"

@@ -13,6 +13,7 @@ import {
 import CommandeForm from "../components/CommandeForm";
 import CommandesTable from "../components/CommandesTable";
 import Sidebar from "../components/Sidebar";
+import { useToast } from "../components/ToastProvider";
 import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
 
 export default function CommandesManagement() {
@@ -24,10 +25,52 @@ export default function CommandesManagement() {
     const [summary, setSummary] = useState([]);
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
     const [lang, setLang] = useState(() => getStoredPreferences().lang);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
     const t = useMemo(() => getTranslations(lang), [lang]);
+    const { addToast } = useToast();
+
+    const showSuccessToast = (title, description) => {
+        addToast({ type: "success", title, description });
+    };
+
+    const showErrorToast = (title, description) => {
+        addToast({ type: "error", title, description });
+    };
+
+    const showWarningToast = (title, description) => {
+        addToast({ type: "warning", title, description });
+    };
+
+    const filteredCommandes = useMemo(() => {
+        const normalizedSearch = searchTerm.trim().toLowerCase();
+
+        return commandes.filter((commande) => {
+            const clientName = commande.client?.nom?.toLowerCase() || "";
+            const route = `${commande.lieu_depart || ""} ${commande.lieu_arrivee || ""}`.toLowerCase();
+            const idText = String(commande.id || "");
+            const matchesSearch = !normalizedSearch
+                || clientName.includes(normalizedSearch)
+                || route.includes(normalizedSearch)
+                || idText.includes(normalizedSearch);
+            const matchesStatus = statusFilter === "all" || commande.statut === statusFilter;
+
+            return matchesSearch && matchesStatus;
+        });
+    }, [commandes, searchTerm, statusFilter]);
+
+    const totalPages = Math.ceil(filteredCommandes.length / itemsPerPage);
+    const paginatedCommandes = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredCommandes.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredCommandes, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter]);
 
     useEffect(() => {
         fetchCommandes();
@@ -53,9 +96,8 @@ export default function CommandesManagement() {
             setLoading(true);
             const data = await getCommandes();
             setCommandes(data);
-            setError("");
         } catch (err) {
-            setError(t.failedLoadOrders + err.message);
+            showErrorToast(t.toastLoadFailedTitle, `${t.failedLoadOrders}${err.message}`);
         } finally {
             setLoading(false);
         }
@@ -67,6 +109,7 @@ export default function CommandesManagement() {
             setCamions(data);
         } catch (err) {
             console.error(t.failedLoadTrucks);
+            showWarningToast(t.toastTrucksUnavailableTitle, t.toastTrucksUnavailableDescription);
         }
     };
 
@@ -78,6 +121,7 @@ export default function CommandesManagement() {
         } catch (err) {
             console.error(t.failedLoadSummary);
             setSummary([]);
+            showWarningToast(t.toastSummaryUnavailableTitle, t.toastSummaryUnavailableDescription);
         } finally {
             setSummaryLoading(false);
         }
@@ -97,12 +141,11 @@ export default function CommandesManagement() {
         if (confirm(t.confirmDeleteOrder)) {
             try {
                 await deleteCommande(id);
-                setSuccess(t.orderDeletedSuccessfully);
+                showSuccessToast(t.toastOrderDeletedTitle, t.toastOrderDeletedDescription);
                 fetchCommandes();
                 fetchSummary();
-                setTimeout(() => setSuccess(""), 3000);
             } catch (err) {
-                setError(t.failedDeleteOrder + err.message);
+                showErrorToast(t.toastDeleteFailedTitle, `${t.failedDeleteOrder}${err.message}`);
             }
         }
     };
@@ -111,18 +154,17 @@ export default function CommandesManagement() {
         try {
             if (editingCommande) {
                 await updateCommande(editingCommande.id, formData);
-                setSuccess(t.orderUpdatedSuccessfully);
+                showSuccessToast(t.toastOrderUpdatedTitle, t.toastOrderUpdatedDescription);
             } else {
                 await createCommande(formData);
-                setSuccess(t.orderCreatedSuccessfully);
+                showSuccessToast(t.toastOrderCreatedTitle, t.toastOrderCreatedDescription);
             }
             setShowForm(false);
             setEditingCommande(null);
             fetchCommandes();
             fetchSummary();
-            setTimeout(() => setSuccess(""), 3000);
         } catch (err) {
-            setError(t.failedSaveOrder + err.message);
+            showErrorToast(t.toastSaveFailedTitle, `${t.failedSaveOrder}${err.message}`);
         }
     };
 
@@ -130,10 +172,9 @@ export default function CommandesManagement() {
         try {
             setActionLoading("pdf");
             await downloadCommandesPdf();
-            setSuccess(t.pdfExportedSuccessfully);
-            setTimeout(() => setSuccess(""), 3000);
+            showSuccessToast(t.toastPdfExportedTitle, t.toastPdfExportedDescription);
         } catch (err) {
-            setError(t.failedExportPdf + err.message);
+            showErrorToast(t.toastPdfExportFailedTitle, `${t.failedExportPdf}${err.message}`);
         } finally {
             setActionLoading("");
         }
@@ -143,10 +184,9 @@ export default function CommandesManagement() {
         try {
             setActionLoading("xml-export");
             await exportCommandesXml();
-            setSuccess(t.xmlExportedSuccessfully);
-            setTimeout(() => setSuccess(""), 3000);
+            showSuccessToast(t.toastXmlExportedTitle, t.toastXmlExportedDescription);
         } catch (err) {
-            setError(t.failedExportXml + err.message);
+            showErrorToast(t.toastXmlExportFailedTitle, `${t.failedExportXml}${err.message}`);
         } finally {
             setActionLoading("");
         }
@@ -161,12 +201,14 @@ export default function CommandesManagement() {
         try {
             setActionLoading("xml-import");
             const result = await importCommandesXml(file);
-            setSuccess(`${result.message} (${result.created})`);
+            showSuccessToast(
+                t.toastXmlImportedTitle,
+                `${t.toastXmlImportedDescription} (${result.created})`
+            );
             fetchCommandes();
             fetchSummary();
-            setTimeout(() => setSuccess(""), 3000);
         } catch (err) {
-            setError(t.failedImportXml + err.message);
+            showErrorToast(t.toastXmlImportFailedTitle, `${t.failedImportXml}${err.message}`);
         } finally {
             setActionLoading("");
             event.target.value = "";
@@ -174,44 +216,48 @@ export default function CommandesManagement() {
     };
 
     return (
-        <div className="app-dashboard h-screen overflow-hidden bg-[#050814] text-slate-100">
+        <div className="app-dashboard min-h-screen overflow-x-hidden bg-white text-slate-900">
             <Sidebar />
-            <div className="flex min-w-0 flex-1 flex-col lg:pl-[260px]">
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
+            <div className="flex min-h-screen min-w-0 flex-col lg:pl-[260px]">
+                <div className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
                     <div className="mx-auto flex max-w-7xl flex-col gap-6">
-                        <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
+                        <section className="rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-[0_24px_70px_rgba(2,6,23,0.05)]">
                             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <p className="text-sm uppercase tracking-[0.24em] text-sky-300/70">Admin Tools</p>
-                                    <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">{t.ordersManagement}</h1>
-                                    <p className="mt-2 text-sm text-slate-400">{t.ordersManagementSubtitle}</p>
+                                    <p className="text-sm uppercase tracking-[0.24em] text-sky-600/70">Admin Tools</p>
+                                    <h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-900">{t.ordersManagement}</h1>
+                                    <p className="mt-2 text-sm text-slate-500">{t.ordersManagementSubtitle}</p>
                                 </div>
                                 <button
                                     onClick={handleCreate}
-                                    className="rounded-2xl border border-sky-400/20 bg-sky-500/15 px-5 py-3 text-sm font-semibold text-sky-100 transition hover:border-sky-300/40 hover:bg-sky-500/25"
+                                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 text-sm font-semibold text-sky-700 transition duration-200 hover:border-sky-300 hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                                 >
+                                    <AddIcon className="h-4 w-4" />
                                     {t.addOrder}
                                 </button>
                             </div>
 
-                            <div className="mb-6 grid gap-3 md:grid-cols-4">
+                            <div className="mb-8 grid gap-3 md:grid-cols-4">
                                 <button
                                     type="button"
                                     onClick={handlePdfExport}
                                     disabled={actionLoading !== ""}
-                                    className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-100 transition hover:bg-white/[0.07]"
+                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
+                                    <PdfIcon className="h-4 w-4" />
                                     {actionLoading === "pdf" ? t.exportingPdf : t.exportPdf}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleXmlExport}
                                     disabled={actionLoading !== ""}
-                                    className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-100 transition hover:bg-white/[0.07]"
+                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
+                                    <CodeIcon className="h-4 w-4" />
                                     {actionLoading === "xml-export" ? t.exportingXml : t.exportXml}
                                 </button>
-                                <label className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-100 transition hover:bg-white/[0.07] cursor-pointer text-center">
+                                <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-within:ring-2 focus-within:ring-sky-300">
+                                    <UploadIcon className="h-4 w-4" />
                                     {actionLoading === "xml-import" ? t.importingXml : t.importXml}
                                     <input
                                         type="file"
@@ -225,34 +271,35 @@ export default function CommandesManagement() {
                                     type="button"
                                     onClick={fetchSummary}
                                     disabled={summaryLoading || actionLoading !== ""}
-                                    className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-100 transition hover:bg-white/[0.07]"
+                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
+                                    <RefreshIcon className="h-4 w-4" />
                                     {summaryLoading ? t.refreshing : t.refreshSummary}
                                 </button>
                             </div>
 
                             {summaryLoading && (
-                                <div className="mb-4 rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-3 text-sm text-slate-300">
+                                <div className="mb-6 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
                                     {t.loadingSummary}
                                 </div>
                             )}
 
                             {!summaryLoading && summary.length > 0 && (
-                                <div className="mb-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+                                <div className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_28px_rgba(2,6,23,0.05)]">
                                     <table className="min-w-full text-left text-sm">
-                                        <thead className="bg-white/[0.04] text-slate-300">
+                                        <thead className="bg-slate-100 text-slate-600">
                                             <tr>
-                                                <th className="px-4 py-3">{t.status}</th>
-                                                <th className="px-4 py-3">{t.totalOrders}</th>
-                                                <th className="px-4 py-3">{t.totalAmount}</th>
+                                                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]">{t.status}</th>
+                                                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]">{t.totalOrders}</th>
+                                                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]">{t.totalAmount}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {summary.map((row) => (
-                                                <tr key={row.statut} className="border-t border-white/10 text-slate-200">
-                                                    <td className="px-4 py-3">{row.statut}</td>
-                                                    <td className="px-4 py-3">{row.total}</td>
-                                                    <td className="px-4 py-3">{row.total_amount}</td>
+                                                <tr key={row.statut} className="border-t border-slate-200 text-slate-900 transition duration-200 hover:bg-slate-50">
+                                                    <td className="px-4 py-3.5">{row.statut}</td>
+                                                    <td className="px-4 py-3.5">{row.total}</td>
+                                                    <td className="px-4 py-3.5">DHS {parseFloat(row.total_amount || 0).toLocaleString()}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -260,17 +307,32 @@ export default function CommandesManagement() {
                                 </div>
                             )}
 
-                            {error && (
-                                <div className="mb-4 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
-                                    {error}
+                            <div className="mb-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_auto]">
+                                <div className="relative">
+                                    <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        value={searchTerm}
+                                        onChange={(event) => setSearchTerm(event.target.value)}
+                                        placeholder={t.searchOrdersPlaceholder}
+                                        className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-900 outline-none transition duration-200 placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
+                                    />
                                 </div>
-                            )}
-
-                            {success && (
-                                <div className="mb-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
-                                    {success}
+                                <select
+                                    value={statusFilter}
+                                    onChange={(event) => setStatusFilter(event.target.value)}
+                                    className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition duration-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
+                                >
+                                    <option value="all">{t.allStatuses}</option>
+                                    <option value="livree">{t.delivered}</option>
+                                    <option value="validee">{t.validated}</option>
+                                    <option value="en_cours">{t.inProgress}</option>
+                                    <option value="en_attente">{t.pending}</option>
+                                    <option value="annulee">{t.cancelled}</option>
+                                </select>
+                                <div className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-500">
+                                    {filteredCommandes.length} {t.records}
                                 </div>
-                            )}
+                            </div>
 
                             {showForm && (
                                 <CommandeForm
@@ -282,17 +344,92 @@ export default function CommandesManagement() {
                             )}
 
                             {loading ? (
-                                <div className="rounded-2xl border border-white/8 bg-white/[0.02] py-10 text-center text-slate-300">
+                                <div className="rounded-xl border border-slate-200 bg-white py-10 text-center text-slate-500">
                                     {t.loadingOrders}
                                 </div>
                             ) : (
-                                <CommandesTable commandes={commandes} onEdit={handleEdit} onDelete={handleDelete} />
+                                <>
+                                    <CommandesTable commandes={paginatedCommandes} onEdit={handleEdit} onDelete={handleDelete} />
+                                    {totalPages > 1 && (
+                                        <div className="mt-6 flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-4">
+                                            <div className="text-sm text-slate-600">
+                                                {t.page || "Page"} {currentPage} {t.of || "of"} {totalPages}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                    disabled={currentPage === 1}
+                                                    className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                                                >
+                                                    ← {t.previous || "Previous"}
+                                                </button>
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                                    disabled={currentPage === totalPages}
+                                                    className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                                                >
+                                                    {t.next || "Next"} →
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </section>
                     </div>
                 </div>
             </div>
         </div>
+    );
+}
+
+function AddIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+function PdfIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M7 3h7l5 5v13H7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="M14 3v5h5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function CodeIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="m9 8-4 4 4 4M15 8l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function UploadIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M12 16V5m0 0-4 4m4-4 4 4M5 19h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function RefreshIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M20 11a8 8 0 1 0 2 5.3M20 4v7h-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function SearchIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+            <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
     );
 }
 
@@ -312,7 +449,15 @@ function getTranslations(lang = "en") {
             refreshing: "Refreshing...",
             loadingSummary: "Loading summary...",
             loadingOrders: "Loading orders...",
+            searchOrdersPlaceholder: "Search by order id, client, route",
             status: "Status",
+            allStatuses: "All statuses",
+            delivered: "Delivered",
+            validated: "Validated",
+            inProgress: "In Progress",
+            pending: "Pending",
+            cancelled: "Cancelled",
+            records: "records",
             totalOrders: "Total Orders",
             totalAmount: "Total Amount",
             confirmDeleteOrder: "Are you sure you want to delete this order?",
@@ -329,6 +474,28 @@ function getTranslations(lang = "en") {
             failedExportPdf: "Failed to export PDF: ",
             failedExportXml: "Failed to export XML: ",
             failedImportXml: "Failed to import XML: ",
+            toastLoadFailedTitle: "Orders unavailable",
+            toastTrucksUnavailableTitle: "Truck list unavailable",
+            toastTrucksUnavailableDescription: "Some truck assignments may be temporarily unavailable.",
+            toastSummaryUnavailableTitle: "Summary unavailable",
+            toastSummaryUnavailableDescription: "Order summary could not be refreshed right now.",
+            toastOrderDeletedTitle: "Order deleted",
+            toastOrderDeletedDescription: "The order has been removed successfully.",
+            toastDeleteFailedTitle: "Delete failed",
+            toastOrderUpdatedTitle: "Order updated",
+            toastOrderUpdatedDescription: "Your changes have been saved successfully.",
+            toastOrderCreatedTitle: "Order created",
+            toastOrderCreatedDescription: "The new order has been created successfully.",
+            toastSaveFailedTitle: "Save failed",
+            toastPdfExportedTitle: "PDF exported",
+            toastPdfExportedDescription: "The orders report is ready for download.",
+            toastPdfExportFailedTitle: "PDF export failed",
+            toastXmlExportedTitle: "XML exported",
+            toastXmlExportedDescription: "The XML file has been generated successfully.",
+            toastXmlExportFailedTitle: "XML export failed",
+            toastXmlImportedTitle: "XML imported",
+            toastXmlImportedDescription: "Orders were imported successfully",
+            toastXmlImportFailedTitle: "XML import failed",
         },
         fr: {
             ordersManagement: "Gestion des commandes",
@@ -344,7 +511,15 @@ function getTranslations(lang = "en") {
             refreshing: "Actualisation...",
             loadingSummary: "Chargement du resume...",
             loadingOrders: "Chargement des commandes...",
+            searchOrdersPlaceholder: "Rechercher par id, client, trajet",
             status: "Statut",
+            allStatuses: "Tous les statuts",
+            delivered: "Livree",
+            validated: "Validee",
+            inProgress: "En cours",
+            pending: "En attente",
+            cancelled: "Annulee",
+            records: "resultats",
             totalOrders: "Total commandes",
             totalAmount: "Montant total",
             confirmDeleteOrder: "Voulez-vous vraiment supprimer cette commande ?",
@@ -361,6 +536,28 @@ function getTranslations(lang = "en") {
             failedExportPdf: "Echec de l'export PDF : ",
             failedExportXml: "Echec de l'export XML : ",
             failedImportXml: "Echec de l'import XML : ",
+            toastLoadFailedTitle: "Commandes indisponibles",
+            toastTrucksUnavailableTitle: "Liste des camions indisponible",
+            toastTrucksUnavailableDescription: "Certaines affectations de camions peuvent etre indisponibles temporairement.",
+            toastSummaryUnavailableTitle: "Resume indisponible",
+            toastSummaryUnavailableDescription: "Le resume des commandes ne peut pas etre actualise pour le moment.",
+            toastOrderDeletedTitle: "Commande supprimee",
+            toastOrderDeletedDescription: "La commande a ete supprimee avec succes.",
+            toastDeleteFailedTitle: "Echec de suppression",
+            toastOrderUpdatedTitle: "Commande mise a jour",
+            toastOrderUpdatedDescription: "Vos modifications ont ete enregistrees avec succes.",
+            toastOrderCreatedTitle: "Commande creee",
+            toastOrderCreatedDescription: "La nouvelle commande a ete creee avec succes.",
+            toastSaveFailedTitle: "Echec d'enregistrement",
+            toastPdfExportedTitle: "PDF exporte",
+            toastPdfExportedDescription: "Le rapport des commandes est pret au telechargement.",
+            toastPdfExportFailedTitle: "Echec export PDF",
+            toastXmlExportedTitle: "XML exporte",
+            toastXmlExportedDescription: "Le fichier XML a ete genere avec succes.",
+            toastXmlExportFailedTitle: "Echec export XML",
+            toastXmlImportedTitle: "XML importe",
+            toastXmlImportedDescription: "Les commandes ont ete importees avec succes",
+            toastXmlImportFailedTitle: "Echec import XML",
         },
     };
 

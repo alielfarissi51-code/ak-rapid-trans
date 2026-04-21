@@ -58,13 +58,13 @@ export default function CommandesTable({ commandes, onEdit, onDelete }) {
 
     const getStatusBadgeColor = (status) => {
         const colors = {
-            en_attente: "border-amber-400/20 bg-amber-400/10 text-amber-300",
-            validee: "border-blue-400/20 bg-blue-400/10 text-blue-300",
-            en_cours: "border-cyan-400/20 bg-cyan-400/10 text-cyan-300",
-            livree: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-            annulee: "border-rose-400/20 bg-rose-400/10 text-rose-300",
+            en_attente: "bg-orange-100 text-orange-700",
+            validee: "bg-blue-100 text-blue-700",
+            en_cours: "bg-yellow-100 text-yellow-700",
+            livree: "bg-green-100 text-green-700",
+            annulee: "bg-red-100 text-red-700",
         };
-        return colors[status] || "border-white/10 bg-white/5 text-slate-300";
+        return colors[status] || "bg-slate-100 text-slate-700";
     };
 
     const formatStatus = (status) => {
@@ -79,92 +79,94 @@ export default function CommandesTable({ commandes, onEdit, onDelete }) {
     };
 
     return (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-            <table className="min-w-full divide-y divide-white/5 text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(2,6,23,0.05)]">
+            <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-slate-200 bg-slate-100 text-slate-600">
                     <tr>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.orderId}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.client}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.truck}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.route}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.date}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.price}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.status}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.actions}
                         </th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody>
                     {commandes.length > 0 ? (
                         commandes.map((commande) => (
-                            <tr key={commande.id} className="transition hover:bg-slate-50">
-                                <td className="whitespace-nowrap px-5 py-4 font-medium text-slate-900">
+                            <tr key={commande.id} className="border-b border-slate-200/70 bg-transparent transition duration-200 hover:scale-[1.002] hover:bg-slate-50">
+                                <td className="whitespace-nowrap px-5 py-4.5 font-semibold text-slate-900">
                                     #{commande.id}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {commande.client?.nom || t.na}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {commande.camion?.matricule || t.notAssigned}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {commande.lieu_depart} → {commande.lieu_arrivee}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-500">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {new Date(commande.date_transport).toLocaleDateString()}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-600">
+                                <td className="whitespace-nowrap px-5 py-4.5 font-medium text-slate-600">
                                     {commande.prix ? (
-                                        <>DZD {parseFloat(commande.prix).toLocaleString()}</>
+                                        <>DHS {parseFloat(commande.prix).toLocaleString()}</>
                                     ) : (
                                         t.na
                                     )}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4">
+                                <td className="whitespace-nowrap px-5 py-4.5">
                                     <span
-                                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusBadgeColor(
+                                        className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeColor(
                                             commande.statut
                                         )}`}
                                     >
                                         {formatStatus(commande.statut)}
                                     </span>
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-sm font-medium">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-sm font-medium">
                                     <button
                                         onClick={() => onEdit(commande)}
-                                        className="mr-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-700 transition hover:border-sky-300/50 hover:bg-slate-50"
+                                        className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-blue-600 transition duration-200 hover:scale-105 hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                                        aria-label={t.edit}
+                                        title={t.edit}
                                     >
                                         <EditIcon className="h-3.5 w-3.5" />
-                                        {t.edit}
                                     </button>
                                     <button
                                         onClick={() => onDelete(commande.id)}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-rose-600 transition hover:border-rose-200 hover:bg-rose-50"
+                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-red-600 transition duration-200 hover:scale-105 hover:border-red-300 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
+                                        aria-label={t.delete}
+                                        title={t.delete}
                                     >
                                         <DeleteIcon className="h-3.5 w-3.5" />
-                                        {t.delete}
                                     </button>
                                 </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="8" className="px-5 py-8 text-center text-slate-500">
+                            <td colSpan="8" className="px-5 py-10 text-center text-slate-500">
                                 {t.noOrders}
                             </td>
                         </tr>

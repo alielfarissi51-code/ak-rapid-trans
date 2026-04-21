@@ -54,3 +54,139 @@ html[data-theme="light"] .app-dashboard .shadow-\[0_18px_45px_rgba\(15\,23\,42\,
 html[data-theme="light"] .app-dashboard .shadow-\[0_28px_70px_rgba\(15\,23\,42\,0\.08\)\] {
 	box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05) !important;
 }
+
+/* Dark mode overrides for new light-mode-first classes */
+html[data-theme="dark"] .app-dashboard {
+	background:
+		radial-gradient(circle at top left, rgba(15, 23, 42, 0.5), transparent 22%),
+		radial-gradient(circle at top right, rgba(15, 23, 42, 0.3), transparent 24%),
+		linear-gradient(180deg, #0b1220 0%, #050814 100%) !important;
+	color: #e5e7eb !important;
+}
+
+/* Dark mode: page sections and cards */
+html[data-theme="dark"] .app-dashboard > div > div > div > section {
+	border-color: #1f2937 !important;
+	background-color: #0f172a !important;
+	box-shadow: 0 24px 70px rgba(2, 6, 23, 0.45) !important;
+}
+
+/* Dark mode: inputs and selects in management pages */
+html[data-theme="dark"] input[className*="bg-white"],
+html[data-theme="dark"] select[className*="bg-white"] {
+	background-color: #111827 !important;
+	border-color: #1f2937 !important;
+	color: #e5e7eb !important;
+}
+
+html[data-theme="dark"] input[className*="bg-white"]::placeholder,
+html[data-theme="dark"] select[className*="bg-white"]::placeholder {
+	color: #9ca3af !important;
+}
+
+html[data-theme="dark"] input[className*="border-slate-200"],
+html[data-theme="dark"] select[className*="border-slate-200"] {
+	border-color: #1f2937 !important;
+}
+
+html[data-theme="dark"] input[className*="text-slate-900"],
+html[data-theme="dark"] select[className*="text-slate-900"],
+html[data-theme="dark"] input[className*="text-slate-600"],
+html[data-theme="dark"] select[className*="text-slate-600"] {
+	color: #e5e7eb !important;
+}
+
+/* Dark mode: badges and status pills */
+html[data-theme="dark"] .bg-slate-50 {
+	background-color: #0f172a !important;
+}
+
+html[data-theme="dark"] .bg-slate-100 {
+	background-color: #0b1220 !important;
+}
+
+html[data-theme="dark"] .text-slate-900 {
+	color: #e5e7eb !important;
+}
+
+html[data-theme="dark"] .text-slate-600 {
+	color: #d1d5db !important;
+}
+
+html[data-theme="dark"] .text-slate-500 {
+	color: #9ca3af !important;
+}
+
+html[data-theme="dark"] .text-slate-400 {
+	color: #9ca3af !important;
+}
+
+html[data-theme="dark"] .border-slate-200 {
+	border-color: #1f2937 !important;
+}
+
+html[data-theme="dark"] .bg-sky-50 {
+	background-color: #0f1b2e !important;
+}
+
+html[data-theme="dark"] .bg-sky-100 {
+	background-color: #0f1b2e !important;
+}
+
+html[data-theme="dark"] .text-sky-600,
+html[data-theme="dark"] .text-sky-700 {
+	color: #0ea5e9 !important;
+}
+
+html[data-theme="dark"] .border-sky-200 {
+	border-color: #0ea5e9 !important;
+}
+
+/* Dark mode: status badge colors */
+html[data-theme="dark"] .bg-green-100 {
+	background-color: rgba(34, 197, 94, 0.1) !important;
+	color: #22c55e !important;
+}
+
+html[data-theme="dark"] .bg-red-100 {
+	background-color: rgba(239, 68, 68, 0.1) !important;
+	color: #ef4444 !important;
+}
+
+html[data-theme="dark"] .bg-blue-100 {
+	background-color: rgba(59, 130, 246, 0.1) !important;
+	color: #3b82f6 !important;
+}
+
+html[data-theme="dark"] .bg-yellow-100 {
+	background-color: rgba(234, 179, 8, 0.1) !important;
+	color: #eab308 !important;
+}
+
+html[data-theme="dark"] .bg-orange-100 {
+	background-color: rgba(249, 115, 22, 0.1) !important;
+	color: #f97316 !important;
+}
+
+/* Dark mode: table styling */
+html[data-theme="dark"] .bg-white {
+	background-color: #111827 !important;
+}
+
+html[data-theme="dark"] table thead.bg-slate-100 {
+	background-color: #0f172a !important;
+	color: #9ca3af !important;
+}
+
+html[data-theme="dark"] table tbody tr:hover {
+	background-color: #1e293b !important;
+}
+
+/* Dark mode: button styling */
+html[data-theme="dark"] .text-blue-600 {
+	color: #3b82f6 !important;
+}
+
+html[data-theme="dark"] .text-red-600 {
+	color: #ef4444 !important;
+}
