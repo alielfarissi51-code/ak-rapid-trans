@@ -13,6 +13,7 @@ return array(
     'App\\Http\\Controllers\\ContactController' => $baseDir . '/app/Http/Controllers/ContactController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Http\\Controllers\\RoleController' => $baseDir . '/app/Http/Controllers/RoleController.php',
+    'App\\Http\\Controllers\\UserController' => $baseDir . '/app/Http/Controllers/UserController.php',
     'App\\Http\\Middleware\\EnsureUserHasRole' => $baseDir . '/app/Http/Middleware/EnsureUserHasRole.php',
     'App\\Models\\Camion' => $baseDir . '/app/Models/Camion.php',
     'App\\Models\\Client' => $baseDir . '/app/Models/Client.php',
