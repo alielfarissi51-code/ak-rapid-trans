@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -29,7 +30,9 @@ class AuthController extends Controller
 
     public function showLoginForm()
     {
-        return view('auth.login');
+        return response()->json([
+            'message' => 'Login UI is handled by the React frontend.',
+        ]);
     }
 
     public function login(Request $request)
@@ -43,7 +46,7 @@ class AuthController extends Controller
 
         if (!Auth::attempt($credentials, $remember)) {
             return back()
-                ->withErrors(['email' => 'Identifiants invalides.'])
+                ->withErrors(['email' => __('messages.invalid_credentials')])
                 ->onlyInput('email');
         }
 
@@ -54,7 +57,9 @@ class AuthController extends Controller
 
     public function showRegisterForm()
     {
-        return view('auth.register');
+        return response()->json([
+            'message' => 'Register UI is handled by the React frontend.',
+        ]);
     }
 
     public function register(Request $request)
@@ -90,7 +95,14 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard')->with('success', 'Compte créé avec succès.');
+        Mail::send('emails.welcome-user', ['user' => $user], function ($message) use ($user): void {
+            $message->to($user->email)->subject(__('messages.welcome_subject'));
+        });
+
+        return response()->json([
+            'message' => __('messages.account_created_success'),
+            'user' => $this->userPayload($user),
+        ], 201);
     }
 
     public function logout(Request $request)
@@ -100,7 +112,9 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return response()->json([
+            'message' => __('messages.logout_success'),
+        ]);
     }
 
     public function apiRegister(Request $request)
@@ -135,8 +149,12 @@ class AuthController extends Controller
 
         $token = $user->createToken('frontend-token')->plainTextToken;
 
+        Mail::send('emails.welcome-user', ['user' => $user], function ($message) use ($user): void {
+            $message->to($user->email)->subject(__('messages.welcome_subject'));
+        });
+
         return response()->json([
-            'message' => 'Compte créé avec succès.',
+            'message' => __('messages.account_created_success'),
             'token' => $token,
             'user' => $this->userPayload($user),
         ], 201);
@@ -153,7 +171,7 @@ class AuthController extends Controller
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Identifiants invalides.'],
+                'email' => [__('messages.invalid_credentials')],
             ]);
         }
 
@@ -187,7 +205,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()?->delete();
 
         return response()->json([
-            'message' => 'Déconnexion réussie.',
+            'message' => __('messages.logout_success'),
         ]);
     }
 
@@ -203,7 +221,7 @@ class AuthController extends Controller
         $user->update($validated);
 
         return response()->json([
-            'message' => 'Informations mises a jour avec succes.',
+            'message' => __('messages.profile_updated_success'),
             'user' => $this->userPayload($user->fresh()),
         ]);
     }
@@ -219,7 +237,7 @@ class AuthController extends Controller
 
         if (!Hash::check($validated['current_password'], $user->password)) {
             throw ValidationException::withMessages([
-                'current_password' => ['Le mot de passe actuel est incorrect.'],
+                'current_password' => [__('messages.current_password_invalid')],
             ]);
         }
 
@@ -228,7 +246,7 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Mot de passe mis a jour avec succes.',
+            'message' => __('messages.password_updated_success'),
         ]);
     }
 }

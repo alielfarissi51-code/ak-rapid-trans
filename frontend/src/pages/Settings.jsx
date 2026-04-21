@@ -8,14 +8,14 @@ import {
     updatePassword,
     updateProfile,
 } from "../services/api";
+import { useToast } from "../components/ToastProvider";
 
 export default function Settings() {
     const navigate = useNavigate();
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [loadingUser, setLoadingUser] = useState(true);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
+    const { addToast } = useToast();
 
     const [profileForm, setProfileForm] = useState({
         name: "",
@@ -64,15 +64,6 @@ export default function Settings() {
         };
     }, [navigate]);
 
-    useEffect(() => {
-        if (!success) {
-            return;
-        }
-
-        const timeoutId = setTimeout(() => setSuccess(""), 3000);
-        return () => clearTimeout(timeoutId);
-    }, [success]);
-
     const handleLogout = async () => {
         try {
             await apiLogout();
@@ -96,25 +87,35 @@ export default function Settings() {
 
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
-        setError("");
 
         try {
             const result = await updateProfile(profileForm);
             if (result?.user) {
                 setUser(result.user);
             }
-            setSuccess(result?.message || "Profile updated successfully.");
+            addToast({
+                type: "success",
+                title: "Profile updated",
+                description: result?.message || "Your profile changes were saved successfully.",
+            });
         } catch (err) {
-            setError(err.message || "Failed to update profile.");
+            addToast({
+                type: "error",
+                title: "Profile update failed",
+                description: err.message || "Failed to update profile.",
+            });
         }
     };
 
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
-        setError("");
 
         if (passwordForm.password !== passwordForm.password_confirmation) {
-            setError("Password confirmation does not match.");
+            addToast({
+                type: "warning",
+                title: "Password mismatch",
+                description: "Password confirmation does not match.",
+            });
             return;
         }
 
@@ -125,9 +126,17 @@ export default function Settings() {
                 password: "",
                 password_confirmation: "",
             });
-            setSuccess(result?.message || "Password updated successfully.");
+            addToast({
+                type: "success",
+                title: "Password updated",
+                description: result?.message || "Your password has been updated successfully.",
+            });
         } catch (err) {
-            setError(err.message || "Failed to update password.");
+            addToast({
+                type: "error",
+                title: "Password update failed",
+                description: err.message || "Failed to update password.",
+            });
         }
     };
 
@@ -159,18 +168,6 @@ export default function Settings() {
                             {loadingUser && (
                                 <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
                                     Loading account...
-                                </div>
-                            )}
-
-                            {error && (
-                                <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
-                                    {error}
-                                </div>
-                            )}
-
-                            {success && (
-                                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
-                                    {success}
                                 </div>
                             )}
 

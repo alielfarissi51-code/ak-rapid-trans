@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
@@ -36,7 +37,14 @@ class ContactController extends Controller
 
         $contact = Contact::create($validated);
 
-        return response()->json($contact, 201);
+        Mail::send('emails.contact-notification', ['contact' => $contact], function ($message): void {
+            $message->to(config('mail.from.address'))->subject(__('messages.new_contact_subject'));
+        });
+
+        return response()->json([
+            'message' => __('messages.contact_message_sent'),
+            'data' => $contact,
+        ], 201);
     }
 
     /**

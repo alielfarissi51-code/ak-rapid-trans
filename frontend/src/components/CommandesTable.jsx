@@ -1,117 +1,195 @@
+import { useEffect, useState } from "react";
+import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
+
 export default function CommandesTable({ commandes, onEdit, onDelete }) {
+    const [lang, setLang] = useState(() => getStoredPreferences().lang || "en");
+
+    useEffect(() => {
+        const handlePreferencesChanged = (event) => {
+            const nextLang = event?.detail?.lang || getStoredPreferences().lang || "en";
+            setLang(nextLang);
+        };
+
+        window.addEventListener(PREFERENCES_EVENT, handlePreferencesChanged);
+        return () => window.removeEventListener(PREFERENCES_EVENT, handlePreferencesChanged);
+    }, []);
+
+    const t = lang === "fr"
+        ? {
+            orderId: "ID commande",
+            client: "Client",
+            truck: "Camion",
+            route: "Trajet",
+            date: "Date",
+            price: "Prix",
+            status: "Statut",
+            actions: "Actions",
+            notAssigned: "Non assigne",
+            edit: "Modifier",
+            delete: "Supprimer",
+            noOrders: "Aucune commande",
+            pending: "En attente",
+            validated: "Validee",
+            inProgress: "En cours",
+            delivered: "Livree",
+            cancelled: "Annulee",
+            na: "N/A",
+        }
+        : {
+            orderId: "Order ID",
+            client: "Client",
+            truck: "Truck",
+            route: "Route",
+            date: "Date",
+            price: "Price",
+            status: "Status",
+            actions: "Actions",
+            notAssigned: "Not assigned",
+            edit: "Edit",
+            delete: "Delete",
+            noOrders: "No orders found",
+            pending: "Pending",
+            validated: "Validated",
+            inProgress: "In Progress",
+            delivered: "Delivered",
+            cancelled: "Cancelled",
+            na: "N/A",
+        };
+
     const getStatusBadgeColor = (status) => {
         const colors = {
-            en_attente: "border-amber-400/20 bg-amber-400/10 text-amber-300",
-            validee: "border-blue-400/20 bg-blue-400/10 text-blue-300",
-            en_cours: "border-cyan-400/20 bg-cyan-400/10 text-cyan-300",
-            livree: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-            annulee: "border-rose-400/20 bg-rose-400/10 text-rose-300",
+            en_attente: "bg-orange-100 text-orange-700",
+            validee: "bg-blue-100 text-blue-700",
+            en_cours: "bg-yellow-100 text-yellow-700",
+            livree: "bg-green-100 text-green-700",
+            annulee: "bg-red-100 text-red-700",
         };
-        return colors[status] || "border-white/10 bg-white/5 text-slate-300";
+        return colors[status] || "bg-slate-100 text-slate-700";
     };
 
     const formatStatus = (status) => {
         const labels = {
-            en_attente: "Pending",
-            validee: "Validated",
-            en_cours: "In Progress",
-            livree: "Delivered",
-            annulee: "Cancelled",
+            en_attente: t.pending,
+            validee: t.validated,
+            en_cours: t.inProgress,
+            livree: t.delivered,
+            annulee: t.cancelled,
         };
         return labels[status] || status;
     };
 
     return (
-        <div className="overflow-hidden rounded-3xl border border-white/8 bg-[#0b1324]/70 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-            <table className="min-w-full divide-y divide-white/5 text-left text-sm">
-                <thead className="bg-white/[0.03] text-slate-400">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(2,6,23,0.05)]">
+            <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-slate-200 bg-slate-100 text-slate-600">
                     <tr>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Order ID
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
+                            {t.orderId}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Client
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
+                            {t.client}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Truck
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
+                            {t.truck}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Route
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
+                            {t.route}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Date
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
+                            {t.date}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Price
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
+                            {t.price}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Status
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
+                            {t.status}
                         </th>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider">
-                            Actions
+                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
+                            {t.actions}
                         </th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody>
                     {commandes.length > 0 ? (
                         commandes.map((commande) => (
-                            <tr key={commande.id} className="transition hover:bg-white/[0.03]">
-                                <td className="whitespace-nowrap px-5 py-4 font-medium text-white">
+                            <tr key={commande.id} className="border-b border-slate-200/70 bg-transparent transition duration-200 hover:scale-[1.002] hover:bg-slate-50">
+                                <td className="whitespace-nowrap px-5 py-4.5 font-semibold text-slate-900">
                                     #{commande.id}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
-                                    {commande.client?.nom || "N/A"}
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
+                                    {commande.client?.nom || t.na}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
-                                    {commande.camion?.matricule || "Not assigned"}
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
+                                    {commande.camion?.matricule || t.notAssigned}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {commande.lieu_depart} → {commande.lieu_arrivee}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-400">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {new Date(commande.date_transport).toLocaleDateString()}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                                <td className="whitespace-nowrap px-5 py-4.5 font-medium text-slate-600">
                                     {commande.prix ? (
-                                        <>DZD {parseFloat(commande.prix).toLocaleString()}</>
+                                        <>DHS {parseFloat(commande.prix).toLocaleString()}</>
                                     ) : (
-                                        "N/A"
+                                        t.na
                                     )}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4">
+                                <td className="whitespace-nowrap px-5 py-4.5">
                                     <span
-                                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusBadgeColor(
+                                        className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeColor(
                                             commande.statut
                                         )}`}
                                     >
                                         {formatStatus(commande.statut)}
                                     </span>
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4 text-sm font-medium space-x-3">
+                                <td className="whitespace-nowrap px-5 py-4.5 text-sm font-medium">
                                     <button
                                         onClick={() => onEdit(commande)}
-                                        className="text-sky-300 transition hover:text-sky-200"
+                                        className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-blue-600 transition duration-200 hover:scale-105 hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                                        aria-label={t.edit}
+                                        title={t.edit}
                                     >
-                                        Edit
+                                        <EditIcon className="h-3.5 w-3.5" />
                                     </button>
                                     <button
                                         onClick={() => onDelete(commande.id)}
-                                        className="text-rose-300 transition hover:text-rose-200"
+                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-red-600 transition duration-200 hover:scale-105 hover:border-red-300 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
+                                        aria-label={t.delete}
+                                        title={t.delete}
                                     >
-                                        Delete
+                                        <DeleteIcon className="h-3.5 w-3.5" />
                                     </button>
                                 </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="8" className="px-5 py-8 text-center text-slate-400">
-                                No orders found
+                            <td colSpan="8" className="px-5 py-10 text-center text-slate-500">
+                                {t.noOrders}
                             </td>
                         </tr>
                     )}
                 </tbody>
             </table>
         </div>
+    );
+}
+
+function EditIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="m12.5 7.5 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+function DeleteIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M5 7h14M9 7V5h6v2M8 7l1 12h6l1-12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
     );
 }

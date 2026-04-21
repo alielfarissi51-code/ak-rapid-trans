@@ -26,13 +26,15 @@ DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=rapid_trans
-DB_USERNAME=root
-DB_PASSWORD=YOUR_PASSWORD
+DB_USERNAME=rapid_trans_app
+DB_PASSWORD=StrongPasswordHere
 
 CACHE_STORE=file
 SESSION_DRIVER=file
 QUEUE_CONNECTION=sync
 ```
+
+Important securite: utilisez un utilisateur MySQL dedie (pas `root`) avec des privileges limites a la base `rapid_trans`.
 
 ## 4. Générer la clé
 

@@ -1,14 +1,9 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CamionController;
-use App\Http\Controllers\ClientController;
-use App\Http\Controllers\CommandeController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+<<<<<<< HEAD
     return response()->json(['message'=>'Laravel is working ✅']);
 });
 
@@ -32,4 +27,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('camions', CamionController::class);
         Route::resource('commandes', CommandeController::class);
     });
+=======
+    return response()->json([
+        'message' => 'AK Rapid Trans backend is running. Use the React frontend for UI.',
+    ]);
+>>>>>>> a6eee3b685361401cac096bfca9ec30a91f90c15
 });

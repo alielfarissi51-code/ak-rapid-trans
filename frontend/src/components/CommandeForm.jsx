@@ -110,9 +110,9 @@ export default function CommandeForm({ commande, camions, onSubmit, onCancel }) 
                                 errors.client_id ? "border-rose-500/70" : "border-white/10 focus:border-sky-400/40"
                             }`}
                         >
-                            <option value="">Select Client</option>
+                            <option value="" className="bg-slate-100 text-slate-900">Select Client</option>
                             {clients.map((client) => (
-                                <option key={client.id} value={client.id}>
+                                <option key={client.id} value={client.id} className="bg-slate-100 text-slate-900">
                                     {client.nom}
                                 </option>
                             ))}
@@ -130,9 +130,9 @@ export default function CommandeForm({ commande, camions, onSubmit, onCancel }) 
                             onChange={handleChange}
                             className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-slate-100 focus:outline-none focus:border-sky-400/40"
                         >
-                            <option value="">Select Truck</option>
+                            <option value="" className="bg-slate-100 text-slate-900">Select Truck</option>
                             {camions.map((camion) => (
-                                <option key={camion.id} value={camion.id}>
+                                <option key={camion.id} value={camion.id} className="bg-slate-100 text-slate-900">
                                     {camion.matricule} - {camion.marque}
                                 </option>
                             ))}
@@ -216,7 +216,7 @@ export default function CommandeForm({ commande, camions, onSubmit, onCancel }) 
                             className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-slate-100 focus:outline-none focus:border-sky-400/40"
                         >
                             {statuses.map((status) => (
-                                <option key={status.value} value={status.value}>
+                                <option key={status.value} value={status.value} className="bg-slate-100 text-slate-900">
                                     {status.label}
                                 </option>
                             ))}
