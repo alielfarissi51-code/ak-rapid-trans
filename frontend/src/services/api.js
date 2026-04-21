@@ -279,3 +279,68 @@ export const deleteCommande = async (id) => {
     }
     return response.status === 204 ? {} : response.json();
 };
+
+// =============== REPORTING / EXCHANGE ===============
+export const downloadCommandesPdf = async () => {
+    const response = await fetch(`${API_BASE}/reports/commandes/pdf`, {
+        headers: { ...authHeaders() },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || 'Failed to export PDF');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `commandes-report-${Date.now()}.pdf`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+};
+
+export const getCommandesSummary = async () => {
+    const response = await fetch(`${API_BASE}/reports/commandes/summary`, {
+        headers: { ...authHeaders() },
+    });
+    return parseResponse(response);
+};
+
+export const exportCommandesXml = async () => {
+    const response = await fetch(`${API_BASE}/reports/commandes/export-xml`, {
+        headers: { ...authHeaders() },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || 'Failed to export XML');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `commandes-export-${Date.now()}.xml`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+};
+
+export const importCommandesXml = async (file) => {
+    const formData = new FormData();
+    formData.append('xml_file', file);
+
+    const response = await fetch(`${API_BASE}/reports/commandes/import-xml`, {
+        method: 'POST',
+        headers: {
+            ...authHeaders(),
+        },
+        body: formData,
+    });
+
+    return parseResponse(response);
+};

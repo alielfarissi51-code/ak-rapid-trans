@@ -120,8 +120,8 @@ function Sidebar({
   return (
     <>
       <aside
-        className={`app-sidebar fixed inset-y-0 left-0 z-40 w-[260px] border-r backdrop-blur-2xl transition-transform duration-300 lg:translate-x-0 ${
-          theme === "light" ? "border-slate-200/80 bg-white/80 shadow-[0_20px_50px_rgba(15,23,42,0.05)]" : "border-white/10 bg-[#08111f]/95"
+        className={`app-sidebar fixed inset-y-0 left-0 z-40 w-[260px] border-r transition-transform duration-300 lg:translate-x-0 ${
+          theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-950"
         } ${
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
@@ -129,7 +129,7 @@ function Sidebar({
         <div className="flex h-full flex-col px-5 py-6">
           <div className="mb-8 flex items-center justify-between gap-3">
             <div>
-              <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 shadow-lg shadow-sky-500/20">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500">
                 <span className="text-sm font-black tracking-[0.2em] text-white">AR</span>
               </div>
               <div className="mt-4">
@@ -154,7 +154,7 @@ function Sidebar({
             </button>
           </div>
 
-          <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
+          <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
             {navigationItems.map((item) => {
               const Icon = item.icon;
                   const isActive = location.pathname === item.path;
@@ -167,41 +167,41 @@ function Sidebar({
                         navigate(item.path);
                         onClose();
                       }}
-                      className={`group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                      className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                         isActive
                       ? theme === "light"
-                            ? "bg-slate-100 text-slate-900 shadow-[0_0_0_1px_rgba(148,163,184,0.22)]"
-                        : "bg-gradient-to-r from-sky-500/20 to-blue-500/10 text-white shadow-[0_0_0_1px_rgba(56,189,248,0.2)]"
+                            ? "bg-slate-100 text-slate-900"
+                        : "bg-slate-900 text-slate-100"
                       : theme === "light"
                             ? "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white"
+                        : "text-slate-400 hover:bg-slate-900 hover:text-white"
                   }`}
                 >
                   <span
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-md transition ${
                           isActive
                         ? theme === "light"
                           ? "bg-slate-200 text-slate-700"
-                          : "bg-sky-500/15 text-sky-300"
+                          : "bg-slate-800 text-cyan-300"
                         : theme === "light"
                           ? "bg-slate-50 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-900"
-                          : "bg-white/5 text-slate-400 group-hover:bg-sky-500/10 group-hover:text-sky-300"
+                          : "bg-slate-900 text-slate-500 group-hover:bg-slate-800 group-hover:text-slate-200"
                     }`}
                   >
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="flex-1 text-left">{t[item.labelKey]}</span>
                       {isActive && (
-                    <span className="h-2.5 w-2.5 rounded-full bg-sky-400 shadow-[0_0_18px_rgba(56,189,248,0.8)]" />
+                    <span className="h-2 w-2 rounded-full bg-cyan-400" />
                   )}
                 </button>
               );
             })}
           </nav>
 
-          <div className={`mt-6 rounded-3xl border p-4 shadow-[0_20px_60px_rgba(0,0,0,0.22)] ${theme === "light" ? "border-slate-200/80 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.05)]" : "border-white/10 bg-white/5"}`}>
+          <div className={`mt-6 rounded-xl border p-4 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-900"}`}>
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-sm font-semibold text-white">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500 text-sm font-semibold text-white">
                 {(user?.name || "AK").slice(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
@@ -214,7 +214,7 @@ function Sidebar({
               </div>
             </div>
 
-            <div className={`mt-4 rounded-2xl border p-3 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/10 bg-[#0d1728]"}`}>
+            <div className={`mt-4 rounded-lg border p-3 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-950"}`}>
               <div className="flex items-center justify-between gap-3">
                 <span className={`text-xs font-medium ${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>{t.theme}</span>
                 <button
@@ -223,7 +223,7 @@ function Sidebar({
                   className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
                     theme === "light"
                       ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                      : "border-white/10 bg-white/5 text-slate-200 hover:bg-sky-500/10"
+                      : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
                   }`}
                 >
                   <span className="inline-flex items-center gap-1.5">
@@ -240,7 +240,7 @@ function Sidebar({
                   className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
                     theme === "light"
                       ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                      : "border-white/10 bg-white/5 text-slate-200 hover:bg-sky-500/10"
+                      : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
                   }`}
                 >
                   <span className="inline-flex items-center gap-1.5">
@@ -254,10 +254,10 @@ function Sidebar({
             <button
               type="button"
               onClick={onLogout}
-              className={`mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+              className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition ${
                 theme === "light"
                   ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                  : "border-white/10 bg-[#0d1728] text-slate-200 hover:border-sky-400/40 hover:bg-sky-500/10 hover:text-white"
+                  : "border-slate-700 bg-slate-950 text-slate-200 hover:border-slate-500 hover:bg-slate-900 hover:text-white"
               }`}
             >
               <LogoutIcon className="h-4 w-4" />

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Commande;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class CommandeController extends Controller
@@ -41,7 +42,9 @@ class CommandeController extends Controller
             'statut' => ['nullable', Rule::in(['en_attente', 'validee', 'en_cours', 'livree', 'annulee'])],
         ]);
 
-        $commande = Commande::create($validated);
+        $commande = DB::transaction(function () use ($validated) {
+            return Commande::create($validated);
+        });
 
         return response()->json($commande->load(['client', 'camion']), 201);
     }
@@ -80,7 +83,9 @@ class CommandeController extends Controller
             'statut' => ['sometimes', 'required', Rule::in(['en_attente', 'validee', 'en_cours', 'livree', 'annulee'])],
         ]);
 
-        $commande->update($validated);
+        DB::transaction(function () use ($commande, $validated) {
+            $commande->update($validated);
+        });
 
         return response()->json($commande->load(['client', 'camion']));
     }
@@ -90,7 +95,9 @@ class CommandeController extends Controller
      */
     public function destroy(Commande $commande)
     {
-        $commande->delete();
+        DB::transaction(function () use ($commande) {
+            $commande->delete();
+        });
 
         return response()->noContent();
     }

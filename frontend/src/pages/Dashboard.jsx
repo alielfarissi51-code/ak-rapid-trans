@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BarChart, Bar, LineChart, Line, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 import Sidebar from "../components/Sidebar";
 import { clearToken, getCamions, getCommandes, getMe, getUsers, logout as apiLogout } from "../services/api";
 import { applyDocumentTheme, getStoredPreferences } from "../utils/preferences";
@@ -18,6 +18,7 @@ function Dashboard() {
     const [recentOrders, setRecentOrders] = useState([]);
     const [truckStatusData, setTruckStatusData] = useState([]);
     const [orderStatusData, setOrderStatusData] = useState([]);
+    const [orderStatusPieData, setOrderStatusPieData] = useState([]);
     const [activity, setActivity] = useState([]);
     const [preferences, setPreferences] = useState(() => getStoredPreferences());
     const roleName = user?.role_name || user?.role || null;
@@ -118,6 +119,7 @@ function Dashboard() {
                     setRecentOrders(commandes.slice(0, 5));
                     setTruckStatusData(trucksDistribution);
                     setOrderStatusData(ordersDistribution);
+                    setOrderStatusPieData(ordersDistribution);
                     setActivity([
                         {
                             title: t.pendingOrders(pendingOrders),
@@ -147,6 +149,7 @@ function Dashboard() {
                     setRecentOrders([]);
                     setTruckStatusData([]);
                     setOrderStatusData([]);
+                    setOrderStatusPieData([]);
                     setActivity([]);
                 }
             } finally {
@@ -203,12 +206,7 @@ function Dashboard() {
     };
 
     return (
-        <div className={`app-dashboard relative h-screen overflow-hidden ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-[#050814] text-slate-100"}`}>
-            <div className="pointer-events-none absolute inset-0">
-                <div className={`absolute -left-16 -top-16 h-72 w-72 rounded-full blur-3xl ${theme === "light" ? "bg-slate-200/30" : "bg-sky-500/20"}`} />
-                <div className={`absolute right-0 top-24 h-80 w-80 rounded-full blur-3xl ${theme === "light" ? "bg-slate-100/40" : "bg-cyan-500/15"}`} />
-                <div className={`absolute bottom-[-120px] left-1/3 h-80 w-80 rounded-full blur-3xl ${theme === "light" ? "bg-slate-200/22" : "bg-indigo-500/15"}`} />
-            </div>
+        <div className={`app-dashboard h-screen overflow-hidden ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-slate-950 text-slate-100"}`}>
             <div className="flex h-full">
                 <Sidebar
                     mobileOpen={mobileSidebarOpen}
@@ -221,7 +219,7 @@ function Dashboard() {
                 />
 
                 <div className="flex min-w-0 flex-1 flex-col lg:pl-[260px]">
-                    <header className={`border-b px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8 ${theme === "light" ? "border-slate-200/70 bg-white/86" : "border-white/5 bg-[#050814]/80"}`}>
+                    <header className={`sticky top-0 z-20 border-b px-4 py-4 backdrop-blur sm:px-6 lg:px-8 ${theme === "light" ? "border-slate-200 bg-white/90" : "border-slate-800 bg-slate-950/90"}`}>
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex min-w-0 items-center gap-3">
                                 <button
@@ -234,7 +232,7 @@ function Dashboard() {
                                 </button>
 
                                 <div className="min-w-0">
-                                    <p className="text-sm font-medium text-slate-400">{t.operationsHq}</p>
+                                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">{t.operationsHq}</p>
                                     <h1 className={`truncate text-2xl font-semibold tracking-tight sm:text-3xl ${theme === "light" ? "text-slate-900" : "text-white"}`}>
                                         {t.dashboard}
                                     </h1>
@@ -242,7 +240,7 @@ function Dashboard() {
                             </div>
 
                             <div className="hidden items-center gap-3 sm:flex">
-                                <div className={`rounded-full border px-4 py-2 text-sm backdrop-blur-xl ${theme === "light" ? "border-slate-200 bg-white text-slate-600 shadow-[0_8px_18px_rgba(15,23,42,0.05)]" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                                <div className={`rounded-full border px-4 py-2 text-sm ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-slate-700 bg-slate-900 text-slate-300"}`}>
                                     {user ? `${user.name} • ${t.admin}` : t.loadingAccount}
                                 </div>
                             </div>
@@ -269,10 +267,10 @@ function Dashboard() {
                                 </div>
                             )}
 
-                            <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200/80 bg-white/96 shadow-[0_18px_40px_rgba(15,23,42,0.05)]" : "border-white/8 bg-white/[0.03]"}`}>
+                            <section className={`rounded-2xl border p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-900"}`}>
                                 <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
-                                        <p className={`text-sm uppercase tracking-[0.28em] ${theme === "light" ? "text-slate-500" : "text-sky-300/70"}`}>
+                                        <p className={`text-xs uppercase tracking-[0.22em] ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>
                                             {pageEyebrow}
                                         </p>
                                         <h2 className={`mt-2 text-2xl font-semibold tracking-tight sm:text-3xl ${theme === "light" ? "text-slate-900" : "text-white"}`}>
@@ -280,7 +278,7 @@ function Dashboard() {
                                         </h2>
                                     </div>
 
-                                    <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 text-sm font-medium ${theme === "light" ? "border-slate-200 bg-white text-slate-700" : "border-sky-400/15 bg-sky-400/10 text-sky-200"}`}>
+                                    <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium ${theme === "light" ? "border-slate-200 bg-white text-slate-700" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"}`}>
                                         <SparkIcon className="h-4 w-4" />
                                         {liveBadge}
                                     </div>
@@ -290,7 +288,7 @@ function Dashboard() {
                                     <button
                                         type="button"
                                         onClick={() => navigate("/admin/users")}
-                                        className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(15,23,42,0.08)] ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
+                                        className={`inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-slate-700 bg-slate-950 text-slate-200 hover:border-slate-500 hover:bg-slate-900"}`}
                                     >
                                         <UsersIcon className="h-4 w-4" />
                                         {t.manageUsers}
@@ -298,7 +296,7 @@ function Dashboard() {
                                     <button
                                         type="button"
                                         onClick={() => navigate("/admin/camions")}
-                                        className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(15,23,42,0.08)] ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
+                                        className={`inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-slate-700 bg-slate-950 text-slate-200 hover:border-slate-500 hover:bg-slate-900"}`}
                                     >
                                         <TruckActionIcon className="h-4 w-4" />
                                         {t.manageTrucks}
@@ -306,7 +304,7 @@ function Dashboard() {
                                     <button
                                         type="button"
                                         onClick={() => navigate("/admin/commandes")}
-                                        className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(15,23,42,0.08)] ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10"}`}
+                                        className={`inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-slate-700 bg-slate-950 text-slate-200 hover:border-slate-500 hover:bg-slate-900"}`}
                                     >
                                         <OrdersActionIcon className="h-4 w-4" />
                                         {t.manageOrders}
@@ -314,7 +312,7 @@ function Dashboard() {
                                     <button
                                         type="button"
                                         onClick={() => navigate(0)}
-                                        className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(15,23,42,0.08)] ${theme === "light" ? "border-slate-200 bg-slate-900 text-white hover:bg-slate-800" : "border-sky-400/20 bg-sky-500/15 text-sky-100 hover:border-sky-300/40 hover:bg-sky-500/25"}`}
+                                        className={`inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 ${theme === "light" ? "border-slate-200 bg-slate-900 text-white hover:bg-slate-800" : "border-cyan-500/35 bg-cyan-500 text-slate-950 hover:bg-cyan-400"}`}
                                     >
                                         <RefreshIcon className="h-4 w-4" />
                                         {t.refreshData}
@@ -328,7 +326,7 @@ function Dashboard() {
                                         return (
                                             <article
                                                 key={stat.label}
-                                                className={`rounded-[20px] border p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(15,23,42,0.12)] ${theme === "light" ? "border-slate-200 bg-white shadow-[0_16px_35px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:scale-[1.01]" : `border-white/8 bg-gradient-to-br ${stat.accent} shadow-[0_18px_60px_rgba(0,0,0,0.22)] hover:border-sky-300/20`}`}
+                                                className={`rounded-xl border p-5 transition duration-200 hover:-translate-y-0.5 ${theme === "light" ? "border-slate-200 bg-white hover:border-slate-300" : "border-slate-800 bg-slate-950 hover:border-slate-700"}`}
                                             >
                                                 <div className="mb-5 flex items-start justify-between gap-4">
                                                     <div>
@@ -338,18 +336,18 @@ function Dashboard() {
                                                         </p>
                                                     </div>
 
-                                                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border shadow-[0_12px_24px_rgba(2,132,199,0.14)] ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/10 bg-white/10 text-sky-200"}`}>
+                                                    <div className={`flex h-11 w-11 items-center justify-center rounded-lg border ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700" : "border-slate-700 bg-slate-900 text-cyan-300"}`}>
                                                         <Icon className="h-6 w-6" />
                                                     </div>
                                                 </div>
 
-                                                <p className={`text-sm font-medium ${theme === "light" ? "text-slate-500" : "text-emerald-300"}`}>{stat.delta}</p>
+                                                <p className={`text-sm font-medium ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{stat.delta}</p>
                                             </article>
                                         );
                                     })}
                                 </div>
 
-                                <div className="mt-6 grid gap-4 xl:grid-cols-2">
+                                <div className="mt-6 grid gap-4 xl:grid-cols-3">
                                     <StatusDistributionChart
                                         title={t.trucksStatus}
                                         subtitle={t.trucksStatusSubtitle}
@@ -370,11 +368,21 @@ function Dashboard() {
                                         lang={lang}
                                         theme={theme}
                                     />
+                                    <StatusDistributionChart
+                                        title={t.ordersStatus}
+                                        subtitle={t.ordersStatusSubtitle}
+                                        data={orderStatusPieData}
+                                        total={counts.commandes}
+                                        loading={loadingStats}
+                                        chartType="pie"
+                                        lang={lang}
+                                        theme={theme}
+                                    />
                                 </div>
                             </section>
 
                             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.9fr)]">
-                                <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.05)]" : "border-white/8 bg-white/[0.03]"}`}>
+                                <section className={`rounded-2xl border p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-900"}`}>
                                     <div className="mb-6 flex items-center justify-between gap-4">
                                         <div>
                                             <h3 className={`text-lg font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{t.recentOrders}</h3>
@@ -385,13 +393,13 @@ function Dashboard() {
 
                                         <button
                                             type="button"
-                                            className={`rounded-full border px-4 py-2 text-sm transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-white/10 bg-white/5 text-slate-200 hover:border-sky-400/30 hover:bg-sky-500/10 hover:text-white"}`}
+                                            className={`rounded-lg border px-4 py-2 text-sm transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50" : "border-slate-700 bg-slate-950 text-slate-200 hover:border-slate-500 hover:bg-slate-900"}`}
                                         >
                                             {t.viewAll}
                                         </button>
                                     </div>
 
-                                    <div className={`overflow-hidden rounded-3xl border ${theme === "light" ? "border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.05)]" : "border-white/8 bg-[#0b1324]/70"}`}>
+                                    <div className={`overflow-hidden rounded-xl border ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-950"}`}>
                                         <div className="overflow-x-auto">
                                             <table className={`min-w-full divide-y text-left text-sm ${theme === "light" ? "divide-slate-100" : "divide-white/5"}`}>
                                                 <thead className={`${theme === "light" ? "bg-slate-50 text-slate-500" : "bg-white/[0.03] text-slate-400"}`}>
@@ -438,7 +446,7 @@ function Dashboard() {
                                 </section>
 
                                 <aside className="space-y-6">
-                                    <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]" : "border-white/8 bg-white/[0.03]"}`}>
+                                    <section className={`rounded-2xl border p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-900"}`}>
                                         <div className="mb-5 flex items-center justify-between">
                                             <div>
                                                 <h3 className={`text-lg font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{t.activity}</h3>
@@ -451,8 +459,8 @@ function Dashboard() {
 
                                         <div className="space-y-4">
                                             {activity.map((item) => (
-                                                <div key={item.title} className={`flex items-start gap-3 rounded-2xl border p-4 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/5 bg-white/[0.02]"}`}>
-                                                    <span className={`mt-1 h-2.5 w-2.5 rounded-full ${item.tone} shadow-[0_0_18px_currentColor]`} />
+                                                <div key={item.title} className={`flex items-start gap-3 rounded-xl border p-4 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-950"}`}>
+                                                    <span className={`mt-1 h-2.5 w-2.5 rounded-full ${item.tone}`} />
                                                     <div className="min-w-0 flex-1">
                                                         <p className={`text-sm font-medium ${theme === "light" ? "text-slate-800" : "text-white"}`}>{item.title}</p>
                                                         <p className={`mt-1 text-xs ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{item.time}</p>
@@ -462,8 +470,8 @@ function Dashboard() {
                                         </div>
                                     </section>
 
-                                    <section className={`rounded-[28px] border p-6 backdrop-blur-2xl ${theme === "light" ? "border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]" : "border-sky-400/15 bg-gradient-to-br from-sky-500/15 to-blue-500/10 shadow-[0_24px_80px_rgba(14,165,233,0.1)]"}`}>
-                                        <p className={`text-sm uppercase tracking-[0.24em] ${theme === "light" ? "text-slate-500" : "text-sky-200/70"}`}>{t.quickStats}</p>
+                                    <section className={`rounded-2xl border p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-900"}`}>
+                                        <p className={`text-sm uppercase tracking-[0.24em] ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{t.quickStats}</p>
                                         <div className="mt-4 space-y-4 text-sm text-slate-300">
                                             <MetricRow label={t.fleetUtilization} value="92%" theme={theme} />
                                             <MetricRow label={t.onTimeDelivery} value="97.6%" theme={theme} />
@@ -536,13 +544,13 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
     };
 
     return (
-        <article className={`rounded-3xl border p-6 shadow-[0_28px_85px_rgba(0,0,0,0.24)] ${theme === "light" ? "border-slate-200 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.08)]" : "border-white/8 bg-gradient-to-b from-white/[0.05] to-white/[0.015]"}`}>
+        <article className={`rounded-xl border p-5 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-900"}`}>
             <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
                     <h3 className={`text-lg font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{title}</h3>
                     <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
                 </div>
-                <span className={`rounded-full border px-3 py-1 text-xs font-medium ${theme === "light" ? "border-sky-300/60 bg-sky-100 text-sky-700" : "border-sky-400/20 bg-sky-500/10 text-sky-200"}`}>
+                <span className={`rounded-full border px-3 py-1 text-xs font-medium ${theme === "light" ? "border-slate-300 bg-slate-100 text-slate-700" : "border-slate-700 bg-slate-950 text-slate-300"}`}>
                     {normalizedTotal} {chartText.records}
                 </span>
             </div>
@@ -552,8 +560,8 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
                     {chartText.loadingData}
                 </div>
             ) : (
-                <div className="grid items-start gap-5 lg:grid-cols-[350px_minmax(0,1fr)]">
-                    <div className={`rounded-2xl border p-3 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/10 bg-[#0b1324]/70"}`}>
+                <div className="grid items-start gap-5 lg:grid-cols-[330px_minmax(0,1fr)]">
+                    <div className={`rounded-xl border p-3 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-950"}`}>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 {chartType === "line" ? (
@@ -590,6 +598,27 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
                                             activeDot={{ r: 7 }}
                                         />
                                     </LineChart>
+                                ) : chartType === "pie" ? (
+                                    <PieChart>
+                                        <Tooltip
+                                            formatter={(value) => [`${value} ${chartText.records}`, chartText.orders]}
+                                            contentStyle={tooltipStyles}
+                                        />
+                                        <Pie
+                                            data={data}
+                                            dataKey="value"
+                                            nameKey="label"
+                                            cx="50%"
+                                            cy="50%"
+                                            outerRadius={95}
+                                            innerRadius={40}
+                                            paddingAngle={2}
+                                        >
+                                            {data.map((item) => (
+                                                <Cell key={`pie-${title}-${item.key}`} fill={item.color} />
+                                            ))}
+                                        </Pie>
+                                    </PieChart>
                                 ) : (
                                     <BarChart
                                         data={data}
@@ -631,7 +660,7 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
                             const percentage = normalizedTotal > 0 ? Math.round((item.value / normalizedTotal) * 100) : 0;
 
                             return (
-                                <div key={`${title}-${item.key}`} className={`rounded-2xl border p-3.5 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/10 bg-white/[0.02]"}`}>
+                                <div key={`${title}-${item.key}`} className={`rounded-xl border p-3.5 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-950"}`}>
                                     <div className="mb-2.5 flex items-center justify-between gap-3 text-sm">
                                         <span className={`flex items-center gap-2 ${theme === "light" ? "text-slate-700" : "text-slate-200"}`}>
                                             <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
@@ -639,7 +668,7 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
                                         </span>
                                         <span className={`${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>{item.value} ({percentage}%)</span>
                                     </div>
-                                    <div className={`h-2.5 rounded-full ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`}>
+                                    <div className={`h-2.5 rounded-full ${theme === "light" ? "bg-slate-200" : "bg-slate-800"}`}>
                                         <div
                                             className="h-2.5 rounded-full"
                                             style={{ width: `${percentage}%`, backgroundColor: item.color }}
@@ -648,7 +677,7 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
                                 </div>
                             );
                         }) : (
-                            <div className={`rounded-2xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-white text-slate-500" : "border-white/10 bg-white/[0.02] text-slate-400"}`}>
+                            <div className={`rounded-xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-white text-slate-500" : "border-slate-800 bg-slate-950 text-slate-400"}`}>
                                 {chartText.noRecords}
                             </div>
                         )}
@@ -657,7 +686,7 @@ function StatusDistributionChart({ title, subtitle, data, total, loading, chartT
             )}
 
             {!loading && leadingItem && normalizedTotal > 0 && (
-                <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
                     {chartText.dominantStatus}: <span className="font-semibold">{leadingItem.label}</span> ({Math.round((leadingItem.value / normalizedTotal) * 100)}%)
                 </div>
             )}

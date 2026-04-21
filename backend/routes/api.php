@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CamionController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CommandeController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 // Public routes
@@ -19,16 +20,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/me', [AuthController::class, 'apiUpdateProfile']);
     Route::put('/me/password', [AuthController::class, 'apiUpdatePassword']);
 
-    // Users Management (Admin only)
-    Route::apiResource('users', UserController::class);
-    Route::get('/roles', [UserController::class, 'getRoles']);
-
-    // Camions (Trucks) Management
-    Route::apiResource('camions', CamionController::class);
-
     // Clients Management
     Route::apiResource('clients', ClientController::class);
 
-    // Commandes (Orders) Management
-    Route::apiResource('commandes', CommandeController::class);
+    Route::middleware('role:admin')->group(function () {
+        // Users and roles management
+        Route::apiResource('users', UserController::class);
+        Route::get('/roles', [UserController::class, 'getRoles']);
+
+        // Camions (Trucks) and commandes management
+        Route::apiResource('camions', CamionController::class);
+        Route::apiResource('commandes', CommandeController::class);
+
+        // Reporting and data exchange
+        Route::get('/reports/commandes/pdf', [ReportController::class, 'commandesPdf']);
+        Route::get('/reports/commandes/summary', [ReportController::class, 'commandesSummary']);
+        Route::get('/reports/commandes/export-xml', [ReportController::class, 'exportCommandesXml']);
+        Route::post('/reports/commandes/import-xml', [ReportController::class, 'importCommandesXml']);
+    });
 });
