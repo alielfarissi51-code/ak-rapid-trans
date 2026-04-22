@@ -10,19 +10,27 @@ class Commande extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'client_id',
         'camion_id',
         'lieu_depart',
         'lieu_arrivee',
         'date_transport',
         'prix',
-        'statut'
+        'statut',
+        'verified',
     ];
 
     protected $casts = [
         'date_transport' => 'date',
         'prix' => 'decimal:2',
+        'verified' => 'boolean',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function client()
     {

@@ -1,92 +1,66 @@
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { clearToken, getMe, logout as apiLogout } from "../services/api";
-
-const clientStats = [
-  {
-    label: "My Orders",
-    value: "18",
-    delta: "+3 this week",
-    icon: OrdersStatIcon,
-    accent: "from-sky-500/30 to-blue-500/10",
-  },
-  {
-    label: "Active Deliveries",
-    value: "4",
-    delta: "2 in transit",
-    icon: TruckStatIcon,
-    accent: "from-cyan-500/25 to-sky-500/10",
-  },
-  {
-    label: "Invoices Due",
-    value: "2",
-    delta: "1 due this week",
-    icon: InvoicesIcon,
-    accent: "from-indigo-500/25 to-sky-500/10",
-  },
-  {
-    label: "Support Tickets",
-    value: "1",
-    delta: "All others resolved",
-    icon: SupportIcon,
-    accent: "from-sky-400/25 to-emerald-400/10",
-  },
-];
-
-const myOrders = [
-  { id: "#ORD-211", destination: "Casablanca", status: "Delivered", date: "Apr 11, 2026" },
-  { id: "#ORD-210", destination: "Rabat", status: "Pending", date: "Apr 11, 2026" },
-  { id: "#ORD-209", destination: "Marrakech", status: "Pending", date: "Apr 10, 2026" },
-  { id: "#ORD-208", destination: "Tangier", status: "Cancelled", date: "Apr 09, 2026" },
-];
+import { useToast } from "../components/ToastProvider";
+import {
+  clearToken,
+  createClientCommande,
+  getClientCommandeById,
+  getClientCommandes,
+  getMe,
+  logout as apiLogout,
+} from "../services/api";
 
 function ClientDashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { addToast } = useToast();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(location.state?.successMessage || "");
-  const [user, setUser] = useState(location.state?.user || null);
-  const [loadingUser, setLoadingUser] = useState(!location.state?.user);
-  const roleName = user?.role_name || user?.role || null;
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [requestForm, setRequestForm] = useState({
+    lieu_depart: "",
+    lieu_arrivee: "",
+    date_transport: "",
+    prix: "",
+  });
 
-  useEffect(() => {
-    if (!successMessage) {
-      return;
-    }
+  const roleName = (user?.role_name || user?.role || "").toLowerCase();
 
-    const timeoutId = setTimeout(() => {
-      setSuccessMessage("");
-    }, 3000);
+  const metrics = useMemo(() => {
+    const pending = orders.filter((item) => item.statut === "en_attente").length;
+    const verified = orders.filter((item) => item.verified).length;
 
-    return () => clearTimeout(timeoutId);
-  }, [successMessage]);
+    return {
+      total: orders.length,
+      pending,
+      verified,
+    };
+  }, [orders]);
 
   useEffect(() => {
     let active = true;
 
     const loadUser = async () => {
-      if (user && roleName) {
-        if (roleName === "admin") {
-          navigate("/dashboard-admin", { replace: true });
-        }
-
-        return;
-      }
-
       try {
         const profile = await getMe();
 
-        if (active) {
-          const profileRole = profile.role_name || profile.role || null;
-
-          if (profileRole === "admin") {
-            navigate("/dashboard-admin", { replace: true });
-            return;
-          }
-
-          setUser(profile);
+        if (!active) {
+          return;
         }
+
+        const profileRole = (profile.role_name || profile.role || "").toLowerCase();
+
+        if (profileRole === "admin") {
+          navigate("/dashboard-admin", { replace: true });
+          return;
+        }
+
+        setUser(profile);
       } catch (error) {
         if (active) {
           clearToken();
@@ -104,16 +78,96 @@ function ClientDashboard() {
     return () => {
       active = false;
     };
-  }, [navigate, roleName, user]);
+  }, [navigate]);
+
+  useEffect(() => {
+    if (roleName !== "client") {
+      return;
+    }
+
+    loadOrders();
+  }, [roleName]);
+
+  const loadOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const data = await getClientCommandes();
+      setOrders(data);
+    } catch (error) {
+      addToast({
+        type: "error",
+        title: "Unable to load your orders",
+        description: error.message || "Please try again shortly.",
+      });
+      setOrders([]);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
       await apiLogout();
     } catch (error) {
-      // Always clear local auth state even if backend logout fails.
+      // Logout must always clear local auth state.
     } finally {
       clearToken();
       navigate("/", { replace: true });
+    }
+  };
+
+  const handleRequestChange = (event) => {
+    const { name, value } = event.target;
+    setRequestForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateRequest = async (event) => {
+    event.preventDefault();
+
+    try {
+      setSubmitting(true);
+      await createClientCommande({
+        lieu_depart: requestForm.lieu_depart,
+        lieu_arrivee: requestForm.lieu_arrivee,
+        date_transport: requestForm.date_transport,
+        prix: requestForm.prix === "" ? null : Number(requestForm.prix),
+      });
+
+      addToast({
+        type: "success",
+        title: "Order request submitted",
+        description: "Your request is now pending and non-verified.",
+      });
+
+      setRequestForm({
+        lieu_depart: "",
+        lieu_arrivee: "",
+        date_transport: "",
+        prix: "",
+      });
+      setShowRequestForm(false);
+      await loadOrders();
+    } catch (error) {
+      addToast({
+        type: "error",
+        title: "Request failed",
+        description: error.message || "Unable to create your order request.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleViewDetails = async (id) => {
+    try {
+      const data = await getClientCommandeById(id);
+      setSelectedOrder(data);
+    } catch (error) {
+      addToast({
+        type: "error",
+        title: "Unable to open order",
+        description: error.message || "Please try again.",
+      });
     }
   };
 
@@ -131,122 +185,165 @@ function ClientDashboard() {
         <div className="flex min-w-0 flex-1 flex-col lg:pl-[260px]">
           <header className="border-b border-white/5 bg-[#050814]/80 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
             <div className="flex items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setMobileSidebarOpen(true)}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-sky-400/40 hover:bg-sky-500/10 lg:hidden"
-                  aria-label="Open sidebar"
-                >
-                  <MenuIcon className="h-5 w-5" />
-                </button>
-
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-400">Client Portal</p>
-                  <h1 className="truncate text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                    Dashboard Client
-                  </h1>
-                </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-slate-400">Client Portal</p>
+                <h1 className="truncate text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                  Client Dashboard
+                </h1>
               </div>
 
-              <div className="hidden items-center gap-3 sm:flex">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 backdrop-blur-xl">
-                  {user ? `${user.name} • Client` : "Loading account..."}
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowRequestForm((prev) => !prev)}
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 text-sm font-semibold text-sky-100 transition hover:border-sky-300/40 hover:bg-sky-500/25"
+              >
+                Request new order
+              </button>
             </div>
           </header>
 
           <main className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
             <div className="mx-auto flex max-w-7xl flex-col gap-6">
-              {loadingUser && !user && (
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300 backdrop-blur-xl">
+              {loadingUser && (
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
                   Loading your account...
                 </div>
               )}
 
-              {successMessage && (
-                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200 shadow-[0_20px_80px_rgba(16,185,129,0.12)] backdrop-blur-xl">
-                  {successMessage}
-                </div>
-              )}
-
-              <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
-                <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.28em] text-sky-300/70">My Logistics</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-white sm:text-3xl">
-                      Track your orders and deliveries
-                    </h2>
-                  </div>
-
-                  <div className="rounded-2xl border border-sky-400/15 bg-sky-400/10 px-4 py-3 text-sm text-sky-200">
-                    Client updates enabled
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  {clientStats.map((stat) => {
-                    const Icon = stat.icon;
-
-                    return (
-                      <article
-                        key={stat.label}
-                        className={`rounded-3xl border border-white/8 bg-gradient-to-br ${stat.accent} p-5 shadow-[0_18px_60px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:border-sky-300/20`}
-                      >
-                        <div className="mb-6 flex items-start justify-between gap-4">
-                          <div>
-                            <p className="text-sm text-slate-300">{stat.label}</p>
-                            <p className="mt-3 text-3xl font-semibold tracking-tight text-white">{stat.value}</p>
-                          </div>
-
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-sky-200 shadow-[0_12px_30px_rgba(2,132,199,0.18)]">
-                            <Icon className="h-6 w-6" />
-                          </div>
-                        </div>
-
-                        <p className="text-sm text-emerald-300">{stat.delta}</p>
-                      </article>
-                    );
-                  })}
-                </div>
+              <section className="grid gap-4 sm:grid-cols-3">
+                <MetricCard label="My orders" value={metrics.total} />
+                <MetricCard label="Pending" value={metrics.pending} />
+                <MetricCard label="Verified" value={metrics.verified} />
               </section>
 
-              <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.3)] backdrop-blur-2xl">
-                <div className="mb-6 flex items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">My Orders</h3>
-                    <p className="mt-1 text-sm text-slate-400">Overview of your latest requests and statuses</p>
-                  </div>
-                </div>
+              {showRequestForm && (
+                <section className="rounded-3xl border border-white/8 bg-white/[0.03] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
+                  <h2 className="text-lg font-semibold text-white">Create order request</h2>
+                  <p className="mt-1 text-sm text-slate-400">
+                    New requests are always submitted as pending and non-verified.
+                  </p>
 
-                <div className="overflow-hidden rounded-3xl border border-white/8 bg-[#0b1324]/70">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-white/5 text-left text-sm">
-                      <thead className="bg-white/[0.03] text-slate-400">
+                  <form className="mt-5 grid gap-4 md:grid-cols-2" onSubmit={handleCreateRequest}>
+                    <InputField
+                      label="Departure"
+                      name="lieu_depart"
+                      value={requestForm.lieu_depart}
+                      onChange={handleRequestChange}
+                      placeholder="City or address"
+                    />
+                    <InputField
+                      label="Arrival"
+                      name="lieu_arrivee"
+                      value={requestForm.lieu_arrivee}
+                      onChange={handleRequestChange}
+                      placeholder="City or address"
+                    />
+                    <InputField
+                      label="Transport date"
+                      name="date_transport"
+                      value={requestForm.date_transport}
+                      onChange={handleRequestChange}
+                      type="date"
+                    />
+                    <InputField
+                      label="Estimated price (DHS, optional)"
+                      name="prix"
+                      value={requestForm.prix}
+                      onChange={handleRequestChange}
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+
+                    <div className="md:col-span-2">
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="inline-flex h-11 items-center rounded-xl border border-sky-400/20 bg-sky-500/15 px-4 text-sm font-semibold text-sky-100 transition hover:border-sky-300/40 hover:bg-sky-500/25 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {submitting ? "Submitting..." : "Submit request"}
+                      </button>
+                    </div>
+                  </form>
+                </section>
+              )}
+
+              <section className="rounded-3xl border border-white/8 bg-white/[0.03] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
+                <h2 className="text-lg font-semibold text-white">My orders</h2>
+                <p className="mt-1 text-sm text-slate-400">You can only view orders that belong to your account.</p>
+
+                {loadingOrders ? (
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-6 text-center text-sm text-slate-300">
+                    Loading orders...
+                  </div>
+                ) : (
+                  <div className="mt-5 overflow-hidden rounded-2xl border border-white/8 bg-[#0b1324]/70">
+                    <table className="min-w-full text-left text-sm">
+                      <thead className="border-b border-white/8 text-slate-400">
                         <tr>
-                          <th className="px-5 py-4 font-medium">ID</th>
-                          <th className="px-5 py-4 font-medium">Destination</th>
-                          <th className="px-5 py-4 font-medium">Status</th>
-                          <th className="px-5 py-4 font-medium">Date</th>
+                          <th className="px-4 py-3 font-medium">ID</th>
+                          <th className="px-4 py-3 font-medium">Route</th>
+                          <th className="px-4 py-3 font-medium">Date</th>
+                          <th className="px-4 py-3 font-medium">Status</th>
+                          <th className="px-4 py-3 font-medium">Verification</th>
+                          <th className="px-4 py-3 font-medium">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
-                        {myOrders.map((order) => (
-                          <tr key={order.id} className="transition hover:bg-white/[0.03]">
-                            <td className="px-5 py-4 font-medium text-white">{order.id}</td>
-                            <td className="px-5 py-4 text-slate-300">{order.destination}</td>
-                            <td className="px-5 py-4">
-                              <StatusPill status={order.status} />
+                      <tbody>
+                        {orders.length === 0 && (
+                          <tr>
+                            <td colSpan="6" className="px-4 py-8 text-center text-slate-400">
+                              No orders yet.
                             </td>
-                            <td className="px-5 py-4 text-slate-400">{order.date}</td>
+                          </tr>
+                        )}
+                        {orders.map((order) => (
+                          <tr key={order.id} className="border-t border-white/8 text-slate-200">
+                            <td className="px-4 py-3 font-semibold">#{order.id}</td>
+                            <td className="px-4 py-3">{order.lieu_depart} → {order.lieu_arrivee}</td>
+                            <td className="px-4 py-3">{new Date(order.date_transport).toLocaleDateString()}</td>
+                            <td className="px-4 py-3"><StatusBadge status={order.statut} /></td>
+                            <td className="px-4 py-3"><VerificationBadge verified={Boolean(order.verified)} /></td>
+                            <td className="px-4 py-3">
+                              <button
+                                type="button"
+                                onClick={() => handleViewDetails(order.id)}
+                                className="rounded-lg border border-sky-400/25 bg-sky-500/10 px-3 py-1.5 text-xs font-semibold text-sky-200 transition hover:border-sky-300/40 hover:bg-sky-500/20"
+                              >
+                                View details
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                </div>
+                )}
               </section>
+
+              {selectedOrder && (
+                <section className="rounded-3xl border border-white/8 bg-white/[0.03] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-lg font-semibold text-white">Order #{selectedOrder.id}</h3>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedOrder(null)}
+                      className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/[0.08]"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className="mt-4 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
+                    <p><span className="text-slate-400">Client:</span> {selectedOrder.client?.nom || "N/A"}</p>
+                    <p><span className="text-slate-400">Truck:</span> {selectedOrder.camion?.matricule || "Not assigned"}</p>
+                    <p><span className="text-slate-400">Route:</span> {selectedOrder.lieu_depart} → {selectedOrder.lieu_arrivee}</p>
+                    <p><span className="text-slate-400">Price:</span> {selectedOrder.prix ? `DHS ${Number(selectedOrder.prix).toLocaleString()}` : "N/A"}</p>
+                    <p><span className="text-slate-400">Status:</span> {selectedOrder.statut}</p>
+                    <p><span className="text-slate-400">Verification:</span> {selectedOrder.verified ? "verified" : "non_verified"}</p>
+                  </div>
+                </section>
+              )}
             </div>
           </main>
         </div>
@@ -255,65 +352,55 @@ function ClientDashboard() {
   );
 }
 
-function StatusPill({ status }) {
+function MetricCard({ label, value }) {
+  return (
+    <article className="rounded-2xl border border-white/8 bg-white/[0.03] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.26)]">
+      <p className="text-sm text-slate-400">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+    </article>
+  );
+}
+
+function InputField({ label, name, value, onChange, type = "text", ...rest }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-slate-300">{label}</span>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none"
+        required={type !== "number"}
+        {...rest}
+      />
+    </label>
+  );
+}
+
+function StatusBadge({ status }) {
   const styles = {
-    Delivered: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-    Pending: "border-amber-400/20 bg-amber-400/10 text-amber-300",
-    Cancelled: "border-rose-400/20 bg-rose-400/10 text-rose-300",
+    en_attente: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+    validee: "border-sky-400/30 bg-sky-400/10 text-sky-300",
+    en_cours: "border-yellow-400/30 bg-yellow-400/10 text-yellow-300",
+    livree: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+    annulee: "border-rose-400/30 bg-rose-400/10 text-rose-300",
   };
 
+  return <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${styles[status] || styles.en_attente}`}>{status}</span>;
+}
+
+function VerificationBadge({ verified }) {
   return (
-    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${styles[status]}`}>
-      {status}
+    <span
+      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${
+        verified
+          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+          : "border-slate-500/40 bg-slate-500/15 text-slate-300"
+      }`}
+    >
+      {verified ? "verified" : "non_verified"}
     </span>
-  );
-}
-
-function OrdersStatIcon({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M5 6h14l-1 12H6L5 6Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M9 6a3 3 0 0 1 6 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function TruckStatIcon({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M3 8h11v8H3V8Z" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M14 11h3l3 3v2h-6v-5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M7 18a1.7 1.7 0 1 0 0-3.4A1.7 1.7 0 0 0 7 18Zm10 0a1.7 1.7 0 1 0 0-3.4A1.7 1.7 0 0 0 17 18Z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function InvoicesIcon({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M7 3h7l4 4v14H7V3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M14 3v4h4" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M9.5 11h5M9.5 14h5M9.5 17h3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function SupportIcon({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M12 20a8 8 0 1 0-8-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M4 12v4a2 2 0 0 0 2 2h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M12 8v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="12" cy="16" r="1" fill="currentColor" />
-    </svg>
-  );
-}
-
-function MenuIcon({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
   );
 }
 

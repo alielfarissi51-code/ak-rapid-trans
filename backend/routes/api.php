@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CamionController;
+use App\Http\Controllers\ClientOrderController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CommandeController;
 use App\Http\Controllers\ReportController;
@@ -20,22 +21,28 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/me', [AuthController::class, 'apiUpdateProfile']);
     Route::put('/me/password', [AuthController::class, 'apiUpdatePassword']);
 
-    // Clients Management
-    Route::apiResource('clients', ClientController::class);
-
-    Route::middleware('role:admin')->group(function () {
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
         // Users and roles management
         Route::apiResource('users', UserController::class);
-        Route::get('/roles', [UserController::class, 'getRoles']);
+        Route::get('roles', [UserController::class, 'getRoles']);
+
+        // Clients Management
+        Route::apiResource('clients', ClientController::class);
 
         // Camions (Trucks) and commandes management
         Route::apiResource('camions', CamionController::class);
         Route::apiResource('commandes', CommandeController::class);
 
         // Reporting and data exchange
-        Route::get('/reports/commandes/pdf', [ReportController::class, 'commandesPdf']);
-        Route::get('/reports/commandes/summary', [ReportController::class, 'commandesSummary']);
-        Route::get('/reports/commandes/export-xml', [ReportController::class, 'exportCommandesXml']);
-        Route::post('/reports/commandes/import-xml', [ReportController::class, 'importCommandesXml']);
+        Route::get('reports/commandes/pdf', [ReportController::class, 'commandesPdf']);
+        Route::get('reports/commandes/summary', [ReportController::class, 'commandesSummary']);
+        Route::get('reports/commandes/export-xml', [ReportController::class, 'exportCommandesXml']);
+        Route::post('reports/commandes/import-xml', [ReportController::class, 'importCommandesXml']);
+    });
+
+    Route::prefix('client')->middleware('role:client')->group(function () {
+        Route::get('commandes', [ClientOrderController::class, 'index']);
+        Route::post('commandes', [ClientOrderController::class, 'store']);
+        Route::get('commandes/{commande}', [ClientOrderController::class, 'show']);
     });
 });

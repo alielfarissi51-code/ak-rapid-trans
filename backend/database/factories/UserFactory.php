@@ -26,8 +26,9 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'role_id' => Role::query()->whereIn('name', ['user', 'manager'])->inRandomOrder()->value('id')
-                ?? Role::firstOrCreate(['name' => 'user'])->id,
+            'role_id' => Role::query()->where('name', 'client')->value('id')
+                ?? Role::firstOrCreate(['name' => 'client'])->id,
+            'role' => 'client',
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),

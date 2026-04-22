@@ -16,15 +16,16 @@ class AuthController extends Controller
 {
     private function userPayload(User $user): array
     {
-        $user->loadMissing('role');
+        $user->loadMissing('roleRelation');
+        $resolvedRole = $user->resolvedRole();
 
         return [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'role_id' => $user->role_id,
-            'role' => $user->role?->name,
-            'role_name' => $user->role?->name,
+            'role' => $resolvedRole,
+            'role_name' => $resolvedRole,
         ];
     }
 
@@ -73,10 +74,11 @@ class AuthController extends Controller
         ]);
 
         $user = DB::transaction(function () use ($validated) {
-            $userRole = Role::firstOrCreate(['name' => 'user']);
+            $userRole = Role::firstOrCreate(['name' => 'client']);
 
             $user = User::create([
                 'role_id' => $userRole->id,
+                'role' => 'client',
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
@@ -128,10 +130,11 @@ class AuthController extends Controller
         ]);
 
         $user = DB::transaction(function () use ($validated) {
-            $userRole = Role::firstOrCreate(['name' => 'user']);
+            $userRole = Role::firstOrCreate(['name' => 'client']);
 
             $user = User::create([
                 'role_id' => $userRole->id,
+                'role' => 'client',
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
@@ -175,7 +178,7 @@ class AuthController extends Controller
             ]);
         }
 
-        $user->loadMissing('role');
+        $user->loadMissing('roleRelation');
 
         $user->tokens()->delete();
         $token = $user->createToken('frontend-token')->plainTextToken;
@@ -188,15 +191,16 @@ class AuthController extends Controller
 
     public function apiMe(Request $request)
     {
-        $user = $request->user()->load('role');
+        $user = $request->user()->load('roleRelation');
+        $resolvedRole = $user->resolvedRole();
 
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'role_id' => $user->role_id,
-            'role' => $user->role?->name,
-            'role_name' => $user->role?->name,
+            'role' => $resolvedRole,
+            'role_name' => $resolvedRole,
         ]);
     }
 

@@ -114,21 +114,21 @@ export const updatePassword = async (data) => {
 
 // =============== USERS MANAGEMENT ===============
 export const getUsers = async () => {
-    const response = await fetch(`${API_BASE}/users`, {
+    const response = await fetch(`${API_BASE}/admin/users`, {
         headers: { ...authHeaders() },
     });
     return parseResponse(response);
 };
 
 export const getUserById = async (id) => {
-    const response = await fetch(`${API_BASE}/users/${id}`, {
+    const response = await fetch(`${API_BASE}/admin/users/${id}`, {
         headers: { ...authHeaders() },
     });
     return parseResponse(response);
 };
 
 export const createUser = async (data) => {
-    const response = await fetch(`${API_BASE}/users`, {
+    const response = await fetch(`${API_BASE}/admin/users`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -140,7 +140,7 @@ export const createUser = async (data) => {
 };
 
 export const updateUser = async (id, data) => {
-    const response = await fetch(`${API_BASE}/users/${id}`, {
+    const response = await fetch(`${API_BASE}/admin/users/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ export const updateUser = async (id, data) => {
 };
 
 export const deleteUser = async (id) => {
-    const response = await fetch(`${API_BASE}/users/${id}`, {
+    const response = await fetch(`${API_BASE}/admin/users/${id}`, {
         method: 'DELETE',
         headers: { ...authHeaders() },
     });
@@ -164,7 +164,7 @@ export const deleteUser = async (id) => {
 };
 
 export const getRoles = async () => {
-    const response = await fetch(`${API_BASE}/roles`, {
+    const response = await fetch(`${API_BASE}/admin/roles`, {
         headers: { ...authHeaders() },
     });
     return parseResponse(response);
@@ -172,21 +172,21 @@ export const getRoles = async () => {
 
 // =============== CAMIONS (TRUCKS) MANAGEMENT ===============
 export const getCamions = async () => {
-    const response = await fetch(`${API_BASE}/camions`, {
+    const response = await fetch(`${API_BASE}/admin/camions`, {
         headers: { ...authHeaders() },
     });
     return parseResponse(response);
 };
 
 export const getCamionById = async (id) => {
-    const response = await fetch(`${API_BASE}/camions/${id}`, {
+    const response = await fetch(`${API_BASE}/admin/camions/${id}`, {
         headers: { ...authHeaders() },
     });
     return parseResponse(response);
 };
 
 export const createCamion = async (data) => {
-    const response = await fetch(`${API_BASE}/camions`, {
+    const response = await fetch(`${API_BASE}/admin/camions`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ export const createCamion = async (data) => {
 };
 
 export const updateCamion = async (id, data) => {
-    const response = await fetch(`${API_BASE}/camions/${id}`, {
+    const response = await fetch(`${API_BASE}/admin/camions/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ export const updateCamion = async (id, data) => {
 };
 
 export const deleteCamion = async (id) => {
-    const response = await fetch(`${API_BASE}/camions/${id}`, {
+    const response = await fetch(`${API_BASE}/admin/camions/${id}`, {
         method: 'DELETE',
         headers: { ...authHeaders() },
     });
@@ -223,7 +223,7 @@ export const deleteCamion = async (id) => {
 
 // =============== CLIENTS MANAGEMENT ===============
 export const getClients = async () => {
-    const response = await fetch(`${API_BASE}/clients`, {
+    const response = await fetch(`${API_BASE}/admin/clients`, {
         headers: { ...authHeaders() },
     });
     return parseResponse(response);
@@ -231,21 +231,21 @@ export const getClients = async () => {
 
 // =============== COMMANDES (ORDERS) MANAGEMENT ===============
 export const getCommandes = async () => {
-    const response = await fetch(`${API_BASE}/commandes`, {
+    const response = await fetch(`${API_BASE}/admin/commandes`, {
         headers: { ...authHeaders() },
     });
     return parseResponse(response);
 };
 
 export const getCommandeById = async (id) => {
-    const response = await fetch(`${API_BASE}/commandes/${id}`, {
+    const response = await fetch(`${API_BASE}/admin/commandes/${id}`, {
         headers: { ...authHeaders() },
     });
     return parseResponse(response);
 };
 
 export const createCommande = async (data) => {
-    const response = await fetch(`${API_BASE}/commandes`, {
+    const response = await fetch(`${API_BASE}/admin/commandes`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -257,7 +257,7 @@ export const createCommande = async (data) => {
 };
 
 export const updateCommande = async (id, data) => {
-    const response = await fetch(`${API_BASE}/commandes/${id}`, {
+    const response = await fetch(`${API_BASE}/admin/commandes/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -269,7 +269,7 @@ export const updateCommande = async (id, data) => {
 };
 
 export const deleteCommande = async (id) => {
-    const response = await fetch(`${API_BASE}/commandes/${id}`, {
+    const response = await fetch(`${API_BASE}/admin/commandes/${id}`, {
         method: 'DELETE',
         headers: { ...authHeaders() },
     });
@@ -282,7 +282,7 @@ export const deleteCommande = async (id) => {
 
 // =============== REPORTING / EXCHANGE ===============
 export const downloadCommandesPdf = async () => {
-    const response = await fetch(`${API_BASE}/reports/commandes/pdf`, {
+    const response = await fetch(`${API_BASE}/admin/reports/commandes/pdf`, {
         headers: { ...authHeaders() },
     });
 
@@ -303,14 +303,14 @@ export const downloadCommandesPdf = async () => {
 };
 
 export const getCommandesSummary = async () => {
-    const response = await fetch(`${API_BASE}/reports/commandes/summary`, {
+    const response = await fetch(`${API_BASE}/admin/reports/commandes/summary`, {
         headers: { ...authHeaders() },
     });
     return parseResponse(response);
 };
 
 export const exportCommandesXml = async () => {
-    const response = await fetch(`${API_BASE}/reports/commandes/export-xml`, {
+    const response = await fetch(`${API_BASE}/admin/reports/commandes/export-xml`, {
         headers: { ...authHeaders() },
     });
 
@@ -334,12 +334,40 @@ export const importCommandesXml = async (file) => {
     const formData = new FormData();
     formData.append('xml_file', file);
 
-    const response = await fetch(`${API_BASE}/reports/commandes/import-xml`, {
+    const response = await fetch(`${API_BASE}/admin/reports/commandes/import-xml`, {
         method: 'POST',
         headers: {
             ...authHeaders(),
         },
         body: formData,
+    });
+
+    return parseResponse(response);
+};
+
+export const getClientCommandes = async () => {
+    const response = await fetch(`${API_BASE}/client/commandes`, {
+        headers: { ...authHeaders() },
+    });
+    return parseResponse(response);
+};
+
+export const createClientCommande = async (data) => {
+    const response = await fetch(`${API_BASE}/client/commandes`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(),
+        },
+        body: JSON.stringify(data),
+    });
+
+    return parseResponse(response);
+};
+
+export const getClientCommandeById = async (id) => {
+    const response = await fetch(`${API_BASE}/client/commandes/${id}`, {
+        headers: { ...authHeaders() },
     });
 
     return parseResponse(response);

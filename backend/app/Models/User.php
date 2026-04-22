@@ -13,7 +13,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    public function role()
+    public function roleRelation()
     {
         return $this->belongsTo(Role::class);
     }
@@ -25,6 +25,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'role_id',
+        'role',
         'name',
         'email',
         'password',
@@ -51,5 +52,21 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function resolvedRole(): string
+    {
+        $explicitRole = strtolower((string) ($this->getAttribute('role') ?? ''));
+
+        if ($explicitRole !== '') {
+            return $explicitRole;
+        }
+
+        return strtolower((string) ($this->roleRelation?->name ?: 'client'));
+    }
+
+    public function commandes()
+    {
+        return $this->hasMany(Commande::class);
     }
 }

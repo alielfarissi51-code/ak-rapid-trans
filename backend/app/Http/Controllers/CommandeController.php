@@ -15,7 +15,7 @@ class CommandeController extends Controller
     public function index()
     {
         return response()->json(
-            Commande::with(['client', 'camion'])->latest()->get()
+            Commande::with(['user', 'client', 'camion'])->latest()->get()
         );
     }
 
@@ -33,6 +33,7 @@ class CommandeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'user_id' => ['nullable', 'exists:users,id'],
             'client_id' => ['required', 'exists:clients,id'],
             'camion_id' => ['nullable', 'exists:camions,id'],
             'lieu_depart' => ['required', 'string', 'max:255'],
@@ -40,13 +41,14 @@ class CommandeController extends Controller
             'date_transport' => ['required', 'date'],
             'prix' => ['nullable', 'numeric', 'min:0'],
             'statut' => ['nullable', Rule::in(['en_attente', 'validee', 'en_cours', 'livree', 'annulee'])],
+            'verified' => ['nullable', 'boolean'],
         ]);
 
         $commande = DB::transaction(function () use ($validated) {
             return Commande::create($validated);
         });
 
-        return response()->json($commande->load(['client', 'camion']), 201);
+        return response()->json($commande->load(['user', 'client', 'camion']), 201);
     }
 
     /**
@@ -54,7 +56,7 @@ class CommandeController extends Controller
      */
     public function show(Commande $commande)
     {
-        return response()->json($commande->load(['client', 'camion']));
+        return response()->json($commande->load(['user', 'client', 'camion']));
     }
 
     /**
@@ -74,6 +76,7 @@ class CommandeController extends Controller
     public function update(Request $request, Commande $commande)
     {
         $validated = $request->validate([
+            'user_id' => ['sometimes', 'nullable', 'exists:users,id'],
             'client_id' => ['sometimes', 'required', 'exists:clients,id'],
             'camion_id' => ['nullable', 'exists:camions,id'],
             'lieu_depart' => ['sometimes', 'required', 'string', 'max:255'],
@@ -81,13 +84,14 @@ class CommandeController extends Controller
             'date_transport' => ['sometimes', 'required', 'date'],
             'prix' => ['nullable', 'numeric', 'min:0'],
             'statut' => ['sometimes', 'required', Rule::in(['en_attente', 'validee', 'en_cours', 'livree', 'annulee'])],
+            'verified' => ['sometimes', 'boolean'],
         ]);
 
         DB::transaction(function () use ($commande, $validated) {
             $commande->update($validated);
         });
 
-        return response()->json($commande->load(['client', 'camion']));
+        return response()->json($commande->load(['user', 'client', 'camion']));
     }
 
     /**

@@ -134,7 +134,7 @@ function ToastItem({ toast, onClose }) {
 
     return (
         <article
-            className={`pointer-events-auto overflow-hidden rounded-2xl border p-4 backdrop-blur-xl transition-all duration-300 ${variant.panel} ${toast.leaving ? "translate-y-1 opacity-0" : toast.entered ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
+            className={`pointer-events-auto overflow-hidden rounded-2xl border p-4 backdrop-blur-xl transition-all duration-500 ease-out ${variant.panel} ${toast.leaving ? "translate-y-1 opacity-0" : toast.entered ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
             role="status"
             aria-live="polite"
         >

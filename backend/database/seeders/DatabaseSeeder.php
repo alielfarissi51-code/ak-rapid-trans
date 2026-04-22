@@ -22,27 +22,26 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $userRole = Role::firstOrCreate(['name' => 'user']);
-        $managerRole = Role::firstOrCreate(['name' => 'manager']);
+        $clientRole = Role::firstOrCreate(['name' => 'client']);
 
         User::updateOrCreate([
             'email' => 'admin@akrapidtrans.com',
         ], [
             'role_id' => $adminRole->id,
+            'role' => 'admin',
             'name' => 'Admin AK Rapid Trans',
             'password' => Hash::make('Admin@1234'),
         ]);
         User::updateOrCreate([
             'email' => 'client@akrapidtrans.com',
         ], [
-            'role_id' => $userRole->id,
-            'name' => 'Admin AK Rapid Trans',
+            'role_id' => $clientRole->id,
+            'role' => 'client',
+            'name' => 'Client AK Rapid Trans',
             'password' => Hash::make('client@1234'),
         ]);
 
-        User::factory(10)->create();
-        User::factory(3)->create(['role_id' => $managerRole->id]);
-        User::factory(12)->create(['role_id' => $userRole->id]);
+        User::factory(25)->create(['role_id' => $clientRole->id, 'role' => 'client']);
 
         Client::factory(30)->create();
         Camion::factory(12)->create();

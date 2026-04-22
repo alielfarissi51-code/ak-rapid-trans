@@ -2,11 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { applyDocumentTheme, getStoredPreferences, PREFERENCES_EVENT, setStoredPreferences } from "../utils/preferences";
 
-const navigationItems = [
+const adminNavigationItems = [
   { labelKey: "dashboard", path: "/dashboard", icon: DashboardIcon },
   { labelKey: "orders", path: "/admin/commandes", icon: OrdersIcon },
   { labelKey: "users", path: "/admin/users", icon: ClientsIcon },
   { labelKey: "trucks", path: "/admin/camions", icon: VehiclesIcon },
+  { labelKey: "settings", path: "/settings", icon: SettingsIcon },
+];
+
+const clientNavigationItems = [
+  { labelKey: "dashboard", path: "/dashboard-client", icon: DashboardIcon },
+  { labelKey: "orders", path: "/dashboard-client", icon: OrdersIcon },
   { labelKey: "settings", path: "/settings", icon: SettingsIcon },
 ];
 
@@ -72,6 +78,11 @@ function Sidebar({
   const lang = effectivePreferences?.lang === "fr" ? "fr" : "en";
   const theme = effectivePreferences?.theme === "light" ? "light" : "dark";
   const t = useMemo(() => sidebarTranslations[lang] || sidebarTranslations.en, [lang]);
+  const isAdminRoute = location.pathname === "/dashboard" || location.pathname === "/dashboard-admin" || location.pathname.startsWith("/admin/");
+  const fallbackRole = isAdmin || isAdminRoute ? "admin" : "client";
+  const roleName = (user?.role_name || user?.role || fallbackRole).toLowerCase();
+  const isUserAdmin = roleName === "admin";
+  const navigationItems = isUserAdmin ? adminNavigationItems : clientNavigationItems;
 
   useEffect(() => {
     applyDocumentTheme(theme);
@@ -209,7 +220,7 @@ function Sidebar({
                   {user?.name || t.guestUser}
                 </p>
                 <p className={`truncate text-xs ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>
-                  {isAdmin ? t.roleAdmin : user?.role_name || user?.role ? t.roleClient : t.roleManager}
+                  {isUserAdmin ? t.roleAdmin : t.roleClient}
                 </p>
               </div>
             </div>

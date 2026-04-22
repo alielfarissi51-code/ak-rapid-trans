@@ -2,6 +2,7 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastProvider } from "./components/ToastProvider";
+import RequireRole from "./components/RequireRole";
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -21,14 +22,14 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard-admin" element={<Dashboard />} />
-            <Route path="/dashboard-client" element={<ClientDashboard />} />
+            <Route path="/dashboard" element={<RequireRole allow={["admin"]}><Dashboard /></RequireRole>} />
+            <Route path="/dashboard-admin" element={<RequireRole allow={["admin"]}><Dashboard /></RequireRole>} />
+            <Route path="/dashboard-client" element={<RequireRole allow={["client"]}><ClientDashboard /></RequireRole>} />
             <Route path="/commandes" element={<Commandes />} />
-            <Route path="/admin/users" element={<UsersManagement />} />
-            <Route path="/admin/camions" element={<CamionsManagement />} />
-            <Route path="/admin/commandes" element={<CommandesManagement />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/admin/users" element={<RequireRole allow={["admin"]}><UsersManagement /></RequireRole>} />
+            <Route path="/admin/camions" element={<RequireRole allow={["admin"]}><CamionsManagement /></RequireRole>} />
+            <Route path="/admin/commandes" element={<RequireRole allow={["admin"]}><CommandesManagement /></RequireRole>} />
+            <Route path="/settings" element={<RequireRole allow={["admin", "client"]}><Settings /></RequireRole>} />
           </Routes>
         </Suspense>
       </BrowserRouter>

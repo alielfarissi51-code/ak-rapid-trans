@@ -15,9 +15,20 @@ class UserController extends Controller
      */
     public function index()
     {
-        return response()->json(
-            User::with('role')->latest()->get()
-        );
+        $users = User::with('roleRelation')->latest()->get()->map(function (User $user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role_id' => $user->role_id,
+                'role' => $user->roleRelation,
+                'role_name' => $user->resolvedRole(),
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ];
+        });
+
+        return response()->json($users);
     }
 
     /**
@@ -36,9 +47,18 @@ class UserController extends Controller
             $validated['password'] = Hash::make($validated['password']);
         }
 
+        if (isset($validated['role_id'])) {
+            $role = Role::find($validated['role_id']);
+            $validated['role'] = $role?->name;
+        }
+
         $user = User::create($validated);
 
-        return response()->json($user->load('role'), 201);
+        return response()->json([
+            ...$user->toArray(),
+            'role' => $user->load('roleRelation')->roleRelation,
+            'role_name' => $user->resolvedRole(),
+        ], 201);
     }
 
     /**
@@ -46,7 +66,13 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return response()->json($user->load('role'));
+        $user->load('roleRelation');
+
+        return response()->json([
+            ...$user->toArray(),
+            'role' => $user->roleRelation,
+            'role_name' => $user->resolvedRole(),
+        ]);
     }
 
     /**
@@ -68,9 +94,20 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
+        if (isset($validated['role_id'])) {
+            $role = Role::find($validated['role_id']);
+            $validated['role'] = $role?->name;
+        }
+
         $user->update($validated);
 
-        return response()->json($user->load('role'));
+        $user->load('roleRelation');
+
+        return response()->json([
+            ...$user->toArray(),
+            'role' => $user->roleRelation,
+            'role_name' => $user->resolvedRole(),
+        ]);
     }
 
     /**
