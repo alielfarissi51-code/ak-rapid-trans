@@ -288,6 +288,14 @@ export const deleteCommande = async (id) => {
     return response.status === 204 ? {} : response.json();
 };
 
+export const getCommandeStatusLogs = async (id) => {
+    const response = await fetch(`${API_BASE}/admin/commandes/${id}/status-logs`, {
+        headers: { ...authHeaders() },
+    });
+
+    return parseResponse(response);
+};
+
 // =============== REPORTING / EXCHANGE ===============
 export const downloadCommandesPdf = async () => {
     const response = await fetch(`${API_BASE}/admin/reports/commandes/pdf`, {
@@ -357,6 +365,14 @@ export const getClientCommandes = async () => {
     const response = await fetch(`${API_BASE}/client/commandes`, {
         headers: { ...authHeaders() },
     });
+    return parseResponse(response);
+};
+
+export const getClientCommandesSummary = async () => {
+    const response = await fetch(`${API_BASE}/client/commandes/summary`, {
+        headers: { ...authHeaders() },
+    });
+
     return parseResponse(response);
 };
 

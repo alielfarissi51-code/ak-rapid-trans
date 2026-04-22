@@ -13,7 +13,6 @@ const adminNavigationItems = [
 
 const clientNavigationItems = [
   { labelKey: "dashboard", path: "/dashboard-client", icon: DashboardIcon },
-  { labelKey: "orders", path: "/dashboard-client", icon: OrdersIcon },
   { labelKey: "settings", path: "/settings", icon: SettingsIcon },
 ];
 

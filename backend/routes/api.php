@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('clients', ClientController::class);
 
         // Camions (Trucks) and commandes management
+        Route::get('commandes/{commande}/status-logs', [CommandeController::class, 'statusLogs']);
         Route::apiResource('camions', CamionController::class);
         Route::apiResource('commandes', CommandeController::class);
 
@@ -41,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('client')->middleware('role:client')->group(function () {
+        Route::get('commandes/summary', [ClientOrderController::class, 'summary']);
         Route::get('commandes', [ClientOrderController::class, 'index']);
         Route::post('commandes', [ClientOrderController::class, 'store']);
         Route::get('commandes/{commande}', [ClientOrderController::class, 'show']);

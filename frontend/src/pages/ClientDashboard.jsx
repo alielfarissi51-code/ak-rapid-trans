@@ -10,6 +10,7 @@ import {
   getClientCommandes,
   getMe,
   logout as apiLogout,
+  getClientCommandesSummary,
 } from "../services/api";
 
 const clientDashboardTranslations = {
@@ -100,9 +101,17 @@ const clientDashboardTranslations = {
   },
   fr: {
     portalTitle: "Portail client",
+    dbSummary: "Database summary",
+    dbSummaryCopy: "This section is calculated from a stored procedure in the backend database.",
+    totalAmount: "Total amount",
+    loadingSummary: "Loading summary...",
     welcomeBack: "Bon retour",
     overviewDescription: "Suivez vos demandes de transport, controlez chaque statut et envoyez une nouvelle demande en quelques secondes.",
     privateAccess: "Acces prive au compte",
+    dbSummary: "Resume base de donnees",
+    dbSummaryCopy: "Cette section est calculee via une procedure stockee dans la base backend.",
+    totalAmount: "Montant total",
+    loadingSummary: "Chargement du resume...",
     requestNewOrder: "Nouvelle demande",
     loadingAccount: "Chargement de votre compte...",
     latestUpdate: "Derniere mise a jour",
@@ -200,6 +209,8 @@ function ClientDashboard() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [orders, setOrders] = useState([]);
+  const [summaryRows, setSummaryRows] = useState([]);
+  const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -352,8 +363,12 @@ function ClientDashboard() {
   const loadOrders = async () => {
     try {
       setLoadingOrders(true);
-      const data = await getClientCommandes();
+      const [data, summaryPayload] = await Promise.all([
+        getClientCommandes(),
+        getClientCommandesSummary().catch(() => ({ data: [] })),
+      ]);
       setOrders(Array.isArray(data) ? data : []);
+      setSummaryRows(Array.isArray(summaryPayload?.data) ? summaryPayload.data : []);
     } catch (error) {
       addToast({
         type: "error",
@@ -361,8 +376,26 @@ function ClientDashboard() {
         description: error.message || "Please try again shortly.",
       });
       setOrders([]);
+      setSummaryRows([]);
     } finally {
       setLoadingOrders(false);
+    }
+  };
+
+  const loadSummaryOnly = async () => {
+    try {
+      setLoadingSummary(true);
+      const summaryPayload = await getClientCommandesSummary();
+      setSummaryRows(Array.isArray(summaryPayload?.data) ? summaryPayload.data : []);
+    } catch (error) {
+      setSummaryRows([]);
+      addToast({
+        type: "warning",
+        title: lang === "fr" ? "Resume indisponible" : "Summary unavailable",
+        description: error.message || (lang === "fr" ? "Impossible de charger le resume base de donnees." : "Unable to load database summary."),
+      });
+    } finally {
+      setLoadingSummary(false);
     }
   };
 
@@ -912,6 +945,55 @@ function ClientDashboard() {
                     </ol>
                   </section>
                 </div>
+
+                <section className={`rounded-[28px] border p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl sm:p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">SQL</p>
+                      <h2 className={`mt-2 text-xl font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{t.dbSummary}</h2>
+                      <p className={`mt-2 text-sm leading-6 ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>{t.dbSummaryCopy}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={loadSummaryOnly}
+                      className={`inline-flex h-10 items-center gap-2 rounded-xl border px-3.5 text-sm font-medium transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.06]"}`}
+                    >
+                      <RefreshIcon className="h-4 w-4" />
+                      {t.refresh}
+                    </button>
+                  </div>
+
+                  {loadingSummary ? (
+                    <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-600" : "border-white/10 bg-white/[0.03] text-slate-300"}`}>
+                      {t.loadingSummary}
+                    </div>
+                  ) : summaryRows.length > 0 ? (
+                    <div className="mt-4 overflow-hidden rounded-xl border border-white/8">
+                      <table className="min-w-full text-left text-sm">
+                        <thead className={`${theme === "light" ? "bg-slate-100 text-slate-600" : "bg-white/[0.02] text-slate-400"}`}>
+                          <tr>
+                            <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]">{t.status}</th>
+                            <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]">{t.totalOrders}</th>
+                            <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]">{t.totalAmount}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {summaryRows.map((row) => (
+                            <tr key={row.statut} className={`${theme === "light" ? "border-t border-slate-200 text-slate-900" : "border-t border-white/8 text-slate-200"}`}>
+                              <td className="px-4 py-3.5">{formatStatusLabel(row.statut, lang)}</td>
+                              <td className="px-4 py-3.5">{row.total}</td>
+                              <td className="px-4 py-3.5">{formatPrice(row.total_amount, lang)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-600" : "border-white/10 bg-white/[0.03] text-slate-300"}`}>
+                      {t.noData}
+                    </div>
+                  )}
+                </section>
               </section>
             </div>
           </main>

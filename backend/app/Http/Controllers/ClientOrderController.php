@@ -9,6 +9,27 @@ use Illuminate\Support\Facades\DB;
 
 class ClientOrderController extends Controller
 {
+    public function summary(Request $request)
+    {
+        $userId = (int) $request->user()->id;
+
+        try {
+            $summary = DB::select('CALL sp_client_commandes_status_summary(?)', [$userId]);
+        } catch (\Throwable $exception) {
+            // Safe fallback if the procedure is not yet deployed.
+            $summary = Commande::query()
+                ->selectRaw('statut, COUNT(*) AS total, COALESCE(SUM(prix), 0) AS total_amount')
+                ->where('user_id', $userId)
+                ->groupBy('statut')
+                ->orderByDesc('total')
+                ->get();
+        }
+
+        return response()->json([
+            'data' => $summary,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $orders = Commande::with(['client', 'camion'])

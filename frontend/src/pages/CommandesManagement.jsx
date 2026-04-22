@@ -4,6 +4,7 @@ import {
     createCommande,
     updateCommande,
     deleteCommande,
+    getCommandeStatusLogs,
     getCamions,
     downloadCommandesPdf,
     exportCommandesXml,
@@ -25,6 +26,9 @@ export default function CommandesManagement() {
     const [summary, setSummary] = useState([]);
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState("");
+    const [logsLoading, setLogsLoading] = useState(false);
+    const [selectedCommandeForLogs, setSelectedCommandeForLogs] = useState(null);
+    const [statusLogs, setStatusLogs] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [lang, setLang] = useState(() => getStoredPreferences().lang);
@@ -165,6 +169,20 @@ export default function CommandesManagement() {
             fetchSummary();
         } catch (err) {
             showErrorToast(t.toastSaveFailedTitle, `${t.failedSaveOrder}${err.message}`);
+        }
+    };
+
+    const handleViewStatusLogs = async (commande) => {
+        try {
+            setLogsLoading(true);
+            setSelectedCommandeForLogs(commande);
+            const payload = await getCommandeStatusLogs(commande.id);
+            setStatusLogs(payload?.data || []);
+        } catch (err) {
+            setStatusLogs([]);
+            showErrorToast(t.toastLogsUnavailableTitle, `${t.failedLoadLogs}${err.message}`);
+        } finally {
+            setLogsLoading(false);
         }
     };
 
@@ -349,7 +367,55 @@ export default function CommandesManagement() {
                                 </div>
                             ) : (
                                 <>
-                                    <CommandesTable commandes={paginatedCommandes} onEdit={handleEdit} onDelete={handleDelete} />
+                                    <CommandesTable commandes={paginatedCommandes} onEdit={handleEdit} onDelete={handleDelete} onViewStatusLogs={handleViewStatusLogs} />
+
+                                    {selectedCommandeForLogs && (
+                                        <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_28px_rgba(2,6,23,0.05)]">
+                                            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
+                                                <h3 className="text-sm font-semibold text-slate-900">
+                                                    {t.statusLogsTitle} #{selectedCommandeForLogs.id}
+                                                </h3>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedCommandeForLogs(null);
+                                                        setStatusLogs([]);
+                                                    }}
+                                                    className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 transition duration-200 hover:bg-slate-100"
+                                                >
+                                                    {t.closeLogs}
+                                                </button>
+                                            </div>
+
+                                            {logsLoading ? (
+                                                <div className="px-4 py-4 text-sm text-slate-500">{t.loadingLogs}</div>
+                                            ) : statusLogs.length === 0 ? (
+                                                <div className="px-4 py-4 text-sm text-slate-500">{t.noStatusLogs}</div>
+                                            ) : (
+                                                <div className="overflow-x-auto">
+                                                    <table className="min-w-full text-left text-sm">
+                                                        <thead className="bg-slate-100 text-slate-600">
+                                                            <tr>
+                                                                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]">{t.oldStatus}</th>
+                                                                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]">{t.newStatus}</th>
+                                                                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]">{t.changedAt}</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {statusLogs.map((log) => (
+                                                                <tr key={log.id} className="border-t border-slate-200 text-slate-900">
+                                                                    <td className="px-4 py-3.5">{log.old_status || "-"}</td>
+                                                                    <td className="px-4 py-3.5">{log.new_status || "-"}</td>
+                                                                    <td className="px-4 py-3.5">{new Date(log.changed_at).toLocaleString()}</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+                                        </section>
+                                    )}
+
                                     {totalPages > 1 && (
                                         <div className="mt-6 flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-4">
                                             <div className="text-sm text-slate-600">
@@ -496,6 +562,15 @@ function getTranslations(lang = "en") {
             toastXmlImportedTitle: "XML imported",
             toastXmlImportedDescription: "Orders were imported successfully",
             toastXmlImportFailedTitle: "XML import failed",
+            statusLogsTitle: "Status logs for order",
+            closeLogs: "Close",
+            loadingLogs: "Loading status logs...",
+            noStatusLogs: "No status changes recorded yet.",
+            oldStatus: "Old status",
+            newStatus: "New status",
+            changedAt: "Changed at",
+            toastLogsUnavailableTitle: "Status logs unavailable",
+            failedLoadLogs: "Failed to load status logs: ",
         },
         fr: {
             ordersManagement: "Gestion des commandes",
@@ -558,6 +633,15 @@ function getTranslations(lang = "en") {
             toastXmlImportedTitle: "XML importe",
             toastXmlImportedDescription: "Les commandes ont ete importees avec succes",
             toastXmlImportFailedTitle: "Echec import XML",
+            statusLogsTitle: "Historique de statut pour la commande",
+            closeLogs: "Fermer",
+            loadingLogs: "Chargement des logs de statut...",
+            noStatusLogs: "Aucun changement de statut enregistre pour le moment.",
+            oldStatus: "Ancien statut",
+            newStatus: "Nouveau statut",
+            changedAt: "Date de changement",
+            toastLogsUnavailableTitle: "Logs de statut indisponibles",
+            failedLoadLogs: "Echec du chargement des logs de statut : ",
         },
     };
 

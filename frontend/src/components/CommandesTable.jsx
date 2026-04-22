@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
 
-export default function CommandesTable({ commandes, onEdit, onDelete }) {
+export default function CommandesTable({ commandes, onEdit, onDelete, onViewStatusLogs }) {
     const [lang, setLang] = useState(() => getStoredPreferences().lang || "en");
 
     useEffect(() => {
@@ -24,6 +24,7 @@ export default function CommandesTable({ commandes, onEdit, onDelete }) {
             price: "Prix",
             status: "Statut",
             actions: "Actions",
+            logs: "Logs",
             notAssigned: "Non assigne",
             edit: "Modifier",
             delete: "Supprimer",
@@ -44,6 +45,7 @@ export default function CommandesTable({ commandes, onEdit, onDelete }) {
             price: "Price",
             status: "Status",
             actions: "Actions",
+            logs: "Logs",
             notAssigned: "Not assigned",
             edit: "Edit",
             delete: "Delete",
@@ -146,6 +148,15 @@ export default function CommandesTable({ commandes, onEdit, onDelete }) {
                                 </td>
                                 <td className="whitespace-nowrap px-5 py-4.5 text-sm font-medium">
                                     <button
+                                        onClick={() => onViewStatusLogs?.(commande)}
+                                        className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-slate-700 transition duration-200 hover:scale-105 hover:border-slate-300 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                                        aria-label={t.logs}
+                                        title={t.logs}
+                                        type="button"
+                                    >
+                                        <LogsIcon className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
                                         onClick={() => onEdit(commande)}
                                         className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-blue-600 transition duration-200 hover:scale-105 hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
                                         aria-label={t.edit}
@@ -190,6 +201,14 @@ function DeleteIcon({ className }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" className={className}>
             <path d="M5 7h14M9 7V5h6v2M8 7l1 12h6l1-12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function LogsIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M6 6h12M6 12h12M6 18h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
     );
 }

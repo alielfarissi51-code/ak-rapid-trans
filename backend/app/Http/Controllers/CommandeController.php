@@ -95,6 +95,22 @@ class CommandeController extends Controller
     }
 
     /**
+     * Display trigger-based status history for the specified commande.
+     */
+    public function statusLogs(Commande $commande)
+    {
+        $logs = DB::table('commande_status_logs')
+            ->where('commande_id', $commande->id)
+            ->orderByDesc('changed_at')
+            ->get();
+
+        return response()->json([
+            'commande_id' => $commande->id,
+            'data' => $logs,
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Commande $commande)
