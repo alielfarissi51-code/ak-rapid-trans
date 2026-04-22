@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { login, setToken } from "../services/api";
+import { clearToken, login, setToken } from "../services/api";
 import logo from "../assets/logo.png";
 import { useToast } from "../components/ToastProvider";
 
@@ -29,6 +29,7 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
+    clearToken();
 
     try {
       const result = await login(form);

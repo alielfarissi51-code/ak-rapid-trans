@@ -24,7 +24,7 @@ export default function UsersManagement() {
             const matchesSearch = !normalizedSearch
                 || user.name?.toLowerCase().includes(normalizedSearch)
                 || user.email?.toLowerCase().includes(normalizedSearch);
-            const roleName = user.role?.name || "";
+            const roleName = (user.role?.name || user.role_name || user.role || "").toLowerCase();
             const matchesRole = roleFilter === "all" || roleName === roleFilter;
 
             return matchesSearch && matchesRole;

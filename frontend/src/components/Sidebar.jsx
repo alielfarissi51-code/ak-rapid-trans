@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { applyDocumentTheme, getStoredPreferences, PREFERENCES_EVENT, setStoredPreferences } from "../utils/preferences";
+import { clearToken, logout as apiLogout } from "../services/api";
 
 const adminNavigationItems = [
   { labelKey: "dashboard", path: "/dashboard", icon: DashboardIcon },
@@ -66,7 +67,7 @@ function Sidebar({
   onClose = () => {},
   user,
   isAdmin = false,
-  onLogout = () => {},
+  onLogout,
   preferences,
   onPreferencesChange,
 }) {
@@ -126,6 +127,22 @@ function Sidebar({
 
   const toggleLanguage = () => {
     updatePreferences({ ...effectivePreferences, lang: lang === "fr" ? "en" : "fr" });
+  };
+
+  const handleLogout = async () => {
+    if (typeof onLogout === "function") {
+      onLogout();
+      return;
+    }
+
+    try {
+      await apiLogout();
+    } catch (error) {
+      // Local logout should continue even if API call fails.
+    } finally {
+      clearToken();
+      navigate("/", { replace: true });
+    }
   };
 
   return (
@@ -264,7 +281,7 @@ function Sidebar({
 
             <button
               type="button"
-              onClick={onLogout}
+              onClick={handleLogout}
               className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition ${
                 theme === "light"
                   ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"

@@ -46,7 +46,14 @@ export const login = async (data) => {
         body: JSON.stringify(data),
     });
 
-    return parseResponse(response);
+    const payload = await parseResponse(response);
+    const roleName = payload?.user?.role_name || payload?.user?.role;
+
+    if (!payload?.token || !roleName) {
+        throw new Error('Invalid login response from server. Please try again.');
+    }
+
+    return payload;
 };
 export const register = async (data) => {
   const response = await fetch(`${API_BASE}/register`, {

@@ -67,7 +67,7 @@ export default function UsersTable({ users, onEdit, onDelete }) {
                                 </td>
                                 <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     <span className="inline-flex rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700">
-                                        {user.role?.name || t.na}
+                                        {user.role?.name || user.role_name || user.role || t.na}
                                     </span>
                                 </td>
                                 <td className="whitespace-nowrap px-5 py-4.5 text-sm font-medium">
