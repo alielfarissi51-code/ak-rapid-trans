@@ -136,44 +136,46 @@ export default function UsersManagement() {
             <div className="flex min-h-screen min-w-0 flex-col lg:pl-[260px]">
                 <div className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
                     <div className="mx-auto flex max-w-7xl flex-col gap-6">
-                        <section className="rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-[0_24px_70px_rgba(2,6,23,0.05)]">
-                            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <section className="users-surface rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-[0_24px_70px_rgba(2,6,23,0.05)]">
+                            <div className="mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <p className="text-sm uppercase tracking-[0.24em] text-sky-600/70">Admin Tools</p>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600/80">Admin Tools</p>
                                     <h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-900">Users Management</h1>
                                     <p className="mt-2 text-sm text-slate-500">Create, update and control user access.</p>
                                 </div>
                                 <button
                                     onClick={handleCreate}
-                                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 text-sm font-semibold text-sky-700 transition duration-200 hover:border-sky-300 hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                                    className="users-cta inline-flex h-11 items-center gap-2 rounded-xl border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50 px-4 text-sm font-semibold text-sky-700 transition duration-200 hover:border-sky-300 hover:from-sky-100 hover:to-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                                 >
                                     <AddIcon className="h-4 w-4" />
                                     + Add User
                                 </button>
                             </div>
 
-                            <div className="mb-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_auto]">
-                                <div className="relative">
-                                    <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                                    <input
-                                        value={searchTerm}
-                                        onChange={(event) => setSearchTerm(event.target.value)}
-                                        placeholder="Search by name or email"
-                                        className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-900 outline-none transition duration-200 placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
-                                    />
-                                </div>
-                                <select
-                                    value={roleFilter}
-                                    onChange={(event) => setRoleFilter(event.target.value)}
-                                    className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition duration-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
-                                >
-                                    <option value="all">All roles</option>
-                                    {roles.map((role) => (
-                                        <option key={role.id} value={role.name}>{role.name}</option>
-                                    ))}
-                                </select>
-                                <div className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-500">
-                                    {filteredUsers.length} users
+                            <div className="users-filter-shell mb-6 rounded-xl border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_auto]">
+                                    <div className="relative">
+                                        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                        <input
+                                            value={searchTerm}
+                                            onChange={(event) => setSearchTerm(event.target.value)}
+                                            placeholder="Search by name or email"
+                                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-900 outline-none transition duration-200 placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
+                                        />
+                                    </div>
+                                    <select
+                                        value={roleFilter}
+                                        onChange={(event) => setRoleFilter(event.target.value)}
+                                        className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition duration-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
+                                    >
+                                        <option value="all">All roles</option>
+                                        {roles.map((role) => (
+                                            <option key={role.id} value={role.name}>{role.name}</option>
+                                        ))}
+                                    </select>
+                                    <div className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600">
+                                        {filteredUsers.length} users
+                                    </div>
                                 </div>
                             </div>
 

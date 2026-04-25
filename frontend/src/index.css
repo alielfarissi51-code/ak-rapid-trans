@@ -212,3 +212,231 @@ html[data-theme="dark"] .text-blue-600 {
 html[data-theme="dark"] .text-red-600 {
 	color: #ef4444 !important;
 }
+
+html[data-theme="dark"] .text-amber-600,
+html[data-theme="dark"] .text-amber-700 {
+	color: #f59e0b !important;
+}
+
+html[data-theme="dark"] .text-emerald-600,
+html[data-theme="dark"] .text-emerald-700 {
+	color: #34d399 !important;
+}
+
+html[data-theme="dark"] .orders-surface {
+	background:
+		linear-gradient(165deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98)) !important;
+	border-color: #1f2937 !important;
+	box-shadow: 0 26px 70px rgba(2, 6, 23, 0.5) !important;
+}
+
+html[data-theme="dark"] .orders-kpi {
+	border-color: #243244 !important;
+	background-color: rgba(15, 23, 42, 0.75) !important;
+	backdrop-filter: blur(2px);
+}
+
+html[data-theme="dark"] .orders-cta {
+	border-color: #233146 !important;
+	background-color: rgba(15, 23, 42, 0.82) !important;
+	color: #e5e7eb !important;
+}
+
+html[data-theme="dark"] .orders-filter-shell {
+	border-color: #243244 !important;
+	background-color: rgba(15, 23, 42, 0.86) !important;
+}
+
+html[data-theme="dark"] .orders-filter-shell input,
+html[data-theme="dark"] .orders-filter-shell select,
+html[data-theme="dark"] .orders-filter-shell div[class*="border-slate-200"] {
+	border-color: #2b3950 !important;
+	background-color: rgba(2, 6, 23, 0.72) !important;
+	color: #e5e7eb !important;
+}
+
+/* Dark mode: clean orders table visual rhythm */
+html[data-theme="dark"] .orders-table-shell {
+	border-color: #263346 !important;
+	background-color: #0b1324 !important;
+	box-shadow: 0 22px 55px rgba(2, 6, 23, 0.48) !important;
+}
+
+html[data-theme="dark"] .orders-table-shell thead {
+	background: linear-gradient(180deg, #0f1a2f 0%, #0d1629 100%) !important;
+	color: #9fb0c8 !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-table-row {
+	border-color: #223048 !important;
+	background-color: #0b1426 !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-table-row:nth-child(odd) {
+	background-color: #101a2e !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-table-row:hover {
+	background-color: #13223a !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-action-group {
+	border-color: #2b3a52 !important;
+	background-color: rgba(12, 22, 39, 0.9) !important;
+	box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.14) !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-icon-btn {
+	border-color: #2f405a !important;
+	background-color: #101b31 !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-icon-btn:hover {
+	background-color: #132340 !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-icon-btn--edit {
+	border-color: rgba(59, 130, 246, 0.5) !important;
+	background-color: rgba(30, 64, 175, 0.2) !important;
+	color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-icon-btn--delete {
+	border-color: rgba(239, 68, 68, 0.5) !important;
+	background-color: rgba(185, 28, 28, 0.2) !important;
+	color: #f87171 !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-icon-btn--invoice {
+	border-color: rgba(16, 185, 129, 0.45) !important;
+	background-color: rgba(6, 95, 70, 0.22) !important;
+	color: #34d399 !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-icon-btn--download {
+	border-color: rgba(34, 211, 238, 0.45) !important;
+	background-color: rgba(14, 116, 144, 0.24) !important;
+	color: #22d3ee !important;
+}
+
+html[data-theme="dark"] .orders-table-shell .orders-icon-btn--logs {
+	border-color: #334155 !important;
+	color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .users-surface,
+html[data-theme="dark"] .camions-surface {
+	background:
+		linear-gradient(165deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98)) !important;
+	border-color: #1f2937 !important;
+	box-shadow: 0 26px 70px rgba(2, 6, 23, 0.5) !important;
+}
+
+html[data-theme="dark"] .users-cta,
+html[data-theme="dark"] .camions-cta {
+	border-color: #0ea5e9 !important;
+	background: linear-gradient(90deg, rgba(14, 116, 144, 0.24), rgba(8, 145, 178, 0.2)) !important;
+	color: #7dd3fc !important;
+}
+
+html[data-theme="dark"] .users-filter-shell,
+html[data-theme="dark"] .camions-filter-shell {
+	border-color: #243244 !important;
+	background-color: rgba(15, 23, 42, 0.86) !important;
+}
+
+html[data-theme="dark"] .users-filter-shell input,
+html[data-theme="dark"] .users-filter-shell select,
+html[data-theme="dark"] .users-filter-shell div[class*="border-slate-200"],
+html[data-theme="dark"] .camions-filter-shell input,
+html[data-theme="dark"] .camions-filter-shell select,
+html[data-theme="dark"] .camions-filter-shell div[class*="border-slate-200"] {
+	border-color: #2b3950 !important;
+	background-color: rgba(2, 6, 23, 0.72) !important;
+	color: #e5e7eb !important;
+}
+
+html[data-theme="dark"] .users-table-shell,
+html[data-theme="dark"] .camions-table-shell {
+	border-color: #263346 !important;
+	background-color: #0b1324 !important;
+	box-shadow: 0 22px 55px rgba(2, 6, 23, 0.48) !important;
+}
+
+html[data-theme="dark"] .users-table-shell thead,
+html[data-theme="dark"] .camions-table-shell thead {
+	background: linear-gradient(180deg, #0f1a2f 0%, #0d1629 100%) !important;
+	color: #9fb0c8 !important;
+}
+
+html[data-theme="dark"] .users-table-shell .users-table-row,
+html[data-theme="dark"] .camions-table-shell .camions-table-row {
+	border-color: #223048 !important;
+	background-color: #0b1426 !important;
+}
+
+html[data-theme="dark"] .users-table-shell .users-table-row:nth-child(odd),
+html[data-theme="dark"] .camions-table-shell .camions-table-row:nth-child(odd) {
+	background-color: #101a2e !important;
+}
+
+html[data-theme="dark"] .users-table-shell .users-table-row:hover,
+html[data-theme="dark"] .camions-table-shell .camions-table-row:hover {
+	background-color: #13223a !important;
+}
+
+html[data-theme="dark"] .users-table-shell .users-action-group,
+html[data-theme="dark"] .camions-table-shell .camions-action-group {
+	border-color: #2b3a52 !important;
+	background-color: rgba(12, 22, 39, 0.9) !important;
+	box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.14) !important;
+}
+
+html[data-theme="dark"] .users-table-shell .users-icon-btn,
+html[data-theme="dark"] .camions-table-shell .camions-icon-btn {
+	border-color: #2f405a !important;
+	background-color: #101b31 !important;
+}
+
+html[data-theme="dark"] .users-table-shell .users-icon-btn:hover,
+html[data-theme="dark"] .camions-table-shell .camions-icon-btn:hover {
+	background-color: #132340 !important;
+}
+
+html[data-theme="dark"] .users-table-shell .users-icon-btn--edit,
+html[data-theme="dark"] .camions-table-shell .camions-icon-btn--edit {
+	border-color: rgba(59, 130, 246, 0.5) !important;
+	background-color: rgba(30, 64, 175, 0.2) !important;
+	color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .users-table-shell .users-icon-btn--delete,
+html[data-theme="dark"] .camions-table-shell .camions-icon-btn--delete {
+	border-color: rgba(239, 68, 68, 0.5) !important;
+	background-color: rgba(185, 28, 28, 0.2) !important;
+	color: #f87171 !important;
+}
+
+html[data-theme="dark"] .users-table-shell .users-role-pill {
+	background-color: rgba(79, 70, 229, 0.22) !important;
+	color: #a5b4fc !important;
+}
+
+html[data-theme="dark"] .camions-table-shell .camion-status-pill {
+	background-color: rgba(15, 23, 42, 0.85) !important;
+}
+
+html[data-theme="dark"] .camions-table-shell .camion-status-pill.border-emerald-200 {
+	border-color: rgba(16, 185, 129, 0.45) !important;
+	color: #34d399 !important;
+}
+
+html[data-theme="dark"] .camions-table-shell .camion-status-pill.border-amber-200 {
+	border-color: rgba(245, 158, 11, 0.45) !important;
+	color: #fbbf24 !important;
+}
+
+html[data-theme="dark"] .camions-table-shell .camion-status-pill.border-rose-200 {
+	border-color: rgba(244, 63, 94, 0.45) !important;
+	color: #fb7185 !important;
+}

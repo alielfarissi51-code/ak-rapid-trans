@@ -38,6 +38,7 @@ export default function CommandesTable({
             downloadFacture: "Telecharger",
             generatingFacture: "Generation...",
             downloadingFacture: "Telechargement...",
+            invoiceAfterValidation: "Facture disponible apres validation",
             logs: "Logs",
             notAssigned: "Non assigne",
             edit: "Modifier",
@@ -65,6 +66,7 @@ export default function CommandesTable({
             downloadFacture: "Download",
             generatingFacture: "Generating...",
             downloadingFacture: "Downloading...",
+            invoiceAfterValidation: "Invoice available after validation",
             logs: "Logs",
             notAssigned: "Not assigned",
             edit: "Edit",
@@ -101,9 +103,9 @@ export default function CommandesTable({
     };
 
     return (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(2,6,23,0.05)]">
+        <div className="orders-table-shell overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-[0_20px_50px_rgba(2,6,23,0.08)]">
             <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-slate-200 bg-slate-100 text-slate-600">
+                <thead className="border-b border-slate-200 bg-gradient-to-b from-slate-100 to-slate-50 text-slate-600">
                     <tr>
                         <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.orderId}
@@ -126,7 +128,7 @@ export default function CommandesTable({
                         <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.status}
                         </th>
-                        <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
+                        <th className="w-[310px] px-5 py-4 text-xs font-semibold uppercase tracking-[0.1em]">
                             {t.actions}
                         </th>
                     </tr>
@@ -134,7 +136,7 @@ export default function CommandesTable({
                 <tbody>
                     {commandes.length > 0 ? (
                         commandes.map((commande) => (
-                            <tr key={commande.id} className="border-b border-slate-200/70 bg-transparent transition duration-200 hover:scale-[1.002] hover:bg-slate-50">
+                            <tr key={commande.id} className="orders-table-row border-b border-slate-200/80 transition duration-200 odd:bg-slate-50 hover:bg-sky-50">
                                 <td className="whitespace-nowrap px-5 py-4.5 font-semibold text-slate-900">
                                     #{commande.id}
                                 </td>
@@ -144,7 +146,7 @@ export default function CommandesTable({
                                 <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
                                     {commande.camion?.matricule || t.notAssigned}
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
+                                <td className="px-5 py-4.5 text-slate-600">
                                     {commande.lieu_depart} → {commande.lieu_arrivee}
                                 </td>
                                 <td className="whitespace-nowrap px-5 py-4.5 text-slate-600">
@@ -166,61 +168,81 @@ export default function CommandesTable({
                                         {formatStatus(commande.statut)}
                                     </span>
                                 </td>
-                                <td className="whitespace-nowrap px-5 py-4.5 text-sm font-medium">
-                                    {commande.statut === "validee" && (
-                                        <>
-                                            {!commande.facture_path ? (
+                                <td className="w-[310px] px-5 py-4.5 text-sm font-medium">
+                                    <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+                                        <div className="orders-action-group inline-flex shrink-0 items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                                            {commande.statut !== "validee" ? (
+                                                <span
+                                                    className="orders-icon-btn inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400"
+                                                    aria-label={t.invoiceAfterValidation}
+                                                    title={t.invoiceAfterValidation}
+                                                >
+                                                    <HourglassIcon className="h-4 w-4" />
+                                                </span>
+                                            ) : !commande.facture_path ? (
                                                 <button
                                                     onClick={() => onGenerateFacture?.(commande)}
-                                                    className="mr-2 inline-flex h-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700 transition duration-200 hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+                                                    className="orders-icon-btn orders-icon-btn--invoice inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-white text-emerald-700 transition duration-200 hover:border-emerald-300 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
                                                     type="button"
                                                     disabled={factureLoadingId === commande.id}
+                                                    aria-label={factureLoadingId === commande.id ? t.generatingFacture : t.generateFacture}
+                                                    title={factureLoadingId === commande.id ? t.generatingFacture : t.generateFacture}
                                                 >
-                                                    {factureLoadingId === commande.id ? t.generatingFacture : t.generateFacture}
+                                                    <FactureIcon className="h-4 w-4" />
                                                 </button>
                                             ) : (
                                                 <>
-                                                    <span className="mr-2 inline-flex h-8 items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700">
-                                                        {t.factureGenerated}
+                                                    <span
+                                                        className="orders-icon-btn orders-icon-btn--invoice inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700"
+                                                        aria-label={t.factureGenerated}
+                                                        title={t.factureGenerated}
+                                                    >
+                                                        <CheckIcon className="h-4 w-4" />
                                                     </span>
                                                     <button
                                                         onClick={() => onDownloadFacture?.(commande)}
-                                                        className="mr-2 inline-flex h-8 items-center justify-center rounded-lg border border-cyan-200 bg-cyan-50 px-2.5 text-[11px] font-semibold text-cyan-700 transition duration-200 hover:border-cyan-300 hover:bg-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+                                                        className="orders-icon-btn orders-icon-btn--download inline-flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-200 bg-white text-cyan-700 transition duration-200 hover:border-cyan-300 hover:bg-cyan-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 disabled:cursor-not-allowed disabled:opacity-60"
                                                         type="button"
                                                         disabled={factureLoadingId === commande.id}
+                                                        aria-label={factureLoadingId === commande.id ? t.downloadingFacture : t.downloadFacture}
+                                                        title={factureLoadingId === commande.id ? t.downloadingFacture : t.downloadFacture}
                                                     >
-                                                        {factureLoadingId === commande.id ? t.downloadingFacture : t.downloadFacture}
+                                                        <DownloadIcon className="h-4 w-4" />
                                                     </button>
                                                 </>
                                             )}
-                                        </>
-                                    )}
+                                        </div>
 
-                                    <button
-                                        onClick={() => onViewStatusLogs?.(commande)}
-                                        className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-slate-700 transition duration-200 hover:scale-105 hover:border-slate-300 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
-                                        aria-label={t.logs}
-                                        title={t.logs}
-                                        type="button"
-                                    >
-                                        <LogsIcon className="h-3.5 w-3.5" />
-                                    </button>
-                                    <button
-                                        onClick={() => onEdit(commande)}
-                                        className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-blue-600 transition duration-200 hover:scale-105 hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
-                                        aria-label={t.edit}
-                                        title={t.edit}
-                                    >
-                                        <EditIcon className="h-3.5 w-3.5" />
-                                    </button>
-                                    <button
-                                        onClick={() => onDelete(commande.id)}
-                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-red-600 transition duration-200 hover:scale-105 hover:border-red-300 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
-                                        aria-label={t.delete}
-                                        title={t.delete}
-                                    >
-                                        <DeleteIcon className="h-3.5 w-3.5" />
-                                    </button>
+                                        <div className="orders-action-group inline-flex shrink-0 items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                                            <button
+                                                onClick={() => onViewStatusLogs?.(commande)}
+                                                className="orders-icon-btn orders-icon-btn--logs inline-flex h-9 w-9 items-center justify-center rounded-lg border border-transparent bg-white text-slate-700 transition duration-200 hover:border-slate-300 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                                                aria-label={t.logs}
+                                                title={t.logs}
+                                                type="button"
+                                            >
+                                                <LogsIcon className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => onEdit(commande)}
+                                                className="orders-icon-btn orders-icon-btn--edit inline-flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition duration-200 hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                                                aria-label={t.edit}
+                                                title={t.edit}
+                                                type="button"
+                                            >
+                                                <EditIcon className="h-[1.05rem] w-[1.05rem]" />
+                                            </button>
+                                            <button
+                                                onClick={() => onDelete(commande.id)}
+                                                className="orders-icon-btn orders-icon-btn--delete inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition duration-200 hover:border-red-300 hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
+                                                aria-label={t.delete}
+                                                title={t.delete}
+                                                type="button"
+                                            >
+                                                <DeleteIcon className="h-[1.05rem] w-[1.05rem]" />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         ))
@@ -240,8 +262,8 @@ export default function CommandesTable({
 function EditIcon({ className }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" className={className}>
-            <path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-            <path d="m12.5 7.5 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            <path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            <path d="m12.5 7.5 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
     );
 }
@@ -249,7 +271,8 @@ function EditIcon({ className }) {
 function DeleteIcon({ className }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" className={className}>
-            <path d="M5 7h14M9 7V5h6v2M8 7l1 12h6l1-12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 7h14M9 7V5h6v2M8 7l1 12h6l1-12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
     );
 }
@@ -258,6 +281,39 @@ function LogsIcon({ className }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" className={className}>
             <path d="M6 6h12M6 12h12M6 18h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+function FactureIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M7 3h7l5 5v13H7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="M14 3v5h5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function DownloadIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function CheckIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="m6 12 4 4 8-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function HourglassIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M7 3h10M7 21h10M8 3c0 4 3 5 4 6-1 1-4 2-4 6M16 3c0 4-3 5-4 6 1 1 4 2 4 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }

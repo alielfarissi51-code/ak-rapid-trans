@@ -69,6 +69,15 @@ export default function CommandesManagement() {
         });
     }, [commandes, searchTerm, statusFilter]);
 
+    const orderMetrics = useMemo(() => {
+        const total = filteredCommandes.length;
+        const validated = filteredCommandes.filter((commande) => commande.statut === "validee").length;
+        const inProgress = filteredCommandes.filter((commande) => commande.statut === "en_cours").length;
+        const revenue = filteredCommandes.reduce((sum, commande) => sum + Number(commande.prix || 0), 0);
+
+        return { total, validated, inProgress, revenue };
+    }, [filteredCommandes]);
+
     const totalPages = Math.ceil(filteredCommandes.length / itemsPerPage);
     const paginatedCommandes = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -282,28 +291,28 @@ export default function CommandesManagement() {
             <div className="flex min-h-screen min-w-0 flex-col lg:pl-[260px]">
                 <div className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
                     <div className="mx-auto flex max-w-7xl flex-col gap-6">
-                        <section className="rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-[0_24px_70px_rgba(2,6,23,0.05)]">
-                            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <section className="orders-surface rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-[0_24px_70px_rgba(2,6,23,0.05)]">
+                            <div className="mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <p className="text-sm uppercase tracking-[0.24em] text-sky-600/70">Admin Tools</p>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600/80">Admin Tools</p>
                                     <h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-900">{t.ordersManagement}</h1>
                                     <p className="mt-2 text-sm text-slate-500">{t.ordersManagementSubtitle}</p>
                                 </div>
                                 <button
                                     onClick={handleCreate}
-                                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 text-sm font-semibold text-sky-700 transition duration-200 hover:border-sky-300 hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50 px-4 text-sm font-semibold text-sky-700 transition duration-200 hover:border-sky-300 hover:from-sky-100 hover:to-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                                 >
                                     <AddIcon className="h-4 w-4" />
                                     {t.addOrder}
                                 </button>
                             </div>
 
-                            <div className="mb-8 grid gap-3 md:grid-cols-4">
+                            <div className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                                 <button
                                     type="button"
                                     onClick={handlePdfExport}
                                     disabled={actionLoading !== ""}
-                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="orders-cta inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <PdfIcon className="h-4 w-4" />
                                     {actionLoading === "pdf" ? t.exportingPdf : t.exportPdf}
@@ -312,12 +321,12 @@ export default function CommandesManagement() {
                                     type="button"
                                     onClick={handleXmlExport}
                                     disabled={actionLoading !== ""}
-                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="orders-cta inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <CodeIcon className="h-4 w-4" />
                                     {actionLoading === "xml-export" ? t.exportingXml : t.exportXml}
                                 </button>
-                                <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-within:ring-2 focus-within:ring-sky-300">
+                                <label className="orders-cta inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-within:ring-2 focus-within:ring-sky-300">
                                     <UploadIcon className="h-4 w-4" />
                                     {actionLoading === "xml-import" ? t.importingXml : t.importXml}
                                     <input
@@ -332,11 +341,30 @@ export default function CommandesManagement() {
                                     type="button"
                                     onClick={fetchSummary}
                                     disabled={summaryLoading || actionLoading !== ""}
-                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="orders-cta inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition duration-200 hover:border-sky-300 hover:bg-sky-50 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <RefreshIcon className="h-4 w-4" />
                                     {summaryLoading ? t.refreshing : t.refreshSummary}
                                 </button>
+                            </div>
+
+                            <div className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                                <article className="orders-kpi rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_26px_rgba(15,23,42,0.06)]">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">{t.records}</p>
+                                    <p className="mt-2 text-2xl font-semibold text-slate-900">{orderMetrics.total}</p>
+                                </article>
+                                <article className="orders-kpi rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 shadow-[0_8px_26px_rgba(59,130,246,0.12)]">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.1em] text-blue-600">{t.validated}</p>
+                                    <p className="mt-2 text-2xl font-semibold text-blue-700">{orderMetrics.validated}</p>
+                                </article>
+                                <article className="orders-kpi rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-[0_8px_26px_rgba(245,158,11,0.12)]">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.1em] text-amber-600">{t.inProgress}</p>
+                                    <p className="mt-2 text-2xl font-semibold text-amber-700">{orderMetrics.inProgress}</p>
+                                </article>
+                                <article className="orders-kpi rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-[0_8px_26px_rgba(16,185,129,0.12)]">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.1em] text-emerald-600">{t.totalAmount}</p>
+                                    <p className="mt-2 text-2xl font-semibold text-emerald-700">DHS {orderMetrics.revenue.toLocaleString()}</p>
+                                </article>
                             </div>
 
                             {summaryLoading && (
@@ -368,30 +396,32 @@ export default function CommandesManagement() {
                                 </div>
                             )}
 
-                            <div className="mb-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_auto]">
-                                <div className="relative">
-                                    <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                                    <input
-                                        value={searchTerm}
-                                        onChange={(event) => setSearchTerm(event.target.value)}
-                                        placeholder={t.searchOrdersPlaceholder}
-                                        className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-900 outline-none transition duration-200 placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
-                                    />
-                                </div>
-                                <select
-                                    value={statusFilter}
-                                    onChange={(event) => setStatusFilter(event.target.value)}
-                                    className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition duration-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
-                                >
-                                    <option value="all">{t.allStatuses}</option>
-                                    <option value="livree">{t.delivered}</option>
-                                    <option value="validee">{t.validated}</option>
-                                    <option value="en_cours">{t.inProgress}</option>
-                                    <option value="en_attente">{t.pending}</option>
-                                    <option value="annulee">{t.cancelled}</option>
-                                </select>
-                                <div className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-500">
-                                    {filteredCommandes.length} {t.records}
+                            <div className="orders-filter-shell mb-6 rounded-xl border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_auto]">
+                                    <div className="relative">
+                                        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                        <input
+                                            value={searchTerm}
+                                            onChange={(event) => setSearchTerm(event.target.value)}
+                                            placeholder={t.searchOrdersPlaceholder}
+                                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-900 outline-none transition duration-200 placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
+                                        />
+                                    </div>
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(event) => setStatusFilter(event.target.value)}
+                                        className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition duration-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
+                                    >
+                                        <option value="all">{t.allStatuses}</option>
+                                        <option value="livree">{t.delivered}</option>
+                                        <option value="validee">{t.validated}</option>
+                                        <option value="en_cours">{t.inProgress}</option>
+                                        <option value="en_attente">{t.pending}</option>
+                                        <option value="annulee">{t.cancelled}</option>
+                                    </select>
+                                    <div className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600">
+                                        {filteredCommandes.length} {t.records}
+                                    </div>
                                 </div>
                             </div>
 
