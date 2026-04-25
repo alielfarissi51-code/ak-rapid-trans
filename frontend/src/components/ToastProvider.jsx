@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
 
 const ToastContext = createContext(null);
 
-const TOAST_VARIANTS = {
+const DARK_TOAST_VARIANTS = {
     success: {
         icon: SuccessIcon,
         panel: "border-emerald-400/25 bg-emerald-500/10 text-emerald-100 shadow-[0_14px_40px_rgba(16,185,129,0.18)]",
@@ -29,9 +30,50 @@ const TOAST_VARIANTS = {
     },
 };
 
+const LIGHT_TOAST_VARIANTS = {
+    success: {
+        icon: SuccessIcon,
+        panel: "border-emerald-300 bg-emerald-100 text-emerald-800 shadow-[0_14px_40px_rgba(16,185,129,0.14)]",
+        iconWrap: "bg-emerald-200 text-emerald-700",
+        title: "Success",
+    },
+    error: {
+        icon: ErrorIcon,
+        panel: "border-rose-300 bg-rose-100 text-rose-800 shadow-[0_14px_40px_rgba(244,63,94,0.14)]",
+        iconWrap: "bg-rose-200 text-rose-700",
+        title: "Error",
+    },
+    warning: {
+        icon: WarningIcon,
+        panel: "border-amber-300 bg-amber-100 text-amber-800 shadow-[0_14px_40px_rgba(245,158,11,0.14)]",
+        iconWrap: "bg-amber-200 text-amber-700",
+        title: "Warning",
+    },
+    info: {
+        icon: InfoIcon,
+        panel: "border-sky-300 bg-sky-100 text-sky-800 shadow-[0_14px_40px_rgba(14,165,233,0.14)]",
+        iconWrap: "bg-sky-200 text-sky-700",
+        title: "Info",
+    },
+};
+
 export function ToastProvider({ children }) {
     const [toasts, setToasts] = useState([]);
+    const [theme, setTheme] = useState(() => getStoredPreferences().theme === "light" ? "light" : "dark");
     const timeoutMapRef = useRef(new Map());
+
+    useEffect(() => {
+        const handlePreferencesChanged = (event) => {
+            const nextTheme = event?.detail?.theme || getStoredPreferences().theme;
+            setTheme(nextTheme === "light" ? "light" : "dark");
+        };
+
+        window.addEventListener(PREFERENCES_EVENT, handlePreferencesChanged);
+
+        return () => {
+            window.removeEventListener(PREFERENCES_EVENT, handlePreferencesChanged);
+        };
+    }, []);
 
     const removeToast = useCallback((id) => {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
@@ -61,8 +103,9 @@ export function ToastProvider({ children }) {
         } = toast || {};
 
         const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        const resolvedVariant = TOAST_VARIANTS[type] ? type : "info";
-        const resolvedTitle = title || TOAST_VARIANTS[resolvedVariant].title;
+        const variants = theme === "light" ? LIGHT_TOAST_VARIANTS : DARK_TOAST_VARIANTS;
+        const resolvedVariant = variants[type] ? type : "info";
+        const resolvedTitle = title || variants[resolvedVariant].title;
 
         setToasts((prev) => [
             ...prev,
@@ -90,7 +133,7 @@ export function ToastProvider({ children }) {
         }
 
         return id;
-    }, [dismissToast]);
+    }, [dismissToast, theme]);
 
     useEffect(() => () => {
         timeoutMapRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
@@ -105,7 +148,7 @@ export function ToastProvider({ children }) {
     return (
         <ToastContext.Provider value={value}>
             {children}
-            <ToastViewport toasts={toasts} onClose={dismissToast} />
+            <ToastViewport toasts={toasts} onClose={dismissToast} theme={theme} />
         </ToastContext.Provider>
     );
 }
@@ -118,18 +161,19 @@ export function useToast() {
     return context;
 }
 
-function ToastViewport({ toasts, onClose }) {
+function ToastViewport({ toasts, onClose, theme }) {
     return (
         <div className="pointer-events-none fixed right-4 top-4 z-[90] flex w-[min(92vw,380px)] flex-col gap-3 sm:right-6 sm:top-6">
             {toasts.map((toast) => (
-                <ToastItem key={toast.id} toast={toast} onClose={onClose} />
+                <ToastItem key={toast.id} toast={toast} onClose={onClose} theme={theme} />
             ))}
         </div>
     );
 }
 
-function ToastItem({ toast, onClose }) {
-    const variant = TOAST_VARIANTS[toast.type] || TOAST_VARIANTS.info;
+function ToastItem({ toast, onClose, theme }) {
+    const variants = theme === "light" ? LIGHT_TOAST_VARIANTS : DARK_TOAST_VARIANTS;
+    const variant = variants[toast.type] || variants.info;
     const Icon = variant.icon;
 
     return (
@@ -145,13 +189,13 @@ function ToastItem({ toast, onClose }) {
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold tracking-[0.01em]">{toast.title}</p>
                     {toast.description && (
-                        <p className="mt-1 text-xs text-slate-200/85">{toast.description}</p>
+                        <p className={`mt-1 text-xs ${theme === "light" ? "text-slate-700" : "text-slate-200/85"}`}>{toast.description}</p>
                     )}
                 </div>
                 <button
                     type="button"
                     onClick={() => onClose(toast.id)}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-black/20 text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
+                    className={`inline-flex h-7 w-7 items-center justify-center rounded-lg border transition focus-visible:outline-none focus-visible:ring-2 ${theme === "light" ? "border-slate-300 bg-white/80 text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-slate-300" : "border-white/10 bg-black/20 text-slate-300 hover:bg-white/10 hover:text-white focus-visible:ring-slate-300/40"}`}
                     aria-label="Close notification"
                 >
                     <CloseIcon className="h-3.5 w-3.5" />

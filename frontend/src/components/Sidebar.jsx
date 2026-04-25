@@ -13,6 +13,7 @@ const adminNavigationItems = [
 
 const clientNavigationItems = [
   { labelKey: "dashboard", path: "/dashboard-client", icon: DashboardIcon },
+  { labelKey: "orders", path: "/client/orders", icon: OrdersIcon },
   { labelKey: "settings", path: "/settings", icon: SettingsIcon },
 ];
 
@@ -184,29 +185,32 @@ function Sidebar({
           <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
             {navigationItems.map((item) => {
               const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
+              const isHashItem = item.path.includes("#");
+              const isActive = isHashItem
+                ? `${location.pathname}${location.hash}` === item.path
+                : location.pathname === item.path;
 
               return (
                 <button
                   key={item.labelKey}
                   type="button"
-                      onClick={() => {
-                        navigate(item.path);
-                        onClose();
-                      }}
-                      className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                        isActive
+                  onClick={() => {
+                    navigate(item.path);
+                    onClose();
+                  }}
+                  className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                    isActive
                       ? theme === "light"
-                            ? "bg-slate-100 text-slate-900"
+                        ? "bg-slate-100 text-slate-900"
                         : "bg-slate-900 text-slate-100"
                       : theme === "light"
-                            ? "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         : "text-slate-400 hover:bg-slate-900 hover:text-white"
                   }`}
                 >
                   <span
                     className={`flex h-9 w-9 items-center justify-center rounded-md transition ${
-                          isActive
+                      isActive
                         ? theme === "light"
                           ? "bg-slate-200 text-slate-700"
                           : "bg-slate-800 text-cyan-300"

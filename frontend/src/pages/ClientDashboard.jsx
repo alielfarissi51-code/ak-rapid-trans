@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import OrderClientInfo from "../components/OrderClientInfo";
 import { useToast } from "../components/ToastProvider";
 import { applyDocumentTheme, getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
 import {
@@ -43,7 +44,7 @@ const clientDashboardTranslations = {
     verifiedOrders: "Verified orders",
     deliveredOrders: "Delivered orders",
     myOrders: "My orders",
-    transportRequests: "Transport requests",
+    transportRequests: "Client orders",
     reviewOrders: "Review the route, date, status, and verification state for each request.",
     visibleTotal: "visible",
     total: "total",
@@ -66,6 +67,7 @@ const clientDashboardTranslations = {
     date: "Date",
     route: "Route",
     truck: "Truck",
+    client: "Client",
     viewDetails: "View details",
     truckNotAssigned: "Truck not assigned yet",
     estimatedPrice: "Estimated price (DHS, optional)",
@@ -136,7 +138,7 @@ const clientDashboardTranslations = {
     verifiedOrders: "Commandes verifiees",
     deliveredOrders: "Commandes livrees",
     myOrders: "Mes commandes",
-    transportRequests: "Demandes de transport",
+    transportRequests: "Commandes client",
     reviewOrders: "Consultez le trajet, la date, le statut et la verification pour chaque demande.",
     visibleTotal: "visibles",
     total: "total",
@@ -159,6 +161,7 @@ const clientDashboardTranslations = {
     date: "Date",
     route: "Trajet",
     truck: "Camion",
+    client: "Client",
     viewDetails: "Voir le detail",
     truckNotAssigned: "Camion non affecte",
     estimatedPrice: "Prix estime (DHS, optionnel)",
@@ -203,6 +206,7 @@ function getThemeMode() {
 }
 
 function ClientDashboard() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -226,6 +230,7 @@ function ClientDashboard() {
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [preferences, setPreferences] = useState(() => getStoredPreferences());
   const requestSectionRef = useRef(null);
+  const ordersSectionRef = useRef(null);
   const statusMenuRef = useRef(null);
 
   const roleName = (user?.role_name || user?.role || "").toLowerCase();
@@ -360,6 +365,16 @@ function ClientDashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    if (location.hash !== "#orders") {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      ordersSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [location.hash]);
+
   const loadOrders = async () => {
     try {
       setLoadingOrders(true);
@@ -478,7 +493,7 @@ function ClientDashboard() {
   const hasVisibleOrders = filteredOrders.length > 0;
 
   return (
-    <div className={`min-h-screen ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-[#050814] text-slate-100"}`}>
+    <div className={`min-h-screen overflow-x-hidden ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-[#050814] text-slate-100"}`}>
       <div className="flex min-h-screen">
         <Sidebar
           mobileOpen={mobileSidebarOpen}
@@ -502,13 +517,13 @@ function ClientDashboard() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-200">
+                <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium ${theme === "light" ? "border-cyan-300/50 bg-cyan-100 text-cyan-700" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"}`}>
                   {t.privateAccess}
                 </span>
                 <button
                   type="button"
                   onClick={openRequestForm}
-                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-500/15 px-4 text-sm font-semibold text-cyan-100 transition duration-200 hover:border-cyan-300/40 hover:bg-cyan-500/25 hover:shadow-[0_12px_28px_rgba(34,211,238,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40"
+                  className={`inline-flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-2 ${theme === "light" ? "border-cyan-300/50 bg-cyan-100 text-cyan-700 hover:bg-cyan-200 focus-visible:ring-cyan-300/50" : "border-cyan-400/25 bg-cyan-500/15 text-cyan-100 hover:border-cyan-300/40 hover:bg-cyan-500/25 hover:shadow-[0_12px_28px_rgba(34,211,238,0.18)] focus-visible:ring-cyan-300/40"}`}
                 >
                   <PlusIcon className="h-4 w-4" />
                   {t.requestNewOrder}
@@ -517,7 +532,7 @@ function ClientDashboard() {
             </div>
           </header>
 
-          <main className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
+          <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
             <div className="mx-auto flex max-w-7xl flex-col gap-6">
               {loadingUser && !user && (
                 <div className={`rounded-2xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-white/10 bg-white/5 text-slate-300"}`}>
@@ -572,12 +587,12 @@ function ClientDashboard() {
               )}
 
               {showRequestForm && (
-                <section className="rounded-[28px] border border-cyan-400/15 bg-[linear-gradient(180deg,rgba(8,15,28,0.98),rgba(11,19,36,0.98))] p-5 shadow-[0_28px_100px_rgba(0,0,0,0.36)] backdrop-blur-2xl sm:p-6">
-                  <div className="flex flex-col gap-4 border-b border-white/8 pb-5 sm:flex-row sm:items-start sm:justify-between">
+                <section className={`rounded-[28px] border p-5 shadow-[0_28px_100px_rgba(0,0,0,0.36)] backdrop-blur-2xl sm:p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-cyan-400/15 bg-[linear-gradient(180deg,rgba(8,15,28,0.98),rgba(11,19,36,0.98))]"}`}>
+                  <div className={`flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-start sm:justify-between ${theme === "light" ? "border-slate-200" : "border-white/8"}`}>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300/70">{t.requestTransport}</p>
-                      <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">New transport request</h2>
-                      <p className="mt-2 text-sm leading-6 text-slate-400">
+                      <h2 className={`mt-2 text-2xl font-semibold tracking-tight ${theme === "light" ? "text-slate-900" : "text-white"}`}>New transport request</h2>
+                      <p className={`mt-2 text-sm leading-6 ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>
                         Fill in the route details below. The request will be created as pending and non-verified automatically.
                       </p>
                     </div>
@@ -697,7 +712,11 @@ function ClientDashboard() {
 
               <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.86fr)] lg:items-start">
                 <div className="space-y-6">
-                  <section className={`rounded-[28px] border p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl sm:p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
+                  <section
+                    ref={ordersSectionRef}
+                    id="orders"
+                    className={`rounded-[28px] border p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl sm:p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}
+                  >
                     <div className={`flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-end sm:justify-between ${theme === "light" ? "border-slate-200" : "border-white/8"}`}>
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">{t.myOrders}</p>
@@ -726,7 +745,7 @@ function ClientDashboard() {
                       <div className="relative">
                         <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                         <input
-                          className="client-search-input h-12 w-full rounded-xl border border-slate-800/90 bg-slate-950/80 pl-10 pr-3 text-sm text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40 focus:bg-slate-950 focus:ring-2 focus:ring-cyan-300/10"
+                          className={`client-search-input h-12 w-full rounded-xl border pl-10 pr-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40 focus:ring-2 focus:ring-cyan-300/10 ${theme === "light" ? "border-slate-200 bg-white text-slate-900 focus:bg-white" : "border-slate-800/90 bg-slate-950/80 text-slate-100 focus:bg-slate-950"}`}
                           value={searchTerm}
                           onChange={(event) => setSearchTerm(event.target.value)}
                           placeholder={t.searchPlaceholder}
@@ -761,7 +780,9 @@ function ClientDashboard() {
                                   className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition ${
                                     isActive
                                       ? "bg-cyan-500/15 text-cyan-100"
-                                      : "text-slate-300 hover:bg-white/[0.04] hover:text-white"
+                                      : theme === "light"
+                                        ? "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                        : "text-slate-300 hover:bg-white/[0.04] hover:text-white"
                                   }`}
                                 >
                                   <span>{option.label}</span>
@@ -787,21 +808,22 @@ function ClientDashboard() {
                     {loadingOrders ? (
                       <div className="mt-5 space-y-3">
                         {Array.from({ length: 4 }).map((_, index) => (
-                          <div key={index} className="rounded-2xl border border-white/8 bg-[#0b1324]/70 p-4">
-                            <div className="h-4 w-36 rounded-full bg-white/10" />
-                            <div className="mt-3 h-3 w-64 rounded-full bg-white/10" />
-                            <div className="mt-3 h-3 w-44 rounded-full bg-white/10" />
+                          <div key={index} className={`rounded-2xl border p-4 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-[#0b1324]/70"}`}>
+                            <div className={`h-4 w-36 rounded-full ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
+                            <div className={`mt-3 h-3 w-64 rounded-full ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
+                            <div className={`mt-3 h-3 w-44 rounded-full ${theme === "light" ? "bg-slate-200" : "bg-white/10"}`} />
                           </div>
                         ))}
                       </div>
                     ) : hasVisibleOrders ? (
                       <>
-                        <div className="mt-5 hidden overflow-hidden rounded-2xl border border-white/8 bg-[#0b1324]/70 lg:block">
-                          <table className="min-w-full text-left text-sm">
-                            <thead className="border-b border-white/8 bg-white/[0.02] text-slate-400">
+                        <div className={`mt-5 hidden overflow-x-auto rounded-2xl border lg:block ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-[#0b1324]"}`}>
+                          <table className="min-w-[980px] w-full text-left text-sm">
+                            <thead className={`border-b ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-500" : "border-white/8 bg-white/[0.02] text-slate-400"}`}>
                               <tr>
                                 <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.14em]">Order ID</th>
                                 <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.14em]">Route</th>
+                                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.14em]">{t.client}</th>
                                 <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.14em]">Date</th>
                                 <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.14em]">Status</th>
                                 <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.14em]">Verification</th>
@@ -809,19 +831,38 @@ function ClientDashboard() {
                               </tr>
                             </thead>
                             <tbody>
-                              {filteredOrders.map((order) => (
+                              {filteredOrders.map((order, index) => (
                                 <tr
                                   key={order.id}
-                                  className="border-t border-white/8 text-slate-200 transition duration-200 hover:bg-white/[0.03]"
+                                  className={`border-t transition duration-200 ${
+                                    theme === "light"
+                                      ? `${index % 2 === 0 ? "bg-slate-50" : "bg-white"} border-slate-200 text-slate-700 hover:bg-slate-100`
+                                      : `${index % 2 === 0 ? "bg-[#1b283f]/55" : "bg-[#0b1324]"} border-white/8 text-slate-200 hover:bg-[#22314a]/70`
+                                  }`}
                                 >
-                                  <td className="whitespace-nowrap px-4 py-4 font-semibold text-white">#{order.id}</td>
-                                  <td className="px-4 py-4 text-slate-300">
+                                  <td className={`whitespace-nowrap px-4 py-4 font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>#{order.id}</td>
+                                  <td className={`px-4 py-4 ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>
                                     <div className={`font-medium ${theme === "light" ? "text-slate-900" : "text-slate-100"}`}>{formatRoute(order, lang)}</div>
                                     <div className="mt-1 text-xs text-slate-500">
                                       {order.camion?.matricule ? `${t.truck}: ${order.camion.matricule}` : t.assignedTruck}
                                     </div>
                                   </td>
-                                  <td className="whitespace-nowrap px-4 py-4 text-slate-300">{formatDate(order.date_transport, lang)}</td>
+                                  <td className="px-4 py-4">
+                                    <OrderClientInfo
+                                      order={order}
+                                      fallbackUser={user}
+                                      theme={theme}
+                                      compact
+                                      labels={{
+                                        clientName: t.clientName,
+                                        clientEmail: t.clientEmail,
+                                        clientPhone: t.clientPhone,
+                                        noData: t.noData,
+                                        unknown: t.unknownAccount,
+                                      }}
+                                    />
+                                  </td>
+                                  <td className={`whitespace-nowrap px-4 py-4 ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>{formatDate(order.date_transport, lang)}</td>
                                   <td className="whitespace-nowrap px-4 py-4">
                                     <StatusBadge status={order.statut} />
                                   </td>
@@ -832,7 +873,7 @@ function ClientDashboard() {
                                     <button
                                       type="button"
                                       onClick={() => handleViewDetails(order.id)}
-                                      className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-3.5 py-2 text-xs font-semibold text-cyan-100 transition hover:border-cyan-300/40 hover:bg-cyan-500/20"
+                                      className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${theme === "light" ? "border-cyan-300/40 bg-cyan-100 text-cyan-700 hover:bg-cyan-200" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-100 hover:border-cyan-300/40 hover:bg-cyan-500/20"}`}
                                     >
                                       {t.viewDetails}
                                       <ArrowRightIcon className="h-3.5 w-3.5" />
@@ -846,7 +887,7 @@ function ClientDashboard() {
 
                         <div className="mt-5 grid gap-4 lg:hidden">
                           {filteredOrders.map((order) => (
-                            <article key={order.id} className="rounded-2xl border border-white/8 bg-[#0b1324]/70 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
+                            <article key={order.id} className={`rounded-2xl border p-4 shadow-[0_12px_40px_rgba(0,0,0,0.18)] ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-[#0b1324]/70"}`}>
                               <div className="flex items-start justify-between gap-4">
                                 <div>
                                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{t.order} #{order.id}</p>
@@ -855,7 +896,7 @@ function ClientDashboard() {
                                 <StatusBadge status={order.statut} />
                               </div>
 
-                              <div className="mt-4 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
+                              <div className={`mt-4 grid gap-3 text-sm sm:grid-cols-2 ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>
                                 <div>
                                   <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.date}</p>
                                   <p className={`mt-1 font-medium ${theme === "light" ? "text-slate-900" : "text-slate-100"}`}>{formatDate(order.date_transport, lang)}</p>
@@ -866,12 +907,27 @@ function ClientDashboard() {
                                 </div>
                               </div>
 
-                              <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-3 py-3 text-sm text-slate-300">
+                              <div className={`mt-4 rounded-xl border px-3 py-3 ${theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/8 bg-white/[0.02]"}`}>
+                                <OrderClientInfo
+                                  order={order}
+                                  fallbackUser={user}
+                                  theme={theme}
+                                  labels={{
+                                    clientName: t.clientName,
+                                    clientEmail: t.clientEmail,
+                                    clientPhone: t.clientPhone,
+                                    noData: t.noData,
+                                    unknown: t.unknownAccount,
+                                  }}
+                                />
+                              </div>
+
+                              <div className={`mt-4 flex items-center justify-between gap-3 rounded-xl border px-3 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/8 bg-white/[0.02] text-slate-300"}`}>
                                 <span>{order.camion?.matricule ? `${t.truck} ${order.camion.matricule}` : t.assignedTruck}</span>
                                 <button
                                   type="button"
                                   onClick={() => handleViewDetails(order.id)}
-                                  className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-100 transition hover:border-cyan-300/40 hover:bg-cyan-500/20"
+                                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${theme === "light" ? "border-cyan-300/40 bg-cyan-100 text-cyan-700 hover:bg-cyan-200" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-100 hover:border-cyan-300/40 hover:bg-cyan-500/20"}`}
                                 >
                                   {t.viewDetails}
                                   <ArrowRightIcon className="h-3.5 w-3.5" />
@@ -888,7 +944,7 @@ function ClientDashboard() {
                 </div>
 
                 <div className="space-y-6 lg:sticky lg:top-6">
-                  <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
+                  <section className={`rounded-[28px] border p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t.requestTransport}</p>
@@ -897,12 +953,12 @@ function ClientDashboard() {
                           {lang === "fr" ? "Lancez une demande en moins d'une minute. Le statut restera en attente et la verification restera non verifiee automatiquement." : "Start a request in under a minute. Status will be set to pending and verification will remain non-verified automatically."}
                         </p>
                       </div>
-                      <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-200">
+                      <div className={`rounded-2xl border p-3 ${theme === "light" ? "border-cyan-300/50 bg-cyan-100 text-cyan-700" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"}`}>
                         <RequestIcon className="h-5 w-5" />
                       </div>
                     </div>
 
-                    <div className="mt-5 space-y-3 text-sm text-slate-300">
+                    <div className={`mt-5 space-y-3 text-sm ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>
                       <FeatureLine label={t.autoStatus} value={lang === "fr" ? t.pendingState : "Pending"} />
                       <FeatureLine label={t.autoVerification} value={t.nonVerified} />
                       <FeatureLine label={t.access} value={t.accountOnly} />
@@ -918,28 +974,28 @@ function ClientDashboard() {
                     </button>
                   </section>
 
-                  <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
+                  <section className={`rounded-[28px] border p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t.howItWorks}</p>
-                    <ol className="mt-4 space-y-4 text-sm text-slate-300">
+                    <ol className={`mt-4 space-y-4 text-sm ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>
                       <li className="flex gap-3">
                         <StepNumber>1</StepNumber>
                         <div>
-                          <p className="font-medium text-white">{t.sendRouteDetails}</p>
-                          <p className="mt-1 text-slate-400">{t.routeDetailsCopy}</p>
+                          <p className={`font-medium ${theme === "light" ? "text-slate-900" : "text-white"}`}>{t.sendRouteDetails}</p>
+                          <p className={`mt-1 ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>{t.routeDetailsCopy}</p>
                         </div>
                       </li>
                       <li className="flex gap-3">
                         <StepNumber>2</StepNumber>
                         <div>
-                          <p className="font-medium text-white">{t.operationsReviews}</p>
-                          <p className="mt-1 text-slate-400">{t.operationsReviewsCopy}</p>
+                          <p className={`font-medium ${theme === "light" ? "text-slate-900" : "text-white"}`}>{t.operationsReviews}</p>
+                          <p className={`mt-1 ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>{t.operationsReviewsCopy}</p>
                         </div>
                       </li>
                       <li className="flex gap-3">
                         <StepNumber>3</StepNumber>
                         <div>
-                          <p className="font-medium text-white">{t.trackTheProgress}</p>
-                          <p className="mt-1 text-slate-400">{t.trackProgressCopy}</p>
+                          <p className={`font-medium ${theme === "light" ? "text-slate-900" : "text-white"}`}>{t.trackTheProgress}</p>
+                          <p className={`mt-1 ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>{t.trackProgressCopy}</p>
                         </div>
                       </li>
                     </ol>
@@ -1222,16 +1278,19 @@ function RuleLine({ title }) {
 }
 
 function StepNumber({ children }) {
+  const theme = getThemeMode();
+
   return (
-    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-500/10 text-xs font-semibold text-cyan-200">
+    <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${theme === "light" ? "border-cyan-300/50 bg-cyan-100 text-cyan-700" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"}`}>
       {children}
     </div>
   );
 }
 
 function StatusBadge({ status }) {
+  const theme = getThemeMode();
   const resolvedStatus = normalizeOrderStatus(status);
-  const config = {
+  const darkConfig = {
     en_attente: {
       label: "Pending",
       className: "border-amber-400/20 bg-amber-500/10 text-amber-200",
@@ -1253,6 +1312,30 @@ function StatusBadge({ status }) {
       className: "border-cyan-400/20 bg-cyan-500/10 text-cyan-100",
     },
   };
+  const lightConfig = {
+    en_attente: {
+      label: "Pending",
+      className: "border-amber-300 bg-amber-100 text-amber-800",
+    },
+    en_cours: {
+      label: "In progress",
+      className: "border-sky-300 bg-sky-100 text-sky-800",
+    },
+    livree: {
+      label: "Delivered",
+      className: "border-emerald-300 bg-emerald-100 text-emerald-800",
+    },
+    annulee: {
+      label: "Cancelled",
+      className: "border-rose-300 bg-rose-100 text-rose-800",
+    },
+    validee: {
+      label: "Validated",
+      className: "border-cyan-300 bg-cyan-100 text-cyan-800",
+    },
+  };
+
+  const config = theme === "light" ? lightConfig : darkConfig;
 
   const resolved = config[resolvedStatus] || config.en_attente;
 

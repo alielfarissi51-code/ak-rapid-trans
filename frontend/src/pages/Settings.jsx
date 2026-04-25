@@ -9,6 +9,7 @@ import {
     updateProfile,
 } from "../services/api";
 import { useToast } from "../components/ToastProvider";
+import { applyDocumentTheme, getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
 
 export default function Settings() {
     const navigate = useNavigate();
@@ -27,6 +28,31 @@ export default function Settings() {
         password: "",
         password_confirmation: "",
     });
+    const [preferences, setPreferences] = useState(() => getStoredPreferences());
+    const roleName = (user?.role_name || user?.role || "").toLowerCase();
+    const isAdminUser = roleName === "admin";
+    const theme = preferences.theme === "light" ? "light" : "dark";
+
+    useEffect(() => {
+        applyDocumentTheme(theme);
+    }, [theme]);
+
+    useEffect(() => {
+        const handlePreferencesChanged = (event) => {
+            if (event?.detail) {
+                setPreferences(event.detail);
+                return;
+            }
+
+            setPreferences(getStoredPreferences());
+        };
+
+        window.addEventListener(PREFERENCES_EVENT, handlePreferencesChanged);
+
+        return () => {
+            window.removeEventListener(PREFERENCES_EVENT, handlePreferencesChanged);
+        };
+    }, []);
 
     useEffect(() => {
         let active = true;
@@ -141,22 +167,24 @@ export default function Settings() {
     };
 
     return (
-        <div className="h-screen overflow-hidden bg-[#050814] text-slate-100">
+        <div className={`h-screen overflow-hidden ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-[#050814] text-slate-100"}`}>
             <div className="flex h-full">
                 <Sidebar
                     mobileOpen={mobileSidebarOpen}
                     onClose={() => setMobileSidebarOpen(false)}
                     user={user}
-                    isAdmin
+                    isAdmin={isAdminUser}
                     onLogout={handleLogout}
+                    preferences={preferences}
+                    onPreferencesChange={setPreferences}
                 />
 
                 <div className="flex min-w-0 flex-1 flex-col lg:pl-[260px]">
-                    <header className="border-b border-white/5 bg-[#050814]/80 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
+                    <header className={`border-b px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8 ${theme === "light" ? "border-slate-200 bg-white/90" : "border-white/5 bg-[#050814]/80"}`}>
                         <div className="flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-sm font-medium text-slate-400">Admin Tools</p>
-                                <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                                <p className={`text-sm font-medium ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{isAdminUser ? "Admin Tools" : "Client Space"}</p>
+                                <h1 className={`text-2xl font-semibold tracking-tight sm:text-3xl ${theme === "light" ? "text-slate-900" : "text-white"}`}>
                                     Settings
                                 </h1>
                             </div>
@@ -166,40 +194,40 @@ export default function Settings() {
                     <main className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
                         <div className="mx-auto flex max-w-5xl flex-col gap-6">
                             {loadingUser && (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+                                <div className={`rounded-2xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-white/10 bg-white/5 text-slate-300"}`}>
                                     Loading account...
                                 </div>
                             )}
 
-                            <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
-                                <h2 className="text-xl font-semibold text-white">Profile Information</h2>
-                                <p className="mt-2 text-sm text-slate-400">
-                                    Update your admin account information.
+                            <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
+                                <h2 className={`text-xl font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>Profile Information</h2>
+                                <p className={`mt-2 text-sm ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>
+                                    {isAdminUser ? "Update your admin account information." : "Update your account information."}
                                 </p>
 
                                 <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-300">Name</label>
+                                        <label className={`mb-2 block text-sm font-medium ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>Name</label>
                                         <input
                                             type="text"
                                             name="name"
                                             value={profileForm.name}
                                             onChange={onProfileChange}
-                                            className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none"
-                                            placeholder="Admin name"
+                                            className={`w-full rounded-2xl border px-4 py-2.5 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none ${theme === "light" ? "border-slate-200 bg-white text-slate-900" : "border-white/10 bg-white/[0.03] text-slate-100"}`}
+                                            placeholder={isAdminUser ? "Admin name" : "Your name"}
                                             required
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-300">Email</label>
+                                        <label className={`mb-2 block text-sm font-medium ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>Email</label>
                                         <input
                                             type="email"
                                             name="email"
                                             value={profileForm.email}
                                             onChange={onProfileChange}
-                                            className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none"
-                                            placeholder="admin@example.com"
+                                            className={`w-full rounded-2xl border px-4 py-2.5 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none ${theme === "light" ? "border-slate-200 bg-white text-slate-900" : "border-white/10 bg-white/[0.03] text-slate-100"}`}
+                                            placeholder={isAdminUser ? "admin@example.com" : "your@email.com"}
                                             required
                                         />
                                     </div>
@@ -207,7 +235,7 @@ export default function Settings() {
                                     <div>
                                         <button
                                             type="submit"
-                                            className="rounded-2xl border border-sky-400/20 bg-sky-500/15 px-4 py-2.5 text-sm font-semibold text-sky-100 transition hover:border-sky-300/40 hover:bg-sky-500/25"
+                                            className={`rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${theme === "light" ? "border-sky-300/50 bg-sky-100 text-sky-700 hover:bg-sky-200" : "border-sky-400/20 bg-sky-500/15 text-sky-100 hover:border-sky-300/40 hover:bg-sky-500/25"}`}
                                         >
                                             Save Profile
                                         </button>
@@ -215,46 +243,46 @@ export default function Settings() {
                                 </form>
                             </section>
 
-                            <section className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
-                                <h2 className="text-xl font-semibold text-white">Change Password</h2>
-                                <p className="mt-2 text-sm text-slate-400">
+                            <section className={`rounded-[28px] border p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
+                                <h2 className={`text-xl font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>Change Password</h2>
+                                <p className={`mt-2 text-sm ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>
                                     Choose a strong password with at least 8 characters.
                                 </p>
 
                                 <form className="mt-6 grid gap-4" onSubmit={handlePasswordSubmit}>
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-300">Current Password</label>
+                                        <label className={`mb-2 block text-sm font-medium ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>Current Password</label>
                                         <input
                                             type="password"
                                             name="current_password"
                                             value={passwordForm.current_password}
                                             onChange={onPasswordChange}
-                                            className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none"
+                                            className={`w-full rounded-2xl border px-4 py-2.5 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none ${theme === "light" ? "border-slate-200 bg-white text-slate-900" : "border-white/10 bg-white/[0.03] text-slate-100"}`}
                                             required
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-300">New Password</label>
+                                        <label className={`mb-2 block text-sm font-medium ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>New Password</label>
                                         <input
                                             type="password"
                                             name="password"
                                             value={passwordForm.password}
                                             onChange={onPasswordChange}
-                                            className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none"
+                                            className={`w-full rounded-2xl border px-4 py-2.5 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none ${theme === "light" ? "border-slate-200 bg-white text-slate-900" : "border-white/10 bg-white/[0.03] text-slate-100"}`}
                                             minLength={8}
                                             required
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-300">Confirm New Password</label>
+                                        <label className={`mb-2 block text-sm font-medium ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>Confirm New Password</label>
                                         <input
                                             type="password"
                                             name="password_confirmation"
                                             value={passwordForm.password_confirmation}
                                             onChange={onPasswordChange}
-                                            className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none"
+                                            className={`w-full rounded-2xl border px-4 py-2.5 placeholder-slate-500 focus:border-sky-400/40 focus:outline-none ${theme === "light" ? "border-slate-200 bg-white text-slate-900" : "border-white/10 bg-white/[0.03] text-slate-100"}`}
                                             minLength={8}
                                             required
                                         />
@@ -263,7 +291,7 @@ export default function Settings() {
                                     <div>
                                         <button
                                             type="submit"
-                                            className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.06]"
+                                            className={`rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50" : "border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.06]"}`}
                                         >
                                             Update Password
                                         </button>
