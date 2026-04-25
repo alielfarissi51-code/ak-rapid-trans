@@ -10,6 +10,8 @@ import {
     exportCommandesXml,
     importCommandesXml,
     getCommandesSummary,
+    downloadCommandeFacture,
+    generateCommandeFacture,
 } from "../services/api";
 import CommandeForm from "../components/CommandeForm";
 import CommandesTable from "../components/CommandesTable";
@@ -27,6 +29,7 @@ export default function CommandesManagement() {
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState("");
     const [logsLoading, setLogsLoading] = useState(false);
+    const [factureLoadingId, setFactureLoadingId] = useState(null);
     const [selectedCommandeForLogs, setSelectedCommandeForLogs] = useState(null);
     const [statusLogs, setStatusLogs] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -111,7 +114,7 @@ export default function CommandesManagement() {
         try {
             const data = await getCamions();
             setCamions(data);
-        } catch (err) {
+        } catch {
             console.error(t.failedLoadTrucks);
             showWarningToast(t.toastTrucksUnavailableTitle, t.toastTrucksUnavailableDescription);
         }
@@ -122,7 +125,7 @@ export default function CommandesManagement() {
             setSummaryLoading(true);
             const payload = await getCommandesSummary();
             setSummary(payload?.data || []);
-        } catch (err) {
+        } catch {
             console.error(t.failedLoadSummary);
             setSummary([]);
             showWarningToast(t.toastSummaryUnavailableTitle, t.toastSummaryUnavailableDescription);
@@ -230,6 +233,46 @@ export default function CommandesManagement() {
         } finally {
             setActionLoading("");
             event.target.value = "";
+        }
+    };
+
+    const handleGenerateFacture = async (commande) => {
+        try {
+            setFactureLoadingId(commande.id);
+            const payload = await generateCommandeFacture(commande.id);
+
+            addToast({
+                type: payload?.created ? "success" : "info",
+                title: payload?.created ? "Facture generated" : "Facture already exists",
+                description: payload?.facture?.facture_number
+                    ? `Facture ${payload.facture.facture_number} is ready.`
+                    : "Facture is ready.",
+            });
+
+            await fetchCommandes();
+        } catch (err) {
+            showErrorToast("Facture generation failed", err.message || "Unable to generate facture.");
+        } finally {
+            setFactureLoadingId(null);
+        }
+    };
+
+    const handleDownloadFacture = async (commande) => {
+        try {
+            setFactureLoadingId(commande.id);
+            await downloadCommandeFacture(
+                commande.id,
+                `${commande.facture_number || `facture-commande-${commande.id}`}.pdf`
+            );
+            addToast({
+                type: "success",
+                title: "Facture download started",
+                description: "The facture PDF is downloading.",
+            });
+        } catch (err) {
+            showErrorToast("Facture download failed", err.message || "Unable to download facture.");
+        } finally {
+            setFactureLoadingId(null);
         }
     };
 
@@ -367,7 +410,15 @@ export default function CommandesManagement() {
                                 </div>
                             ) : (
                                 <>
-                                    <CommandesTable commandes={paginatedCommandes} onEdit={handleEdit} onDelete={handleDelete} onViewStatusLogs={handleViewStatusLogs} />
+                                    <CommandesTable
+                                        commandes={paginatedCommandes}
+                                        onEdit={handleEdit}
+                                        onDelete={handleDelete}
+                                        onViewStatusLogs={handleViewStatusLogs}
+                                        onGenerateFacture={handleGenerateFacture}
+                                        onDownloadFacture={handleDownloadFacture}
+                                        factureLoadingId={factureLoadingId}
+                                    />
 
                                     {selectedCommandeForLogs && (
                                         <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_28px_rgba(2,6,23,0.05)]">

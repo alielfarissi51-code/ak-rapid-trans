@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createElement, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import OrderClientInfo from "../components/OrderClientInfo";
@@ -103,10 +103,6 @@ const clientDashboardTranslations = {
   },
   fr: {
     portalTitle: "Portail client",
-    dbSummary: "Database summary",
-    dbSummaryCopy: "This section is calculated from a stored procedure in the backend database.",
-    totalAmount: "Total amount",
-    loadingSummary: "Loading summary...",
     welcomeBack: "Bon retour",
     overviewDescription: "Suivez vos demandes de transport, controlez chaque statut et envoyez une nouvelle demande en quelques secondes.",
     privateAccess: "Acces prive au compte",
@@ -316,7 +312,7 @@ function ClientDashboard() {
         }
 
         setUser(profile);
-      } catch (error) {
+      } catch {
         if (active) {
           clearToken();
           navigate("/", { replace: true, state: { errorMessage: "Session expired. Please log in again." } });
@@ -417,7 +413,7 @@ function ClientDashboard() {
   const handleLogout = async () => {
     try {
       await apiLogout();
-    } catch (error) {
+    } catch {
       // Logout must always clear local auth state.
     } finally {
       clearToken();
@@ -489,7 +485,6 @@ function ClientDashboard() {
     }
   };
 
-  const hasOrders = orders.length > 0;
   const hasVisibleOrders = filteredOrders.length > 0;
 
   return (
@@ -1131,7 +1126,7 @@ function ClientDashboard() {
   );
 }
 
-function MetricCard({ label, value, icon: Icon, tone, caption }) {
+function MetricCard({ label, value, icon, tone, caption }) {
   const theme = getThemeMode();
   const toneClasses = {
     cyan: "from-cyan-500/25 to-sky-500/10 text-cyan-200 border-cyan-400/15",
@@ -1148,7 +1143,7 @@ function MetricCard({ label, value, icon: Icon, tone, caption }) {
           <p className={`mt-3 text-3xl font-semibold tracking-tight ${theme === "light" ? "text-slate-900" : "text-white"}`}>{value}</p>
         </div>
         <div className={`rounded-2xl border p-3 transition group-hover:border-white/15 ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700 group-hover:bg-slate-100" : "border-white/10 bg-white/[0.03] text-slate-200 group-hover:bg-white/[0.06]"}`}>
-          <Icon className="h-5 w-5" />
+          {icon ? createElement(icon, { className: "h-5 w-5" }) : null}
         </div>
       </div>
       <p className={`mt-4 text-xs leading-5 ${theme === "light" ? "text-slate-500" : "text-slate-500"}`}>{caption}</p>

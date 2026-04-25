@@ -6,6 +6,7 @@ import { useToast } from "../components/ToastProvider";
 import { applyDocumentTheme, getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
 import {
   clearToken,
+  downloadCommandeFacture,
   getClientCommandeById,
   getClientCommandes,
   getMe,
@@ -23,6 +24,7 @@ export default function ClientOrders() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [factureLoadingId, setFactureLoadingId] = useState(null);
   const [preferences, setPreferences] = useState(() => getStoredPreferences());
   const theme = preferences.theme === "light" ? "light" : "dark";
 
@@ -66,7 +68,7 @@ export default function ClientOrders() {
         }
 
         setUser(profile);
-      } catch (error) {
+      } catch {
         if (active) {
           clearToken();
           navigate("/", { replace: true, state: { errorMessage: "Session expired. Please log in again." } });
@@ -128,7 +130,7 @@ export default function ClientOrders() {
   const handleLogout = async () => {
     try {
       await apiLogout();
-    } catch (error) {
+    } catch {
       // Always clear local auth state.
     } finally {
       clearToken();
@@ -146,6 +148,30 @@ export default function ClientOrders() {
         title: "Unable to open order",
         description: error.message || "Please try again.",
       });
+    }
+  };
+
+  const handleDownloadFacture = async (order) => {
+    if (!order?.facture_path) {
+      return;
+    }
+
+    try {
+      setFactureLoadingId(order.id);
+      await downloadCommandeFacture(order.id, `${order.facture_number || `facture-commande-${order.id}`}.pdf`);
+      addToast({
+        type: "success",
+        title: "Facture download started",
+        description: "The facture PDF is downloading.",
+      });
+    } catch (error) {
+      addToast({
+        type: "error",
+        title: "Facture unavailable",
+        description: error.message || "Unable to download facture.",
+      });
+    } finally {
+      setFactureLoadingId(null);
     }
   };
 
@@ -284,6 +310,16 @@ export default function ClientOrders() {
                                 >
                                   Details
                                 </button>
+                                {order.facture_path && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadFacture(order)}
+                                    disabled={factureLoadingId === order.id}
+                                    className={`ml-2 rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${theme === "light" ? "border-emerald-300/50 bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "border-emerald-400/20 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/20"} disabled:cursor-not-allowed disabled:opacity-60`}
+                                  >
+                                    {factureLoadingId === order.id ? "Downloading..." : "Download invoice"}
+                                  </button>
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -319,6 +355,16 @@ export default function ClientOrders() {
                           >
                             Details
                           </button>
+                          {order.facture_path && (
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadFacture(order)}
+                              disabled={factureLoadingId === order.id}
+                              className={`ml-2 mt-3 rounded-xl border px-3 py-1.5 text-xs font-semibold ${theme === "light" ? "border-emerald-300/40 bg-emerald-100 text-emerald-700" : "border-emerald-400/20 bg-emerald-500/10 text-emerald-100"} disabled:cursor-not-allowed disabled:opacity-60`}
+                            >
+                              {factureLoadingId === order.id ? "Downloading..." : "Download invoice"}
+                            </button>
+                          )}
                         </article>
                       ))}
                     </div>

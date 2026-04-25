@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
 
-export default function CommandesTable({ commandes, onEdit, onDelete, onViewStatusLogs }) {
+export default function CommandesTable({
+    commandes,
+    onEdit,
+    onDelete,
+    onViewStatusLogs,
+    onGenerateFacture,
+    onDownloadFacture,
+    factureLoadingId = null,
+}) {
     const [lang, setLang] = useState(() => getStoredPreferences().lang || "en");
 
     useEffect(() => {
@@ -24,6 +32,12 @@ export default function CommandesTable({ commandes, onEdit, onDelete, onViewStat
             price: "Prix",
             status: "Statut",
             actions: "Actions",
+            facture: "Facture",
+            generateFacture: "Generer facture",
+            factureGenerated: "Facture generee",
+            downloadFacture: "Telecharger",
+            generatingFacture: "Generation...",
+            downloadingFacture: "Telechargement...",
             logs: "Logs",
             notAssigned: "Non assigne",
             edit: "Modifier",
@@ -45,6 +59,12 @@ export default function CommandesTable({ commandes, onEdit, onDelete, onViewStat
             price: "Price",
             status: "Status",
             actions: "Actions",
+            facture: "Invoice",
+            generateFacture: "Generate invoice",
+            factureGenerated: "Invoice generated",
+            downloadFacture: "Download",
+            generatingFacture: "Generating...",
+            downloadingFacture: "Downloading...",
             logs: "Logs",
             notAssigned: "Not assigned",
             edit: "Edit",
@@ -147,6 +167,35 @@ export default function CommandesTable({ commandes, onEdit, onDelete, onViewStat
                                     </span>
                                 </td>
                                 <td className="whitespace-nowrap px-5 py-4.5 text-sm font-medium">
+                                    {commande.statut === "validee" && (
+                                        <>
+                                            {!commande.facture_path ? (
+                                                <button
+                                                    onClick={() => onGenerateFacture?.(commande)}
+                                                    className="mr-2 inline-flex h-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700 transition duration-200 hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+                                                    type="button"
+                                                    disabled={factureLoadingId === commande.id}
+                                                >
+                                                    {factureLoadingId === commande.id ? t.generatingFacture : t.generateFacture}
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <span className="mr-2 inline-flex h-8 items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700">
+                                                        {t.factureGenerated}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => onDownloadFacture?.(commande)}
+                                                        className="mr-2 inline-flex h-8 items-center justify-center rounded-lg border border-cyan-200 bg-cyan-50 px-2.5 text-[11px] font-semibold text-cyan-700 transition duration-200 hover:border-cyan-300 hover:bg-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+                                                        type="button"
+                                                        disabled={factureLoadingId === commande.id}
+                                                    >
+                                                        {factureLoadingId === commande.id ? t.downloadingFacture : t.downloadFacture}
+                                                    </button>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+
                                     <button
                                         onClick={() => onViewStatusLogs?.(commande)}
                                         className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-transparent text-slate-700 transition duration-200 hover:scale-105 hover:border-slate-300 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"

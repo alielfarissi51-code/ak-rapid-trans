@@ -19,12 +19,16 @@ class Commande extends Model
         'prix',
         'statut',
         'verified',
+        'facture_number',
+        'facture_path',
+        'facture_generated_at',
     ];
 
     protected $casts = [
         'date_transport' => 'date',
         'prix' => 'decimal:2',
         'verified' => 'boolean',
+        'facture_generated_at' => 'datetime',
     ];
 
     public function user()

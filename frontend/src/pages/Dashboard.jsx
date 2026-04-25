@@ -143,7 +143,7 @@ function Dashboard() {
                         },
                     ]);
                 }
-            } catch (error) {
+            } catch {
                 if (active) {
                     setCounts({ users: 0, camions: 0, commandes: 0 });
                     setRecentOrders([]);
@@ -197,7 +197,7 @@ function Dashboard() {
     const handleLogout = async () => {
         try {
             await apiLogout();
-        } catch (error) {
+        } catch {
             // Logout should still clear local state even if the API call fails.
         } finally {
             clearToken();

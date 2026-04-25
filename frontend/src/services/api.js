@@ -296,6 +296,42 @@ export const getCommandeStatusLogs = async (id) => {
     return parseResponse(response);
 };
 
+export const generateCommandeFacture = async (id) => {
+    const response = await fetch(`${API_BASE}/admin/commandes/${id}/facture/generate`, {
+        method: 'POST',
+        headers: {
+            ...authHeaders(),
+        },
+    });
+
+    return parseResponse(response);
+};
+
+export const downloadCommandeFacture = async (id, fallbackFileName = null) => {
+    const response = await fetch(`${API_BASE}/commandes/${id}/facture/download`, {
+        headers: {
+            ...authHeaders(),
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || 'Failed to download facture');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    const downloadName = fallbackFileName || `facture-commande-${id}.pdf`;
+
+    anchor.href = url;
+    anchor.download = downloadName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+};
+
 // =============== REPORTING / EXCHANGE ===============
 export const downloadCommandesPdf = async () => {
     const response = await fetch(`${API_BASE}/admin/reports/commandes/pdf`, {

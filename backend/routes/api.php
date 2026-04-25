@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Camions (Trucks) and commandes management
         Route::get('commandes/{commande}/status-logs', [CommandeController::class, 'statusLogs']);
+        Route::post('commandes/{commande}/facture/generate', [CommandeController::class, 'generateFacture']);
         Route::apiResource('camions', CamionController::class);
         Route::apiResource('commandes', CommandeController::class);
 
@@ -47,4 +48,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('commandes', [ClientOrderController::class, 'store']);
         Route::get('commandes/{commande}', [ClientOrderController::class, 'show']);
     });
+
+    Route::get('commandes/{commande}/facture/download', [CommandeController::class, 'downloadFacture']);
 });

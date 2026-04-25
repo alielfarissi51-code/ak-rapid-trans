@@ -167,6 +167,7 @@ export default function CamionsManagement() {
 
                             {showForm && (
                                 <CamionForm
+                                    key={editingCamion ? `edit-${editingCamion.id}` : "create-camion"}
                                     camion={editingCamion}
                                     onSubmit={handleSubmit}
                                     onCancel={() => setShowForm(false)}

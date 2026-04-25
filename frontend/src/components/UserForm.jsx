@@ -1,25 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+function createInitialFormData(user) {
+    return {
+        name: user?.name || "",
+        email: user?.email || "",
+        role_id: user?.role_id || "",
+        password: "",
+    };
+}
 
 export default function UserForm({ user, roles, onSubmit, onCancel }) {
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        role_id: "",
-        password: "",
-    });
+    const [formData, setFormData] = useState(() => createInitialFormData(user));
 
     const [errors, setErrors] = useState({});
-
-    useEffect(() => {
-        if (user) {
-            setFormData({
-                name: user.name,
-                email: user.email,
-                role_id: user.role_id,
-                password: "",
-            });
-        }
-    }, [user]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

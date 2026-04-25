@@ -38,7 +38,7 @@ export default function RequireRole({ allow, children }) {
             redirectTo: role === "admin" ? "/dashboard-admin" : "/dashboard-client",
           });
         }
-      } catch (error) {
+      } catch {
         clearToken();
         if (active) {
           setStatus({ loading: false, allowed: false, redirectTo: "/" });

@@ -66,7 +66,7 @@ export default function UsersManagement() {
         try {
             const data = await getRoles();
             setRoles(data);
-        } catch (err) {
+        } catch {
             console.error("Failed to load roles");
         }
     };
@@ -179,6 +179,7 @@ export default function UsersManagement() {
 
                             {showForm && (
                                 <UserForm
+                                    key={editingUser ? `edit-${editingUser.id}` : "create-user"}
                                     user={editingUser}
                                     roles={roles}
                                     onSubmit={handleSubmit}

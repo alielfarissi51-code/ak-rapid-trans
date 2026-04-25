@@ -137,7 +137,7 @@ function Sidebar({
 
     try {
       await apiLogout();
-    } catch (error) {
+    } catch {
       // Local logout should continue even if API call fails.
     } finally {
       clearToken();

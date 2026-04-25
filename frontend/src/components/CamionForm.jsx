@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
 import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
 
+function createInitialFormData(camion) {
+    return {
+        matricule: camion?.matricule || "",
+        marque: camion?.marque || "",
+        capacite: camion?.capacite || "",
+        statut: camion?.statut || "disponible",
+    };
+}
+
 export default function CamionForm({ camion, onSubmit, onCancel }) {
-    const [formData, setFormData] = useState({
-        matricule: "",
-        marque: "",
-        capacite: "",
-        statut: "disponible",
-    });
+    const [formData, setFormData] = useState(() => createInitialFormData(camion));
 
     const [errors, setErrors] = useState({});
     const [theme, setTheme] = useState(() => getStoredPreferences().theme === "light" ? "light" : "dark");
@@ -17,17 +21,6 @@ export default function CamionForm({ camion, onSubmit, onCancel }) {
         { value: "en_maintenance", label: "In Maintenance" },
         { value: "indisponible", label: "Unavailable" },
     ];
-
-    useEffect(() => {
-        if (camion) {
-            setFormData({
-                matricule: camion.matricule,
-                marque: camion.marque,
-                capacite: camion.capacite,
-                statut: camion.statut || "disponible",
-            });
-        }
-    }, [camion]);
 
     useEffect(() => {
         const syncTheme = (event) => {

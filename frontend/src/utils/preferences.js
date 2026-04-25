@@ -22,7 +22,7 @@ export function getStoredPreferences() {
             theme: parsed.theme === "light" ? "light" : "dark",
             lang: parsed.lang === "fr" ? "fr" : "en",
         };
-    } catch (error) {
+    } catch {
         return DEFAULT_PREFERENCES;
     }
 }

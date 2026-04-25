@@ -68,7 +68,7 @@ export default function Settings() {
                         email: profile.email || "",
                     });
                 }
-            } catch (err) {
+            } catch {
                 if (active) {
                     clearToken();
                     navigate("/", {
@@ -93,7 +93,7 @@ export default function Settings() {
     const handleLogout = async () => {
         try {
             await apiLogout();
-        } catch (err) {
+        } catch {
             // Local logout should always continue.
         } finally {
             clearToken();
