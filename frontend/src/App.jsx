@@ -9,6 +9,7 @@ const Register = lazy(() => import("./pages/Register"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ClientDashboard = lazy(() => import("./pages/ClientDashboard"));
 const ClientOrders = lazy(() => import("./pages/ClientOrders"));
+const ClientNotifications = lazy(() => import("./pages/ClientNotifications"));
 const UsersManagement = lazy(() => import("./pages/UsersManagement"));
 const CamionsManagement = lazy(() => import("./pages/CamionsManagement"));
 const CommandesManagement = lazy(() => import("./pages/CommandesManagement"));
@@ -26,6 +27,7 @@ function App() {
             <Route path="/dashboard-admin" element={<RequireRole allow={["admin"]}><Dashboard /></RequireRole>} />
             <Route path="/dashboard-client" element={<RequireRole allow={["client"]}><ClientDashboard /></RequireRole>} />
             <Route path="/client/orders" element={<RequireRole allow={["client"]}><ClientOrders /></RequireRole>} />
+            <Route path="/client/notifications" element={<RequireRole allow={["client"]}><ClientNotifications /></RequireRole>} />
             <Route path="/commandes" element={<RequireRole allow={["admin"]}><CommandesManagement /></RequireRole>} />
             <Route path="/admin/users" element={<RequireRole allow={["admin"]}><UsersManagement /></RequireRole>} />
             <Route path="/admin/camions" element={<RequireRole allow={["admin"]}><CamionsManagement /></RequireRole>} />

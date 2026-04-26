@@ -58,11 +58,17 @@ class User extends Authenticatable
     {
         $explicitRole = strtolower((string) ($this->getAttribute('role') ?? ''));
 
-        if ($explicitRole !== '') {
+        if (in_array($explicitRole, ['admin', 'client'], true)) {
             return $explicitRole;
         }
 
-        return strtolower((string) ($this->roleRelation?->name ?: 'client'));
+        $relationRole = strtolower((string) ($this->roleRelation?->name ?: ''));
+
+        if (in_array($relationRole, ['admin', 'client'], true)) {
+            return $relationRole;
+        }
+
+        return 'client';
     }
 
     public function commandes()

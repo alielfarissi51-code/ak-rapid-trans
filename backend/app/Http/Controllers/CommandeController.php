@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClientNotification;
 use App\Models\Commande;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -13,10 +14,52 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CommandeController extends Controller
 {
+    private function statusNotificationPayload(string $status): array
+    {
+        $map = [
+            'validee' => [
+                'title' => 'Commande validee',
+                'message' => 'Votre commande a ete validee.',
+            ],
+            'annulee' => [
+                'title' => 'Commande refusee',
+                'message' => 'Votre commande a ete refusee.',
+            ],
+            'livree' => [
+                'title' => 'Commande terminee',
+                'message' => 'Votre commande est terminee.',
+            ],
+            'en_cours' => [
+                'title' => 'Commande en cours',
+                'message' => 'Votre commande est en cours de traitement.',
+            ],
+            'en_attente' => [
+                'title' => 'Commande en attente',
+                'message' => 'Votre commande est en attente de validation.',
+            ],
+        ];
+
+        return $map[$status] ?? [
+            'title' => 'Mise a jour de commande',
+            'message' => 'Le statut de votre commande a ete mis a jour.',
+        ];
+    }
+
+    private function isFactureOutdated(Commande $commande): bool
+    {
+        if (! $commande->facture_exists || ! $commande->facture_generated_at || ! $commande->updated_at) {
+            return false;
+        }
+
+        return $commande->updated_at->gt($commande->facture_generated_at);
+    }
+
     private function factureInfo(Commande $commande): array
     {
         return [
             'commande_id' => $commande->id,
+            'facture_exists' => (bool) $commande->facture_exists,
+            'facture_outdated' => $this->isFactureOutdated($commande),
             'facture_number' => $commande->facture_number,
             'facture_generated_at' => optional($commande->facture_generated_at)->toIso8601String(),
             'download_url' => url("/api/commandes/{$commande->id}/facture/download"),
@@ -126,7 +169,24 @@ class CommandeController extends Controller
         ]);
 
         DB::transaction(function () use ($commande, $validated) {
+            $oldStatus = $commande->statut;
+
             $commande->update($validated);
+
+            $newStatus = $commande->fresh()->statut;
+            $statusChanged = $newStatus !== $oldStatus;
+
+            if ($statusChanged && $commande->user_id) {
+                $payload = $this->statusNotificationPayload((string) $newStatus);
+
+                ClientNotification::create([
+                    'user_id' => (int) $commande->user_id,
+                    'commande_id' => $commande->id,
+                    'title' => $payload['title'],
+                    'message' => $payload['message'],
+                    'is_read' => false,
+                ]);
+            }
         });
 
         return response()->json($commande->load(['user', 'client', 'camion']));
@@ -150,14 +210,30 @@ class CommandeController extends Controller
 
     public function generateFacture(Request $request, Commande $commande)
     {
-        $result = DB::transaction(function () use ($commande): array {
+        $shouldRegenerate = $request->boolean('regenerate');
+
+        $result = DB::transaction(function () use ($commande, $shouldRegenerate): array {
             $lockedCommande = Commande::with(['client', 'camion', 'user'])
                 ->lockForUpdate()
                 ->findOrFail($commande->id);
 
-            if ($lockedCommande->facture_number && $lockedCommande->facture_path) {
+            $hasExistingFacture = (bool) $lockedCommande->facture_exists;
+            $isOutdated = $this->isFactureOutdated($lockedCommande);
+
+            if ($hasExistingFacture && ! $shouldRegenerate && ! $isOutdated) {
                 return [
                     'created' => false,
+                    'regenerated' => false,
+                    'needs_regeneration' => false,
+                    'commande' => $lockedCommande,
+                ];
+            }
+
+            if ($hasExistingFacture && $isOutdated && ! $shouldRegenerate) {
+                return [
+                    'created' => false,
+                    'regenerated' => false,
+                    'needs_regeneration' => true,
                     'commande' => $lockedCommande,
                 ];
             }
@@ -165,11 +241,13 @@ class CommandeController extends Controller
             if ($lockedCommande->statut !== 'validee') {
                 return [
                     'created' => null,
+                    'regenerated' => null,
+                    'needs_regeneration' => false,
                     'commande' => $lockedCommande,
                 ];
             }
 
-            $factureNumber = $this->nextFactureNumber();
+            $factureNumber = $lockedCommande->facture_number ?: $this->nextFactureNumber();
             $generatedAt = now();
 
             $pdf = Pdf::loadView('pdf.commande-facture', [
@@ -189,21 +267,36 @@ class CommandeController extends Controller
                 'facture_generated_at' => $generatedAt,
             ]);
 
+            $lockedCommande->refresh();
+
             return [
-                'created' => true,
+                'created' => ! $hasExistingFacture,
+                'regenerated' => $hasExistingFacture,
+                'needs_regeneration' => false,
                 'commande' => $lockedCommande,
             ];
         });
 
         if ($result['created'] === null) {
             return response()->json([
-                'message' => 'Facture can only be generated for validated commandes.',
+                'message' => 'Facture can only be generated or regenerated for validated commandes.',
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        $message = 'Facture already exists.';
+        if ($result['created']) {
+            $message = 'Facture generated successfully.';
+        } elseif ($result['regenerated']) {
+            $message = 'Facture regenerated successfully.';
+        } elseif ($result['needs_regeneration']) {
+            $message = 'Facture is outdated and requires regeneration.';
+        }
+
         return response()->json([
-            'message' => $result['created'] ? 'Facture generated successfully.' : 'Facture already exists.',
+            'message' => $message,
             'created' => $result['created'],
+            'regenerated' => (bool) $result['regenerated'],
+            'needs_regeneration' => (bool) $result['needs_regeneration'],
             'facture' => $this->factureInfo($result['commande']),
         ]);
     }
@@ -213,12 +306,18 @@ class CommandeController extends Controller
         $user = $request->user();
         $role = $user?->resolvedRole() ?? '';
 
+        $commande->refresh();
+
         if ($role !== 'admin' && (int) $commande->user_id !== (int) $user?->id) {
             abort(Response::HTTP_FORBIDDEN, 'Access denied.');
         }
 
-        if (! $commande->facture_path || ! Storage::disk('public')->exists($commande->facture_path)) {
+        if (! $commande->facture_exists || ! Storage::disk('public')->exists($commande->facture_path)) {
             abort(Response::HTTP_NOT_FOUND, 'Facture not found.');
+        }
+
+        if ($role !== 'admin' && $this->isFactureOutdated($commande)) {
+            abort(Response::HTTP_CONFLICT, 'Facture is outdated and currently being updated.');
         }
 
         $filename = ($commande->facture_number ?: 'facture-'.$commande->id).'.pdf';

@@ -245,14 +245,18 @@ export default function CommandesManagement() {
         }
     };
 
-    const handleGenerateFacture = async (commande) => {
+    const handleGenerateFacture = async (commande, regenerate = false) => {
         try {
             setFactureLoadingId(commande.id);
-            const payload = await generateCommandeFacture(commande.id);
+            const payload = await generateCommandeFacture(commande.id, { regenerate });
 
             addToast({
-                type: payload?.created ? "success" : "info",
-                title: payload?.created ? "Facture generated" : "Facture already exists",
+                type: payload?.created || payload?.regenerated ? "success" : "info",
+                title: payload?.created
+                    ? "Facture generated"
+                    : payload?.regenerated
+                        ? "Facture regenerated"
+                        : "Facture already up to date",
                 description: payload?.facture?.facture_number
                     ? `Facture ${payload.facture.facture_number} is ready.`
                     : "Facture is ready.",

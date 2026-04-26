@@ -296,12 +296,16 @@ export const getCommandeStatusLogs = async (id) => {
     return parseResponse(response);
 };
 
-export const generateCommandeFacture = async (id) => {
+export const generateCommandeFacture = async (id, options = {}) => {
+    const { regenerate = false } = options;
+
     const response = await fetch(`${API_BASE}/admin/commandes/${id}/facture/generate`, {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             ...authHeaders(),
         },
+        body: JSON.stringify({ regenerate }),
     });
 
     return parseResponse(response);
@@ -428,6 +432,36 @@ export const createClientCommande = async (data) => {
 export const getClientCommandeById = async (id) => {
     const response = await fetch(`${API_BASE}/client/commandes/${id}`, {
         headers: { ...authHeaders() },
+    });
+
+    return parseResponse(response);
+};
+
+export const getClientNotifications = async () => {
+    const response = await fetch(`${API_BASE}/client/notifications`, {
+        headers: { ...authHeaders() },
+    });
+
+    return parseResponse(response);
+};
+
+export const markClientNotificationRead = async (id) => {
+    const response = await fetch(`${API_BASE}/client/notifications/${id}/read`, {
+        method: 'PATCH',
+        headers: {
+            ...authHeaders(),
+        },
+    });
+
+    return parseResponse(response);
+};
+
+export const markAllClientNotificationsRead = async () => {
+    const response = await fetch(`${API_BASE}/client/notifications/read-all`, {
+        method: 'PATCH',
+        headers: {
+            ...authHeaders(),
+        },
     });
 
     return parseResponse(response);

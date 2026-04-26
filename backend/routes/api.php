@@ -4,6 +4,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CamionController;
 use App\Http\Controllers\ClientOrderController;
+use App\Http\Controllers\ClientNotificationController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CommandeController;
 use App\Http\Controllers\ReportController;
@@ -47,6 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('commandes', [ClientOrderController::class, 'index']);
         Route::post('commandes', [ClientOrderController::class, 'store']);
         Route::get('commandes/{commande}', [ClientOrderController::class, 'show']);
+        Route::get('notifications', [ClientNotificationController::class, 'index']);
+        Route::patch('notifications/{id}/read', [ClientNotificationController::class, 'markAsRead']);
+        Route::patch('notifications/read-all', [ClientNotificationController::class, 'markAllAsRead']);
     });
 
     Route::get('commandes/{commande}/facture/download', [CommandeController::class, 'downloadFacture']);

@@ -14,6 +14,7 @@ const adminNavigationItems = [
 const clientNavigationItems = [
   { labelKey: "dashboard", path: "/dashboard-client", icon: DashboardIcon },
   { labelKey: "orders", path: "/client/orders", icon: OrdersIcon },
+  { labelKey: "notifications", path: "/client/notifications", icon: NotificationsIcon },
   { labelKey: "settings", path: "/settings", icon: SettingsIcon },
 ];
 
@@ -24,6 +25,7 @@ const sidebarTranslations = {
     users: "Users",
     trucks: "Trucks",
     settings: "Settings",
+    notifications: "Notifications",
     title: "AK Rapid Trans",
     subtitle: "Logistics control center",
     roleAdmin: "Administrator",
@@ -45,6 +47,7 @@ const sidebarTranslations = {
     users: "Utilisateurs",
     trucks: "Camions",
     settings: "Parametres",
+    notifications: "Notifications",
     title: "AK Rapid Trans",
     subtitle: "Centre de controle logistique",
     roleAdmin: "Administrateur",
@@ -70,6 +73,7 @@ function Sidebar({
   onLogout,
   preferences,
   onPreferencesChange,
+  clientUnreadCount = 0,
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -222,6 +226,11 @@ function Sidebar({
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="flex-1 text-left">{t[item.labelKey]}</span>
+                  {!isUserAdmin && item.labelKey === "notifications" && clientUnreadCount > 0 && (
+                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-semibold leading-none text-white">
+                      {clientUnreadCount > 99 ? "99+" : clientUnreadCount}
+                    </span>
+                  )}
                       {isActive && (
                     <span className="h-2 w-2 rounded-full bg-cyan-400" />
                   )}
@@ -372,6 +381,15 @@ function SettingsIcon({ className }) {
     <svg viewBox="0 0 24 24" fill="none" className={className}>
       <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" strokeWidth="1.8" />
       <path d="M19.4 13.5a7.8 7.8 0 0 0 .1-1.5 7.8 7.8 0 0 0-.1-1.5l2-1.5-2-3.4-2.4 1a8 8 0 0 0-2.6-1.5L14 2h-4l-.4 2.6a8 8 0 0 0-2.6 1.5l-2.4-1-2 3.4 2 1.5A7.8 7.8 0 0 0 4.6 12c0 .5 0 1 .1 1.5l-2 1.5 2 3.4 2.4-1a8 8 0 0 0 2.6 1.5L10 22h4l.4-2.6a8 8 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function NotificationsIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M7 10a5 5 0 0 1 10 0v4.3l1.3 2.2a1 1 0 0 1-.9 1.5H6.6a1 1 0 0 1-.9-1.5L7 14.3V10Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }

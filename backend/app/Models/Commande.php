@@ -9,6 +9,11 @@ class Commande extends Model
 {
     use HasFactory;
 
+    protected $appends = [
+        'facture_exists',
+        'facture_outdated',
+    ];
+
     protected $fillable = [
         'user_id',
         'client_id',
@@ -44,5 +49,19 @@ class Commande extends Model
     public function camion()
     {
         return $this->belongsTo(Camion::class);
+    }
+
+    public function getFactureExistsAttribute(): bool
+    {
+        return ! empty($this->facture_number) && ! empty($this->facture_path);
+    }
+
+    public function getFactureOutdatedAttribute(): bool
+    {
+        if (! $this->facture_exists || ! $this->facture_generated_at || ! $this->updated_at) {
+            return false;
+        }
+
+        return $this->updated_at->gt($this->facture_generated_at);
     }
 }

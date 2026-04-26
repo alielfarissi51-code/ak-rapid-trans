@@ -10,6 +10,14 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    private function resolveAllowedRole(int $roleId): ?Role
+    {
+        return Role::query()
+            ->where('id', $roleId)
+            ->whereIn('name', ['admin', 'client'])
+            ->first();
+    }
+
     /**
      * Display a listing of all users
      */
@@ -48,8 +56,15 @@ class UserController extends Controller
         }
 
         if (isset($validated['role_id'])) {
-            $role = Role::find($validated['role_id']);
-            $validated['role'] = $role?->name;
+            $role = $this->resolveAllowedRole((int) $validated['role_id']);
+
+            if (! $role) {
+                return response()->json([
+                    'message' => 'Role must be admin or client.',
+                ], 422);
+            }
+
+            $validated['role'] = $role->name;
         }
 
         $user = User::create($validated);
@@ -95,8 +110,15 @@ class UserController extends Controller
         }
 
         if (isset($validated['role_id'])) {
-            $role = Role::find($validated['role_id']);
-            $validated['role'] = $role?->name;
+            $role = $this->resolveAllowedRole((int) $validated['role_id']);
+
+            if (! $role) {
+                return response()->json([
+                    'message' => 'Role must be admin or client.',
+                ], 422);
+            }
+
+            $validated['role'] = $role->name;
         }
 
         $user->update($validated);
@@ -124,6 +146,11 @@ class UserController extends Controller
      */
     public function getRoles()
     {
-        return response()->json(Role::all());
+        return response()->json(
+            Role::query()
+                ->whereIn('name', ['admin', 'client'])
+                ->orderBy('id')
+                ->get()
+        );
     }
 }

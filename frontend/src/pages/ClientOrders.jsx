@@ -9,6 +9,7 @@ import {
   downloadCommandeFacture,
   getClientCommandeById,
   getClientCommandes,
+  getClientNotifications,
   getMe,
   logout as apiLogout,
 } from "../services/api";
@@ -25,6 +26,7 @@ export default function ClientOrders() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [factureLoadingId, setFactureLoadingId] = useState(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [preferences, setPreferences] = useState(() => getStoredPreferences());
   const theme = preferences.theme === "light" ? "light" : "dark";
 
@@ -104,12 +106,22 @@ export default function ClientOrders() {
     }
   };
 
+  const loadNotificationCount = async () => {
+    try {
+      const payload = await getClientNotifications();
+      setUnreadNotifications(Number(payload?.unread_count || 0));
+    } catch {
+      setUnreadNotifications(0);
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       return;
     }
 
     loadOrders();
+    loadNotificationCount();
   }, [user]);
 
   const filteredOrders = useMemo(() => {
@@ -152,7 +164,10 @@ export default function ClientOrders() {
   };
 
   const handleDownloadFacture = async (order) => {
-    if (!order?.facture_path) {
+    const factureExists = order?.facture_exists ?? Boolean(order?.facture_path);
+    const factureOutdated = order?.facture_outdated ?? false;
+
+    if (!factureExists || factureOutdated) {
       return;
     }
 
@@ -186,6 +201,7 @@ export default function ClientOrders() {
           onLogout={handleLogout}
           preferences={preferences}
           onPreferencesChange={setPreferences}
+          clientUnreadCount={unreadNotifications}
         />
 
         <div className="flex min-w-0 flex-1 flex-col lg:pl-[260px]">
@@ -195,6 +211,20 @@ export default function ClientOrders() {
                 <p className={`text-sm font-medium ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>Client Space</p>
                 <h1 className={`text-2xl font-semibold tracking-tight sm:text-3xl ${theme === "light" ? "text-slate-900" : "text-white"}`}>Orders</h1>
               </div>
+              <button
+                type="button"
+                onClick={() => navigate("/client/notifications")}
+                className={`relative inline-flex h-11 w-11 items-center justify-center rounded-xl border transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50" : "border-white/10 bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]"}`}
+                aria-label="Open notifications"
+                title="Notifications"
+              >
+                <BellIcon className="h-5 w-5" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                  </span>
+                )}
+              </button>
             </div>
           </header>
 
@@ -310,7 +340,7 @@ export default function ClientOrders() {
                                 >
                                   Details
                                 </button>
-                                {order.facture_path && (
+                                {(order.facture_exists ?? Boolean(order.facture_path)) && !(order.facture_outdated ?? false) && (
                                   <button
                                     type="button"
                                     onClick={() => handleDownloadFacture(order)}
@@ -319,6 +349,11 @@ export default function ClientOrders() {
                                   >
                                     {factureLoadingId === order.id ? "Downloading..." : "Download invoice"}
                                   </button>
+                                )}
+                                {(order.facture_exists ?? Boolean(order.facture_path)) && (order.facture_outdated ?? false) && (
+                                  <span className={`ml-2 inline-flex rounded-xl border px-3 py-1.5 text-xs font-semibold ${theme === "light" ? "border-amber-300/60 bg-amber-100 text-amber-700" : "border-amber-400/30 bg-amber-500/10 text-amber-200"}`}>
+                                    Invoice updating
+                                  </span>
                                 )}
                               </td>
                             </tr>
@@ -355,7 +390,7 @@ export default function ClientOrders() {
                           >
                             Details
                           </button>
-                          {order.facture_path && (
+                          {(order.facture_exists ?? Boolean(order.facture_path)) && !(order.facture_outdated ?? false) && (
                             <button
                               type="button"
                               onClick={() => handleDownloadFacture(order)}
@@ -364,6 +399,11 @@ export default function ClientOrders() {
                             >
                               {factureLoadingId === order.id ? "Downloading..." : "Download invoice"}
                             </button>
+                          )}
+                          {(order.facture_exists ?? Boolean(order.facture_path)) && (order.facture_outdated ?? false) && (
+                            <span className={`ml-2 mt-3 inline-flex rounded-xl border px-3 py-1.5 text-xs font-semibold ${theme === "light" ? "border-amber-300/60 bg-amber-100 text-amber-700" : "border-amber-400/30 bg-amber-500/10 text-amber-200"}`}>
+                              Invoice updating
+                            </span>
                           )}
                         </article>
                       ))}
@@ -508,5 +548,14 @@ function Detail({ label, value, theme = "dark" }) {
       <p className={`text-xs uppercase tracking-[0.12em] ${theme === "light" ? "text-slate-500" : "text-slate-500"}`}>{label}</p>
       <p className={`mt-2 text-sm font-medium ${theme === "light" ? "text-slate-900" : "text-slate-100"}`}>{value || "N/A"}</p>
     </div>
+  );
+}
+
+function BellIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M7 10a5 5 0 0 1 10 0v4.3l1.3 2.2a1 1 0 0 1-.9 1.5H6.6a1 1 0 0 1-.9-1.5L7 14.3V10Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
   );
 }

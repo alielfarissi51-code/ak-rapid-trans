@@ -6,151 +6,269 @@
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
-            color: #0f172a;
+            color: #111;
             font-size: 12px;
             margin: 0;
-            padding: 24px;
+            padding: 24px 30px;
         }
-        .header {
-            display: table;
+
+        .sheet {
             width: 100%;
-            margin-bottom: 18px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 12px;
         }
-        .header-left, .header-right {
-            display: table-cell;
-            vertical-align: top;
-            width: 50%;
-        }
-        .header-right {
+
+        .top-logo {
             text-align: right;
+            margin-bottom: 6px;
         }
-        h1 {
-            margin: 0 0 6px;
-            font-size: 22px;
+
+        .logo-box {
+            display: inline-block;
+            border: 1px solid #777;
+            padding: 5px 10px;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.6px;
         }
-        h2 {
-            margin: 0 0 8px;
-            font-size: 15px;
-            color: #334155;
+
+        .company-title {
+            text-align: center;
+            margin-bottom: 10px;
         }
-        .muted {
-            color: #64748b;
+
+        .company-title h1 {
+            margin: 0;
+            font-size: 34px;
+            font-weight: 700;
+            line-height: 1.1;
         }
+
+        .company-title p {
+            margin: 4px 0 0;
+            font-size: 18px;
+            line-height: 1.2;
+        }
+
         .meta {
             width: 100%;
             border-collapse: collapse;
-            margin: 12px 0 18px;
+            margin: 6px 0 18px;
         }
+
         .meta td {
-            padding: 6px 8px;
-            border: 1px solid #e2e8f0;
+            width: 50%;
+            font-size: 13px;
+            padding: 2px 0;
         }
-        .meta td.label {
-            width: 28%;
-            background: #f8fafc;
-            font-weight: bold;
+
+        .meta td:last-child {
+            text-align: right;
         }
-        .service-table {
+
+        .client-block {
+            margin: 10px 0 16px;
+            line-height: 1.8;
+            font-size: 13px;
+        }
+
+        .invoice-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            border: 2px solid #111;
         }
-        .service-table th,
-        .service-table td {
-            border: 1px solid #e2e8f0;
-            padding: 8px;
-            text-align: left;
+
+        .invoice-table th,
+        .invoice-table td {
+            border: 1px solid #111;
+            padding: 7px 6px;
+            font-size: 12px;
+            vertical-align: top;
         }
-        .service-table th {
-            background: #f1f5f9;
+
+        .invoice-table th {
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: 700;
         }
-        .amount {
+
+        .center {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .designation {
+            text-transform: uppercase;
+            text-align: center;
+            font-size: 20px;
+            line-height: 1.2;
+            font-weight: 500;
+        }
+
+        .filler-row td {
+            height: 270px;
+            border-top: 0;
+        }
+
+        .bottom-row {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+        }
+
+        .bottom-row td {
+            vertical-align: top;
+        }
+
+        .amount-words {
+            width: 67%;
+            border-left: 2px solid #111;
+            border-bottom: 2px solid #111;
+            padding: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .totals {
+            width: 33%;
+            border: 2px solid #111;
+            border-top: 0;
+        }
+
+        .totals-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .totals-table td {
+            padding: 5px 8px;
+            font-size: 13px;
+        }
+
+        .totals-table td:last-child {
             text-align: right;
             white-space: nowrap;
         }
-        .footer {
-            margin-top: 28px;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 12px;
+
+        .ttc-row td {
+            border-top: 1px solid #111;
+            font-weight: 700;
+        }
+
+        .signature {
             font-size: 11px;
-            color: #475569;
+            padding: 3px 8px 6px;
+        }
+
+        .footer-legal {
+            margin-top: 18px;
+            background: #e5e5e5;
+            text-align: center;
+            font-size: 11px;
+            line-height: 1.35;
+            padding: 6px 8px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-left">
-            <h1>AK Rapid Trans</h1>
-            <div class="muted">Service de transport et logistique</div>
-            <div class="muted">Email: {{ $commande->client?->email ?: 'contact@akrapidtrans.com' }}</div>
-            <div class="muted">Tel: {{ $commande->client?->telephone ?: '-' }}</div>
-        </div>
-        <div class="header-right">
-            <h2>FACTURE</h2>
-            <div><strong>N°:</strong> {{ $factureNumber }}</div>
-            <div><strong>Date:</strong> {{ $generatedAt->format('d/m/Y H:i') }}</div>
-        </div>
+@php
+    $dateTransport = $commande->date_transport ? \Carbon\Carbon::parse($commande->date_transport) : null;
+    $clientName = $commande->client?->nom ?: ($commande->user?->name ?: '-');
+    $truckNumber = $commande->camion?->matricule ?: 'Non assigne';
+    $designation = strtoupper(($commande->lieu_depart ?: '-') . ' - ' . ($commande->lieu_arrivee ?: '-'));
+
+    $ht = (float) ($commande->prix ?? 0);
+    $tva = $ht * 0.10;
+    $ttc = $ht + $tva;
+
+    $amountWords = number_format($ttc, 2, ',', ' ') . ' dirhams';
+    if (class_exists(NumberFormatter::class)) {
+        $formatter = new NumberFormatter('fr_FR', NumberFormatter::SPELLOUT);
+        $words = $formatter->format((int) round($ttc));
+        if (is_string($words) && $words !== '') {
+            $amountWords = ucfirst($words) . ' dirhams';
+        }
+    }
+@endphp
+
+<div class="sheet">
+    <div class="top-logo">
+        <span class="logo-box">AK RAPID TRANS</span>
+    </div>
+
+    <div class="company-title">
+        <h1>AK RAPID TRANS SARL</h1>
+        <p>TRANSPORT DE MARCHANDISES</p>
     </div>
 
     <table class="meta">
         <tr>
-            <td class="label">Client</td>
-            <td>{{ $commande->client?->nom ?: ($commande->user?->name ?: '-') }}</td>
-            <td class="label">Commande</td>
-            <td>#{{ $commande->id }}</td>
-        </tr>
-        <tr>
-            <td class="label">Email client</td>
-            <td>{{ $commande->client?->email ?: ($commande->user?->email ?: '-') }}</td>
-            <td class="label">Date transport</td>
-            <td>{{ optional($commande->date_transport)->format('d/m/Y') ?: '-' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Telephone client</td>
-            <td>{{ $commande->client?->telephone ?: '-' }}</td>
-            <td class="label">Trajet</td>
-            <td>{{ $commande->lieu_depart }} -> {{ $commande->lieu_arrivee }}</td>
-        </tr>
-        <tr>
-            <td class="label">Camion</td>
-            <td>{{ $commande->camion?->matricule ?: 'Non assigne' }}</td>
-            <td class="label">Statut</td>
-            <td>{{ $commande->statut }} / {{ $commande->verified ? 'Verifiee' : 'Non verifiee' }}</td>
+            <td><strong>Date:</strong> {{ $generatedAt->format('d-m-Y') }}</td>
+            <td><strong>Facture N°:</strong> {{ $factureNumber }}</td>
         </tr>
     </table>
 
-    <table class="service-table">
+    <div class="client-block">
+        <div><strong>Client:</strong> {{ strtoupper($clientName) }}</div>
+        <div><strong>ICE N°:</strong> {{ $commande->client?->id ?: '-' }}</div>
+    </div>
+
+    <table class="invoice-table">
         <thead>
             <tr>
-                <th>Description</th>
-                <th>Trajet</th>
-                <th>Camion</th>
-                <th>Date</th>
-                <th class="amount">Montant</th>
+                <th style="width:16%;">BL N°</th>
+                <th style="width:16%;">DATE BL</th>
+                <th style="width:28%;">DESIGNATION</th>
+                <th style="width:20%;">CAMION N°</th>
+                <th style="width:20%;">Total H.T</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>Service de transport / Livraison</td>
-                <td>{{ $commande->lieu_depart }} -> {{ $commande->lieu_arrivee }}</td>
-                <td>{{ $commande->camion?->matricule ?: 'Non assigne' }}</td>
-                <td>{{ optional($commande->date_transport)->format('d/m/Y') ?: '-' }}</td>
-                <td class="amount">
-                    @if(!is_null($commande->prix))
-                        DHS {{ number_format((float) $commande->prix, 2, ',', ' ') }}
-                    @else
-                        Montant a definir
-                    @endif
-                </td>
+                <td class="center">BL {{ $commande->id }}</td>
+                <td class="center">{{ $dateTransport?->format('d/m/Y') ?: '-' }}</td>
+                <td class="designation">{{ $designation }}</td>
+                <td class="center">{{ $truckNumber }}</td>
+                <td class="center">{{ number_format($ht, 2, '.', ',') }}</td>
+            </tr>
+            <tr class="filler-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
         </tbody>
     </table>
 
-    <div class="footer">
-        <div>Merci pour votre confiance.</div>
-        <div>AK Rapid Trans - Facture generee automatiquement pour la commande #{{ $commande->id }}.</div>
+    <table class="bottom-row">
+        <tr>
+            <td class="amount-words">
+                arreter la presente Facture a la somme de:<br>
+                <strong>{{ $amountWords }}</strong>
+            </td>
+            <td class="totals">
+                <table class="totals-table">
+                    <tr>
+                        <td>HT</td>
+                        <td>{{ number_format($ht, 2, '.', ',') }}</td>
+                    </tr>
+                    <tr>
+                        <td>TVA 10%</td>
+                        <td>{{ number_format($tva, 2, '.', ',') }}</td>
+                    </tr>
+                    <tr class="ttc-row">
+                        <td>TTC</td>
+                        <td>{{ number_format($ttc, 2, '.', ',') }}</td>
+                    </tr>
+                </table>
+                <div class="signature">signe:</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer-legal">
+        AV HASSAN II RES NORA IMM D1 APPT 4 RDC MARTIL &nbsp;&nbsp; RC: 38841<br>
+        Patente: 51806955 &nbsp;&nbsp; IF: 68777041 &nbsp;&nbsp; ICE: 003826561000075 &nbsp;&nbsp; CNSS: 6486368
     </div>
+</div>
 </body>
 </html>

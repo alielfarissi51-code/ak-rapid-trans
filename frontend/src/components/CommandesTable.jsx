@@ -34,9 +34,12 @@ export default function CommandesTable({
             actions: "Actions",
             facture: "Facture",
             generateFacture: "Generer facture",
+            regenerateFacture: "Regenerer facture",
             factureGenerated: "Facture generee",
+            factureOutdated: "Facture a regenerer",
             downloadFacture: "Telecharger",
             generatingFacture: "Generation...",
+            regeneratingFacture: "Regeneration...",
             downloadingFacture: "Telechargement...",
             invoiceAfterValidation: "Facture disponible apres validation",
             logs: "Logs",
@@ -62,9 +65,12 @@ export default function CommandesTable({
             actions: "Actions",
             facture: "Invoice",
             generateFacture: "Generate invoice",
+            regenerateFacture: "Regenerate invoice",
             factureGenerated: "Invoice generated",
+            factureOutdated: "Invoice outdated",
             downloadFacture: "Download",
             generatingFacture: "Generating...",
+            regeneratingFacture: "Regenerating...",
             downloadingFacture: "Downloading...",
             invoiceAfterValidation: "Invoice available after validation",
             logs: "Logs",
@@ -136,6 +142,11 @@ export default function CommandesTable({
                 <tbody>
                     {commandes.length > 0 ? (
                         commandes.map((commande) => (
+                            (() => {
+                                const factureExists = commande.facture_exists ?? Boolean(commande.facture_path);
+                                const factureOutdated = commande.facture_outdated ?? false;
+
+                                return (
                             <tr key={commande.id} className="orders-table-row border-b border-slate-200/80 transition duration-200 odd:bg-slate-50 hover:bg-sky-50">
                                 <td className="whitespace-nowrap px-5 py-4.5 font-semibold text-slate-900">
                                     #{commande.id}
@@ -179,9 +190,9 @@ export default function CommandesTable({
                                                 >
                                                     <HourglassIcon className="h-4 w-4" />
                                                 </span>
-                                            ) : !commande.facture_path ? (
+                                            ) : !factureExists ? (
                                                 <button
-                                                    onClick={() => onGenerateFacture?.(commande)}
+                                                    onClick={() => onGenerateFacture?.(commande, false)}
                                                     className="orders-icon-btn orders-icon-btn--invoice inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-white text-emerald-700 transition duration-200 hover:border-emerald-300 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
                                                     type="button"
                                                     disabled={factureLoadingId === commande.id}
@@ -190,6 +201,26 @@ export default function CommandesTable({
                                                 >
                                                     <FactureIcon className="h-4 w-4" />
                                                 </button>
+                                            ) : factureOutdated ? (
+                                                <>
+                                                    <span
+                                                        className="orders-icon-btn inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-700"
+                                                        aria-label={t.factureOutdated}
+                                                        title={t.factureOutdated}
+                                                    >
+                                                        <AlertIcon className="h-4 w-4" />
+                                                    </span>
+                                                    <button
+                                                        onClick={() => onGenerateFacture?.(commande, true)}
+                                                        className="orders-icon-btn inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-white text-amber-700 transition duration-200 hover:border-amber-300 hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
+                                                        type="button"
+                                                        disabled={factureLoadingId === commande.id}
+                                                        aria-label={factureLoadingId === commande.id ? t.regeneratingFacture : t.regenerateFacture}
+                                                        title={factureLoadingId === commande.id ? t.regeneratingFacture : t.regenerateFacture}
+                                                    >
+                                                        <RefreshIcon className="h-4 w-4" />
+                                                    </button>
+                                                </>
                                             ) : (
                                                 <>
                                                     <span
@@ -245,6 +276,8 @@ export default function CommandesTable({
                                     </div>
                                 </td>
                             </tr>
+                                );
+                            })()
                         ))
                     ) : (
                         <tr>
@@ -314,6 +347,24 @@ function HourglassIcon({ className }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" className={className}>
             <path d="M7 3h10M7 21h10M8 3c0 4 3 5 4 6-1 1-4 2-4 6M16 3c0 4-3 5-4 6 1 1 4 2 4 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function AlertIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="m12 4 8 14H4L12 4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="M12 9v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            <circle cx="12" cy="16" r="1" fill="currentColor" />
+        </svg>
+    );
+}
+
+function RefreshIcon({ className }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" className={className}>
+            <path d="M20 11a8 8 0 1 0 2 5.3M20 4v7h-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }

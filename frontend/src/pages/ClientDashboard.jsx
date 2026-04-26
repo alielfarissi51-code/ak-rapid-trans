@@ -9,6 +9,7 @@ import {
   createClientCommande,
   getClientCommandeById,
   getClientCommandes,
+  getClientNotifications,
   getMe,
   logout as apiLogout,
   getClientCommandesSummary,
@@ -212,6 +213,7 @@ function ClientDashboard() {
   const [summaryRows, setSummaryRows] = useState([]);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -337,6 +339,7 @@ function ClientDashboard() {
     }
 
     loadOrders();
+    loadNotificationCount();
   }, [roleName]);
 
   useEffect(() => {
@@ -407,6 +410,15 @@ function ClientDashboard() {
       });
     } finally {
       setLoadingSummary(false);
+    }
+  };
+
+  const loadNotificationCount = async () => {
+    try {
+      const payload = await getClientNotifications();
+      setUnreadNotifications(Number(payload?.unread_count || 0));
+    } catch {
+      setUnreadNotifications(0);
     }
   };
 
@@ -496,6 +508,7 @@ function ClientDashboard() {
           user={user}
           isAdmin={false}
           onLogout={handleLogout}
+          clientUnreadCount={unreadNotifications}
         />
 
         <div className="flex min-w-0 flex-1 flex-col lg:pl-[260px]">
@@ -515,6 +528,20 @@ function ClientDashboard() {
                 <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium ${theme === "light" ? "border-cyan-300/50 bg-cyan-100 text-cyan-700" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"}`}>
                   {t.privateAccess}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => navigate("/client/notifications")}
+                  className={`relative inline-flex h-11 w-11 items-center justify-center rounded-xl border transition ${theme === "light" ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50" : "border-white/10 bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]"}`}
+                  aria-label="Open notifications"
+                  title="Notifications"
+                >
+                  <BellIcon className="h-5 w-5" />
+                  {unreadNotifications > 0 && (
+                    <span className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                      {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                    </span>
+                  )}
+                </button>
                 <button
                   type="button"
                   onClick={openRequestForm}
@@ -1520,6 +1547,15 @@ function PlusIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>
       <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function BellIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M7 10a5 5 0 0 1 10 0v4.3l1.3 2.2a1 1 0 0 1-.9 1.5H6.6a1 1 0 0 1-.9-1.5L7 14.3V10Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
