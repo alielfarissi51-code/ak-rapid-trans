@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getMe, register, setToken } from "../services/api";
+import { getMe, register, setCachedUser, setToken } from "../services/api";
 import logo from "../assets/logo.png";
 import { useToast } from "../components/ToastProvider";
 import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
@@ -112,6 +112,7 @@ function Register() {
       setToken(result.token);
 
       const profile = await getMe();
+      setCachedUser(profile);
       const roleName = (profile?.role_name || profile?.role || "").toLowerCase();
       const targetDashboard = roleName === "admin" ? "/dashboard" : "/client/dashboard";
 

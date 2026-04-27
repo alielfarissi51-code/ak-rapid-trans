@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getUsers, createUser, updateUser, deleteUser, getRoles } from "../services/api";
 import UserForm from "../components/UserForm";
 import UsersTable from "../components/UsersTable";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import Sidebar from "../components/Sidebar";
 import { useToast } from "../components/ToastProvider";
 import { applyDocumentTheme, getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
@@ -20,7 +21,11 @@ const translations = {
         of: "of",
         previous: "← Previous",
         next: "Next →",
-        deleteConfirm: "Are you sure you want to delete this user?",
+        deleteTitle: "Delete user account?",
+        deleteConfirm: "This action will permanently remove the selected user account and cannot be undone.",
+        deleteHint: "Make sure the account is no longer needed before continuing.",
+        cancel: "Cancel",
+        confirmDelete: "Delete user",
         deleteSuccess: "User deleted",
         deleteSuccessDesc: "The user account was removed successfully.",
         deleteFailed: "Delete failed",
@@ -47,7 +52,11 @@ const translations = {
         of: "sur",
         previous: "← Précédent",
         next: "Suivant →",
-        deleteConfirm: "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
+        deleteTitle: "Supprimer le compte utilisateur ?",
+        deleteConfirm: "Cette action supprimera définitivement le compte sélectionné et ne peut pas être annulée.",
+        deleteHint: "Vérifiez que ce compte n’est plus nécessaire avant de continuer.",
+        cancel: "Annuler",
+        confirmDelete: "Supprimer l'utilisateur",
         deleteSuccess: "Utilisateur supprimé",
         deleteSuccessDesc: "Le compte utilisateur a été supprimé avec succès.",
         deleteFailed: "Échec de la suppression",
@@ -74,6 +83,7 @@ export default function UsersManagement() {
     const [currentPage, setCurrentPage] = useState(1);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [preferences, setPreferences] = useState(() => getStoredPreferences());
+    const [deleteTarget, setDeleteTarget] = useState(null);
     const itemsPerPage = 10;
     const { addToast } = useToast();
 
@@ -158,23 +168,31 @@ export default function UsersManagement() {
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (confirm(t.deleteConfirm)) {
-            try {
-                await deleteUser(id);
-                addToast({
-                    type: "success",
-                    title: t.deleteSuccess,
-                    description: t.deleteSuccessDesc,
-                });
-                fetchUsers();
-            } catch (err) {
-                addToast({
-                    type: "error",
-                    title: t.deleteFailed,
-                    description: t.deleteFailedDesc(err.message),
-                });
-            }
+    const handleDeleteRequest = (id) => {
+        const target = users.find((user) => user.id === id) || { id };
+        setDeleteTarget(target);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) {
+            return;
+        }
+
+        try {
+            await deleteUser(deleteTarget.id);
+            addToast({
+                type: "success",
+                title: t.deleteSuccess,
+                description: t.deleteSuccessDesc,
+            });
+            setDeleteTarget(null);
+            fetchUsers();
+        } catch (err) {
+            addToast({
+                type: "error",
+                title: t.deleteFailed,
+                description: t.deleteFailedDesc(err.message),
+            });
         }
     };
 
@@ -280,7 +298,7 @@ export default function UsersManagement() {
                                 </div>
                             ) : (
                                 <>
-                                    <UsersTable users={paginatedUsers} onEdit={handleEdit} onDelete={handleDelete} />
+                                    <UsersTable users={paginatedUsers} onEdit={handleEdit} onDelete={handleDeleteRequest} />
                                     {totalPages > 1 && (
                                         <div className={`mt-6 flex items-center justify-between rounded-xl border px-4 py-4 ${isDark ? "border-slate-700 bg-slate-800" : "border-slate-200 bg-white"}`}>
                                             <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
@@ -310,6 +328,19 @@ export default function UsersManagement() {
                     </div>
                 </div>
             </div>
+
+            <DeleteConfirmationModal
+                open={Boolean(deleteTarget)}
+                isDark={isDark}
+                title={t.deleteTitle}
+                message={t.deleteConfirm}
+                hint={t.deleteHint}
+                itemLabel={deleteTarget?.name || deleteTarget?.email || `#${deleteTarget?.id}`}
+                cancelLabel={t.cancel}
+                confirmLabel={t.confirmDelete}
+                onCancel={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     );
 }

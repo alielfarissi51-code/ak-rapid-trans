@@ -17,14 +17,14 @@ class ClientOrderController extends Controller
 
     public function summary(Request $request)
     {
-        $userId = (int) $request->user()->id;
+        $clientId = (int) $request->user()->id;
 
         try {
-            $summary = DB::select('CALL sp_client_commandes_status_summary(?)', [$userId]);
+            $summary = DB::select('CALL sp_client_commandes_status_summary(?)', [$clientId]);
         } catch (\Throwable) {
             $summary = Commande::query()
                 ->selectRaw('statut, COUNT(*) AS total, COALESCE(SUM(prix), 0) AS total_amount')
-                ->where('user_id', $userId)
+                ->where('user_id', $clientId)
                 ->groupBy('statut')
                 ->orderByDesc('total')
                 ->get();

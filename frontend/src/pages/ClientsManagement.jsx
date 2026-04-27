@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getClients, createClient, updateClient, deleteClient } from "../services/api";
 import ClientForm from "../components/ClientForm";
 import ClientsTable from "../components/ClientsTable";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import Sidebar from "../components/Sidebar";
 import { useToast } from "../components/ToastProvider";
 import { applyDocumentTheme, getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
@@ -19,7 +20,11 @@ const translations = {
         of: "of",
         previous: "← Previous",
         next: "Next →",
-        deleteConfirm: "Are you sure you want to delete this client?",
+        deleteTitle: "Delete client record?",
+        deleteConfirm: "This action will permanently remove the selected client record and cannot be undone.",
+        deleteHint: "Only continue if this client is no longer needed.",
+        cancel: "Cancel",
+        confirmDelete: "Delete client",
         deleteSuccess: "Client deleted",
         deleteSuccessDesc: "The client was removed successfully.",
         deleteFailed: "Delete failed",
@@ -45,7 +50,11 @@ const translations = {
         of: "sur",
         previous: "← Précédent",
         next: "Suivant →",
-        deleteConfirm: "Êtes-vous sûr de vouloir supprimer ce client ?",
+        deleteTitle: "Supprimer la fiche client ?",
+        deleteConfirm: "Cette action supprimera définitivement la fiche sélectionnée et ne peut pas être annulée.",
+        deleteHint: "Continuez uniquement si ce client n’est plus nécessaire.",
+        cancel: "Annuler",
+        confirmDelete: "Supprimer le client",
         deleteSuccess: "Client supprimé",
         deleteSuccessDesc: "Le client a été supprimé avec succès.",
         deleteFailed: "Échec de la suppression",
@@ -70,6 +79,7 @@ export default function ClientsManagement() {
     const [currentPage, setCurrentPage] = useState(1);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [preferences, setPreferences] = useState(() => getStoredPreferences());
+    const [deleteTarget, setDeleteTarget] = useState(null);
     const itemsPerPage = 10;
     const { addToast } = useToast();
 
@@ -144,23 +154,31 @@ export default function ClientsManagement() {
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (confirm(t.deleteConfirm)) {
-            try {
-                await deleteClient(id);
-                addToast({
-                    type: "success",
-                    title: t.deleteSuccess,
-                    description: t.deleteSuccessDesc,
-                });
-                fetchClients();
-            } catch (err) {
-                addToast({
-                    type: "error",
-                    title: t.deleteFailed,
-                    description: t.deleteFailedDesc(err.message),
-                });
-            }
+    const handleDeleteRequest = (id) => {
+        const target = clients.find((client) => client.id === id) || { id };
+        setDeleteTarget(target);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) {
+            return;
+        }
+
+        try {
+            await deleteClient(deleteTarget.id);
+            addToast({
+                type: "success",
+                title: t.deleteSuccess,
+                description: t.deleteSuccessDesc,
+            });
+            setDeleteTarget(null);
+            fetchClients();
+        } catch (err) {
+            addToast({
+                type: "error",
+                title: t.deleteFailed,
+                description: t.deleteFailedDesc(err.message),
+            });
         }
     };
 
@@ -256,7 +274,7 @@ export default function ClientsManagement() {
                                 </div>
                             ) : (
                                 <>
-                                    <ClientsTable clients={paginatedClients} onEdit={handleEdit} onDelete={handleDelete} />
+                                    <ClientsTable clients={paginatedClients} onEdit={handleEdit} onDelete={handleDeleteRequest} />
                                     {totalPages > 1 && (
                                         <div className={`mt-6 flex items-center justify-between rounded-xl border px-4 py-4 ${isDark ? "border-slate-700 bg-slate-800" : "border-slate-200 bg-white"}`}>
                                             <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
@@ -286,6 +304,19 @@ export default function ClientsManagement() {
                     </div>
                 </div>
             </div>
+
+            <DeleteConfirmationModal
+                open={Boolean(deleteTarget)}
+                isDark={isDark}
+                title={t.deleteTitle}
+                message={t.deleteConfirm}
+                hint={t.deleteHint}
+                itemLabel={deleteTarget?.nom || deleteTarget?.email || `#${deleteTarget?.id}`}
+                cancelLabel={t.cancel}
+                confirmLabel={t.confirmDelete}
+                onCancel={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     );
 }

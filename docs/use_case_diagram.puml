@@ -1,0 +1,99 @@
+@startuml
+left to right direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BorderColor #2C3E50
+  BackgroundColor #ECF0F1
+  ArrowColor #2C3E50
+}
+skinparam actor {
+  BorderColor #2C3E50
+  FontColor #2C3E50
+}
+
+actor Admin
+actor Client
+actor "SMTP Mail Server" as SMTP
+
+rectangle "AK Rapid Trans System" {
+  package "Authentication" {
+    usecase "Register account" as UC_Register
+    usecase "Login" as UC_Login
+    usecase "Logout" as UC_Logout
+    usecase "Update profile" as UC_Profile
+    usecase "Change password" as UC_Password
+  }
+
+  package "Orders" {
+    usecase "Create order" as UC_CreateOrder
+    usecase "Update order" as UC_UpdateOrder
+    usecase "Track order status" as UC_TrackStatus
+    usecase "View order details" as UC_ViewOrder
+    usecase "Automatic truck assignment" as UC_AutoAssign
+    usecase "Generate invoice" as UC_GenerateInvoice
+    usecase "Download invoice" as UC_DownloadInvoice
+  }
+
+  package "Master Data" {
+    usecase "Manage clients" as UC_ManageClients
+    usecase "Manage trucks" as UC_ManageTrucks
+    usecase "Manage users and roles" as UC_ManageUsers
+  }
+
+  package "Monitoring" {
+    usecase "View dashboard statistics" as UC_Dashboard
+    usecase "View order summary" as UC_Summary
+    usecase "Receive notifications" as UC_ReceiveNotifications
+    usecase "Mark notification as read" as UC_MarkRead
+    usecase "View status logs" as UC_StatusLogs
+  }
+
+  package "Communication" {
+    usecase "Send welcome email" as UC_WelcomeEmail
+  }
+}
+
+Admin --> UC_Login
+Admin --> UC_Logout
+Admin --> UC_Profile
+Admin --> UC_Password
+Admin --> UC_ManageClients
+Admin --> UC_ManageTrucks
+Admin --> UC_ManageUsers
+Admin --> UC_CreateOrder
+Admin --> UC_UpdateOrder
+Admin --> UC_TrackStatus
+Admin --> UC_ViewOrder
+Admin --> UC_GenerateInvoice
+Admin --> UC_DownloadInvoice
+Admin --> UC_Dashboard
+Admin --> UC_ReceiveNotifications
+Admin --> UC_MarkRead
+Admin --> UC_StatusLogs
+
+Client --> UC_Register
+Client --> UC_Login
+Client --> UC_Logout
+Client --> UC_Profile
+Client --> UC_Password
+Client --> UC_CreateOrder
+Client --> UC_TrackStatus
+Client --> UC_ViewOrder
+Client --> UC_Summary
+Client --> UC_ReceiveNotifications
+Client --> UC_MarkRead
+
+SMTP --> UC_WelcomeEmail
+
+UC_CreateOrder ..> UC_AutoAssign : <<include>>
+UC_CreateOrder ..> UC_ReceiveNotifications : <<include>>
+UC_UpdateOrder ..> UC_ReceiveNotifications : <<include>>
+UC_GenerateInvoice ..> UC_ViewOrder : <<include>>
+UC_DownloadInvoice ..> UC_ViewOrder : <<include>>
+UC_ReceiveNotifications ..> UC_MarkRead : <<extend>>
+UC_Register ..> UC_WelcomeEmail : <<include>>
+
+@enduml

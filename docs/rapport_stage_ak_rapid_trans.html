@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rapport de Stage - AK Rapid Trans</title>
+  <style>
+    body { font-family: "Times New Roman", serif; line-height: 1.6; margin: 2.5cm; color: #111; }
+    h1 { text-align: center; font-size: 24pt; margin-bottom: 8px; }
+    h2 { text-align: center; font-size: 14pt; margin-top: 0; color: #333; }
+    h3 { font-size: 16pt; margin-top: 36px; margin-bottom: 14px; }
+    p { text-align: justify; margin-bottom: 12px; }
+    .cover { page-break-after: always; }
+    .meta { text-align: center; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <h1>Rapport de Stage</h1>
+    <h2>AK Rapid Trans - Systeme de gestion du transport logistique</h2>
+    <p class="meta">Technologies: Laravel, MySQL, React</p>
+  </section>
+
+  <h3>Introduction Generale</h3>
+
+  <p>
+    Dans un contexte ou la performance logistique depend fortement de la circulation rapide et fiable de l'information,
+    la digitalisation des processus metier constitue un levier majeur d'amelioration. Le stage realise au sein de AK Rapid Trans
+    s'inscrit dans cette dynamique, avec pour objectif de contribuer a la conception et a l'evolution d'une plateforme de gestion
+    du transport routier orientee exploitation reelle.
+  </p>
+
+  <p>
+    Le projet developpe repose sur une architecture full stack composee d'un backend Laravel expose sous forme d'API securisee,
+    d'une base de donnees MySQL structuree autour des entites metier (utilisateurs, roles, clients, camions, commandes, notifications)
+    et d'un frontend React dedie aux usages operationnels. Deux profils principaux sont pris en charge: l'administrateur et le client,
+    avec des droits differencies appliques par authentification Sanctum et controle de role.
+  </p>
+
+  <p>
+    Sur le plan fonctionnel, l'application couvre les besoins centraux d'une activite de transport: creation et suivi des commandes,
+    gestion de flotte, gestion des clients et des utilisateurs, suivi des statuts, tableaux de bord, notifications metier,
+    export/import XML des commandes et generation de factures PDF. La solution integre egalement une logique d'affectation automatique
+    des camions selon la disponibilite, la capacite et la localisation, afin d'ameliorer la reactivite lors de la creation des demandes
+    de transport.
+  </p>
+
+  <p>
+    Le systeme met aussi en oeuvre des mecanismes transverses importants pour un contexte professionnel: procedures stockees de synthese
+    pour l'analyse des commandes, trigger de journalisation des changements de statut, controle de coherence des donnees via contraintes SQL,
+    diffusion de notifications cote administrateur et client, ainsi qu'envoi d'emails transactionnels (email de bienvenue et notification
+    de message de contact) via la configuration SMTP de Laravel.
+  </p>
+
+  <p>
+    Ce rapport presente la demarche suivie pendant le stage, les choix techniques retenus, les fonctionnalites implementees et les resultats
+    obtenus. L'enjeu principal est de montrer comment une approche structuree, basee sur des besoins metier reels et une architecture moderne,
+    permet d'ameliorer le pilotage des operations logistiques, la qualite de service et la tracabilite des flux chez AK Rapid Trans.
+  </p>
+</body>
+</html>

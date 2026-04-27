@@ -18,14 +18,14 @@ return new class extends Migration
         DB::unprepared('DROP PROCEDURE IF EXISTS sp_client_commandes_status_summary');
 
         DB::unprepared(<<<'SQL'
-            CREATE PROCEDURE sp_client_commandes_status_summary(IN p_user_id BIGINT)
+            CREATE PROCEDURE sp_client_commandes_status_summary(IN p_client_id BIGINT)
             BEGIN
                 SELECT
                     statut,
                     COUNT(*) AS total,
                     COALESCE(SUM(prix), 0) AS total_amount
                 FROM commandes
-                WHERE user_id = p_user_id
+                WHERE user_id = p_client_id
                 GROUP BY statut
                 ORDER BY total DESC;
             END

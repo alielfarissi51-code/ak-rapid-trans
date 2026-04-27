@@ -76,6 +76,10 @@ const clientDashboardTranslations = {
     arrival: "Arrival",
     transportDate: "Transport date",
     requestSummary: "Tracking summary",
+    summaryBadge: "Overview",
+    dbSummary: "My order summary",
+    dbSummaryCopy: "This section gives you an overview of your orders.",
+    summaryEmpty: "No orders yet",
     progressNotes: "Progress notes",
     clientInformation: "Client information",
     truckAssignment: "Truck assignment",
@@ -107,8 +111,10 @@ const clientDashboardTranslations = {
     welcomeBack: "Bon retour",
     overviewDescription: "Suivez vos demandes de transport, controlez chaque statut et envoyez une nouvelle demande en quelques secondes.",
     privateAccess: "Acces prive au compte",
-    dbSummary: "Resume base de donnees",
-    dbSummaryCopy: "Cette section est calculee via une procedure stockee dans la base backend.",
+    dbSummary: "Resume de mes commandes",
+    dbSummaryCopy: "Cette section vous presente un apercu de vos commandes.",
+    summaryBadge: "Apercu",
+    summaryEmpty: "Aucune commande pour le moment",
     totalAmount: "Montant total",
     loadingSummary: "Chargement du resume...",
     requestNewOrder: "Nouvelle demande",
@@ -515,7 +521,7 @@ function ClientDashboard() {
           <header className={`sticky top-0 z-20 border-b px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8 ${theme === "light" ? "border-slate-200/80 bg-white/90" : "border-white/5 bg-[#050814]/85"}`}>
             <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-300/70">{t.portalTitle}</p>
+                <p className={`text-xs font-semibold uppercase tracking-[0.28em] ${theme === "light" ? "text-slate-500" : "text-cyan-300/70"}`}>{t.portalTitle}</p>
                 <h1 className={`mt-2 truncate text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl ${theme === "light" ? "text-slate-900" : "text-white"}`}>
                   {t.welcomeBack}, {user?.name || "client"}
                 </h1>
@@ -577,19 +583,19 @@ function ClientDashboard() {
                       </p>
                       <div className={`mt-6 flex flex-wrap gap-3 text-sm ${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>
                         <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 ${theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5"}`}>
-                          <ShieldIcon className="h-4 w-4 text-cyan-300" />
+                          <ShieldIcon className={`h-4 w-4 ${theme === "light" ? "text-cyan-700" : "text-cyan-300"}`} />
                           {lang === "fr" ? "Vos commandes seulement" : "Only your orders are visible here"}
                         </span>
                         <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 ${theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5"}`}>
-                          <ClockIcon className="h-4 w-4 text-sky-300" />
+                          <ClockIcon className={`h-4 w-4 ${theme === "light" ? "text-sky-700" : "text-sky-300"}`} />
                           {lang === "fr" ? "Les demandes en attente sont suivies automatiquement" : "Pending requests are tracked automatically"}
                         </span>
                       </div>
                     </div>
 
                     <div className={`rounded-[24px] border p-5 shadow-[0_18px_60px_rgba(0,0,0,0.22)] ${theme === "light" ? "border-slate-200 bg-white" : "border-white/10 bg-white/[0.04]"}`}>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">{t.latestUpdate}</p>
-                      <h3 className="mt-3 text-xl font-semibold text-white">
+                      <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${theme === "light" ? "text-slate-500" : "text-cyan-300/70"}`}>{t.latestUpdate}</p>
+                      <h3 className={`mt-3 text-xl font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>
                         {latestOrder ? `${t.orderTitlePrefix} #${latestOrder.id}` : t.noRequestsYet}
                       </h3>
                       <p className="mt-2 text-sm text-slate-400">{latestOrderRoute}</p>
@@ -612,7 +618,7 @@ function ClientDashboard() {
                 <section className={`rounded-[28px] border p-5 shadow-[0_28px_100px_rgba(0,0,0,0.36)] backdrop-blur-2xl sm:p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-cyan-400/15 bg-[linear-gradient(180deg,rgba(8,15,28,0.98),rgba(11,19,36,0.98))]"}`}>
                   <div className={`flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-start sm:justify-between ${theme === "light" ? "border-slate-200" : "border-white/8"}`}>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300/70">{t.requestTransport}</p>
+                      <p className={`text-xs font-semibold uppercase tracking-[0.22em] ${theme === "light" ? "text-slate-500" : "text-cyan-300/70"}`}>{t.requestTransport}</p>
                       <h2 className={`mt-2 text-2xl font-semibold tracking-tight ${theme === "light" ? "text-slate-900" : "text-white"}`}>New transport request</h2>
                       <p className={`mt-2 text-sm leading-6 ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>
                         Fill in the route details below. The request will be created as pending and non-verified automatically.
@@ -687,7 +693,7 @@ function ClientDashboard() {
                     </form>
 
                     <div className={`rounded-[24px] border p-5 ${theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/8 bg-[#0b1324]/70"}`}>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">{t.requestRules}</p>
+                      <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${theme === "light" ? "text-slate-500" : "text-cyan-300/70"}`}>{t.requestRules}</p>
                       <div className={`mt-4 space-y-3 text-sm ${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>
                         <RuleLine title={lang === "fr" ? "Seules vos demandes de transport sont stockees ici." : "Only your transport requests are stored here."} />
                         <RuleLine title={lang === "fr" ? "Aucun champ administrateur n'apparait dans ce flux." : "No admin fields are shown in this flow."} />
@@ -1027,7 +1033,7 @@ function ClientDashboard() {
                 <section className={`rounded-[28px] border p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl sm:p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-white/8 bg-white/[0.03]"}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">SQL</p>
+                      <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${theme === "light" ? "text-slate-500" : "text-cyan-300/70"}`}>{t.summaryBadge}</p>
                       <h2 className={`mt-2 text-xl font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{t.dbSummary}</h2>
                       <p className={`mt-2 text-sm leading-6 ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>{t.dbSummaryCopy}</p>
                     </div>
@@ -1068,7 +1074,7 @@ function ClientDashboard() {
                     </div>
                   ) : (
                     <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-600" : "border-white/10 bg-white/[0.03] text-slate-300"}`}>
-                      {t.noData}
+                      {lang === "fr" ? "Aucune commande pour le moment" : "No orders yet"}
                     </div>
                   )}
                 </section>
@@ -1082,12 +1088,12 @@ function ClientDashboard() {
         <ModalShell title={`Order #${selectedOrder.id}`} onClose={() => setSelectedOrder(null)}>
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]">
             <div className="space-y-4">
-              <section className="rounded-[24px] border border-slate-800 bg-[#0b1324] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
+              <section className={`rounded-[24px] border p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)] ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-[#0b1324]"}`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t.transportRequest}</p>
+                    <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{t.transportRequest}</p>
                     <h3 className={`mt-2 text-xl font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>{formatRoute(selectedOrder, lang)}</h3>
-                    <p className="mt-2 text-sm text-slate-400">
+                    <p className={`mt-2 text-sm ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>
                       {lang === "fr"
                         ? `Creee ${formatDate(selectedOrder.created_at, lang)} · Derniere mise a jour ${formatDate(selectedOrder.updated_at, lang)}`
                         : `Created ${formatDate(selectedOrder.created_at, lang)} · Last updated ${formatDate(selectedOrder.updated_at, lang)}`}
@@ -1106,8 +1112,8 @@ function ClientDashboard() {
                 </div>
               </section>
 
-              <section className="rounded-[24px] border border-slate-800 bg-[#0b1324] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t.clientInformation}</p>
+              <section className={`rounded-[24px] border p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)] ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-[#0b1324]"}`}>
+                <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{t.clientInformation}</p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <DetailField label={t.clientName} value={selectedOrder.client?.nom || user?.name || t.unknownAccount} />
                   <DetailField label={t.clientEmail} value={selectedOrder.client?.email || user?.email || t.noData} />
@@ -1116,8 +1122,8 @@ function ClientDashboard() {
                 </div>
               </section>
 
-              <section className="rounded-[24px] border border-slate-800 bg-[#0b1324] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t.truckAssignment}</p>
+              <section className={`rounded-[24px] border p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)] ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-[#0b1324]"}`}>
+                <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{t.truckAssignment}</p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <DetailField label={t.truck} value={selectedOrder.camion?.matricule || t.assignedTruck} />
                   <DetailField label={t.brand} value={selectedOrder.camion?.marque || t.noData} />
@@ -1128,8 +1134,8 @@ function ClientDashboard() {
             </div>
 
             <div className="space-y-4">
-              <section className="rounded-[24px] border border-slate-800 bg-[#0b1324] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">{t.requestSummary}</p>
+              <section className={`rounded-[24px] border p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)] ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-[#0b1324]"}`}>
+                <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${theme === "light" ? "text-slate-500" : "text-cyan-300/70"}`}>{t.requestSummary}</p>
                 <div className="mt-4 space-y-3">
                   <MiniStat label={t.status} value={formatStatusLabel(selectedOrder.statut, lang)} tone={getStatusTone(selectedOrder.statut)} fullWidth />
                   <MiniStat label={t.verification} value={selectedOrder.verified ? t.verified : t.nonVerified} tone={selectedOrder.verified ? "success" : "muted"} fullWidth />
@@ -1137,8 +1143,8 @@ function ClientDashboard() {
                 </div>
               </section>
 
-              <section className="rounded-[24px] border border-slate-800 bg-[#0b1324] p-5 text-sm text-slate-300 shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t.progressNotes}</p>
+              <section className={`rounded-[24px] border p-5 text-sm shadow-[0_12px_40px_rgba(0,0,0,0.18)] ${theme === "light" ? "border-slate-200 bg-white text-slate-700" : "border-slate-800 bg-[#0b1324] text-slate-300"}`}>
+                <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>{t.progressNotes}</p>
                 <div className="mt-4 space-y-3">
                   <RuleLine title={getProgressCopy(selectedOrder, lang)} />
                   <RuleLine title={lang === "fr" ? "Vous ne pouvez voir ici que votre propre demande de transport." : "You can only view your own transport request in this portal."} />
@@ -1253,7 +1259,7 @@ function ModalShell({ title, onClose, children }) {
       <button
         type="button"
         aria-label="Close dialog overlay"
-        className="absolute inset-0 bg-slate-950/90 backdrop-blur-md"
+        className={theme === "light" ? "absolute inset-0 bg-slate-900/30 backdrop-blur-sm" : "absolute inset-0 bg-slate-950/90 backdrop-blur-md"}
         onClick={onClose}
       />
       <div className={`relative z-10 my-auto w-full max-w-5xl rounded-[30px] border p-5 shadow-[0_30px_120px_rgba(0,0,0,0.75)] sm:p-6 ${theme === "light" ? "border-slate-200 bg-white" : "border-slate-800 bg-[#050814]"}`}>

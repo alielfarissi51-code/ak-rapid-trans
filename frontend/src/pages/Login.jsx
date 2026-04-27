@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { clearToken, login, setToken } from "../services/api";
+import { clearToken, login, setCachedUser, setToken } from "../services/api";
 import logo from "../assets/logo.png";
 import { useToast } from "../components/ToastProvider";
 import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
@@ -92,6 +92,7 @@ function Login() {
     try {
       const result = await login(form);
       setToken(result.token);
+      setCachedUser(result.user);
       const roleName = result?.user?.role_name || result?.user?.role;
       const targetDashboard = roleName === "admin" ? "/dashboard-admin" : "/dashboard-client";
 

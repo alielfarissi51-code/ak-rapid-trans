@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { applyDocumentTheme, getStoredPreferences, PREFERENCES_EVENT, setStoredPreferences } from "../utils/preferences";
-import { clearToken, logout as apiLogout } from "../services/api";
+import { clearToken, getCachedUser, getMe, logout as apiLogout } from "../services/api";
 
 const adminNavigationItems = [
   { labelKey: "dashboard", path: "/dashboard", icon: DashboardIcon },
@@ -34,6 +34,7 @@ const sidebarTranslations = {
     roleClient: "Client",
     roleManager: "Operations Manager",
     guestUser: "Guest User",
+    loadingAccount: "Loading account...",
     logout: "Logout",
     theme: "Theme",
     dark: "Dark",
@@ -57,6 +58,7 @@ const sidebarTranslations = {
     roleClient: "Client",
     roleManager: "Responsable operations",
     guestUser: "Utilisateur invite",
+    loadingAccount: "Chargement du compte...",
     logout: "Deconnexion",
     theme: "Theme",
     dark: "Sombre",
@@ -81,14 +83,17 @@ function Sidebar({
   const navigate = useNavigate();
   const location = useLocation();
   const [internalPreferences, setInternalPreferences] = useState(() => getStoredPreferences());
+  const [internalUser, setInternalUser] = useState(() => getCachedUser());
+  const [loadingUser, setLoadingUser] = useState(false);
   const controlled = typeof onPreferencesChange === "function" && Boolean(preferences);
   const effectivePreferences = controlled ? preferences : internalPreferences;
   const lang = effectivePreferences?.lang === "fr" ? "fr" : "en";
   const theme = effectivePreferences?.theme === "light" ? "light" : "dark";
   const t = useMemo(() => sidebarTranslations[lang] || sidebarTranslations.en, [lang]);
+  const resolvedUser = user || internalUser;
   const isAdminRoute = location.pathname === "/dashboard" || location.pathname === "/dashboard-admin" || location.pathname.startsWith("/admin/");
   const fallbackRole = isAdmin || isAdminRoute ? "admin" : "client";
-  const roleName = (user?.role_name || user?.role || fallbackRole).toLowerCase();
+  const roleName = (resolvedUser?.role_name || resolvedUser?.role || fallbackRole).toLowerCase();
   const isUserAdmin = roleName === "admin";
   const navigationItems = isUserAdmin ? adminNavigationItems : clientNavigationItems;
 
@@ -115,6 +120,41 @@ function Sidebar({
       window.removeEventListener(PREFERENCES_EVENT, handlePreferencesChanged);
     };
   }, [controlled]);
+
+  useEffect(() => {
+    if (user) {
+      setInternalUser(null);
+      setLoadingUser(false);
+      return;
+    }
+
+    let active = true;
+
+    const loadAccount = async () => {
+      try {
+        setLoadingUser(true);
+        const profile = await getMe();
+
+        if (active) {
+          setInternalUser(profile);
+        }
+      } catch {
+        if (active) {
+          setInternalUser(null);
+        }
+      } finally {
+        if (active) {
+          setLoadingUser(false);
+        }
+      }
+    };
+
+    loadAccount();
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   const updatePreferences = (next) => {
     setStoredPreferences(next);
@@ -249,7 +289,7 @@ function Sidebar({
               </div>
               <div className="min-w-0 flex-1">
                 <p className={`truncate text-sm font-semibold ${theme === "light" ? "text-slate-900" : "text-white"}`}>
-                  {user?.name || t.guestUser}
+                  {resolvedUser?.name || (loadingUser ? t.loadingAccount : t.guestUser)}
                 </p>
                 <p className={`truncate text-xs ${theme === "light" ? "text-slate-500" : "text-slate-400"}`}>
                   {isUserAdmin ? t.roleAdmin : t.roleClient}

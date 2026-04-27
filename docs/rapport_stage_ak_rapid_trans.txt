@@ -1,0 +1,15 @@
+RAPPORT DE STAGE
+AK Rapid Trans - Systeme de gestion du transport logistique
+Technologies: Laravel, MySQL, React
+
+INTRODUCTION GENERALE
+
+Dans un contexte ou la performance logistique depend fortement de la circulation rapide et fiable de l'information, la digitalisation des processus metier constitue un levier majeur d'amelioration. Le stage realise au sein de AK Rapid Trans s'inscrit dans cette dynamique, avec pour objectif de contribuer a la conception et a l'evolution d'une plateforme de gestion du transport routier orientee exploitation reelle.
+
+Le projet developpe repose sur une architecture full stack composee d'un backend Laravel expose sous forme d'API securisee, d'une base de donnees MySQL structuree autour des entites metier (utilisateurs, roles, clients, camions, commandes, notifications) et d'un frontend React dedie aux usages operationnels. Deux profils principaux sont pris en charge: l'administrateur et le client, avec des droits differencies appliques par authentification Sanctum et controle de role.
+
+Sur le plan fonctionnel, l'application couvre les besoins centraux d'une activite de transport: creation et suivi des commandes, gestion de flotte, gestion des clients et des utilisateurs, suivi des statuts, tableaux de bord, notifications metier, export/import XML des commandes et generation de factures PDF. La solution integre egalement une logique d'affectation automatique des camions selon la disponibilite, la capacite et la localisation, afin d'ameliorer la reactivite lors de la creation des demandes de transport.
+
+Le systeme met aussi en oeuvre des mecanismes transverses importants pour un contexte professionnel: procedures stockees de synthese pour l'analyse des commandes, trigger de journalisation des changements de statut, controle de coherence des donnees via contraintes SQL, diffusion de notifications cote administrateur et client, ainsi qu'envoi d'emails transactionnels (email de bienvenue et notification de message de contact) via la configuration SMTP de Laravel.
+
+Ce rapport presente la demarche suivie pendant le stage, les choix techniques retenus, les fonctionnalites implementees et les resultats obtenus. L'enjeu principal est de montrer comment une approche structuree, basee sur des besoins metier reels et une architecture moderne, permet d'ameliorer le pilotage des operations logistiques, la qualite de service et la tracabilite des flux chez AK Rapid Trans.

@@ -59,7 +59,7 @@ export default function CommandeForm({ commande, camions, onSubmit, onCancel }) 
             const data = await getClients();
             setClients(data);
         } catch {
-            console.error("Failed to load clients");
+            // Silently handle client loading error
         } finally {
             setLoading(false);
         }

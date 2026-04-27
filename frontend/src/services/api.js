@@ -1,15 +1,35 @@
 
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
+
+export const getCachedUser = () => {
+    try {
+        const cached = localStorage.getItem(USER_KEY);
+        return cached ? JSON.parse(cached) : null;
+    } catch {
+        return null;
+    }
+};
 
 export const setToken = (token) => {
     localStorage.setItem(TOKEN_KEY, token);
 };
 
+export const setCachedUser = (user) => {
+    if (!user) {
+        localStorage.removeItem(USER_KEY);
+        return;
+    }
+
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+};
+
 export const clearToken = () => {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
 };
 
 const authHeaders = () => {
@@ -80,7 +100,10 @@ export const getMe = async () => {
         },
     });
 
-    return parseResponse(response);
+    const profile = await parseResponse(response);
+    setCachedUser(profile);
+
+    return profile;
 };
 
 export const logout = async () => {

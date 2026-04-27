@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getCamions, createCamion, updateCamion, deleteCamion } from "../services/api";
 import CamionForm from "../components/CamionForm";
 import CamionsTable from "../components/CamionsTable";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import Sidebar from "../components/Sidebar";
 import { useToast } from "../components/ToastProvider";
 import { applyDocumentTheme, getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
@@ -23,7 +24,11 @@ const translations = {
         of: "of",
         previous: "← Previous",
         next: "Next →",
-        deleteConfirm: "Are you sure you want to delete this truck?",
+        deleteTitle: "Delete truck record?",
+        deleteConfirm: "This action will permanently remove the selected truck record and cannot be undone.",
+        deleteHint: "Proceed only if the vehicle is no longer part of the fleet.",
+        cancel: "Cancel",
+        confirmDelete: "Delete truck",
         deleteSuccess: "Truck deleted",
         deleteSuccessDesc: "The truck was removed successfully.",
         deleteFailed: "Delete failed",
@@ -53,7 +58,11 @@ const translations = {
         of: "sur",
         previous: "← Précédent",
         next: "Suivant →",
-        deleteConfirm: "Êtes-vous sûr de vouloir supprimer ce camion ?",
+        deleteTitle: "Supprimer la fiche camion ?",
+        deleteConfirm: "Cette action supprimera définitivement la fiche sélectionnée et ne peut pas être annulée.",
+        deleteHint: "Continuez uniquement si le véhicule ne fait plus partie de la flotte.",
+        cancel: "Annuler",
+        confirmDelete: "Supprimer le camion",
         deleteSuccess: "Camion supprimé",
         deleteSuccessDesc: "Le camion a été supprimé avec succès.",
         deleteFailed: "Échec de la suppression",
@@ -79,6 +88,7 @@ export default function CamionsManagement() {
     const [currentPage, setCurrentPage] = useState(1);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [preferences, setPreferences] = useState(() => getStoredPreferences());
+    const [deleteTarget, setDeleteTarget] = useState(null);
     const itemsPerPage = 10;
     const { addToast } = useToast();
 
@@ -152,23 +162,31 @@ export default function CamionsManagement() {
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (confirm(t.deleteConfirm)) {
-            try {
-                await deleteCamion(id);
-                addToast({
-                    type: "success",
-                    title: t.deleteSuccess,
-                    description: t.deleteSuccessDesc,
-                });
-                fetchCamions();
-            } catch (err) {
-                addToast({
-                    type: "error",
-                    title: t.deleteFailed,
-                    description: t.deleteFailedDesc(err.message),
-                });
-            }
+    const handleDeleteRequest = (id) => {
+        const target = camions.find((camion) => camion.id === id) || { id };
+        setDeleteTarget(target);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) {
+            return;
+        }
+
+        try {
+            await deleteCamion(deleteTarget.id);
+            addToast({
+                type: "success",
+                title: t.deleteSuccess,
+                description: t.deleteSuccessDesc,
+            });
+            setDeleteTarget(null);
+            fetchCamions();
+        } catch (err) {
+            addToast({
+                type: "error",
+                title: t.deleteFailed,
+                description: t.deleteFailedDesc(err.message),
+            });
         }
     };
 
@@ -273,7 +291,7 @@ export default function CamionsManagement() {
                                 </div>
                             ) : (
                                 <>
-                                    <CamionsTable camions={paginatedCamions} onEdit={handleEdit} onDelete={handleDelete} />
+                                    <CamionsTable camions={paginatedCamions} onEdit={handleEdit} onDelete={handleDeleteRequest} />
                                     {totalPages > 1 && (
                                         <div className={`mt-6 flex items-center justify-between rounded-xl border px-4 py-4 ${isDark ? "border-slate-700 bg-slate-800" : "border-slate-200 bg-white"}`}>
                                             <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
@@ -303,6 +321,19 @@ export default function CamionsManagement() {
                     </div>
                 </div>
             </div>
+
+            <DeleteConfirmationModal
+                open={Boolean(deleteTarget)}
+                isDark={isDark}
+                title={t.deleteTitle}
+                message={t.deleteConfirm}
+                hint={t.deleteHint}
+                itemLabel={deleteTarget?.matricule || deleteTarget?.marque || `#${deleteTarget?.id}`}
+                cancelLabel={t.cancel}
+                confirmLabel={t.confirmDelete}
+                onCancel={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     );
 }

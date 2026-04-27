@@ -15,6 +15,7 @@ import {
 } from "../services/api";
 import CommandeForm from "../components/CommandeForm";
 import CommandesTable from "../components/CommandesTable";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import Sidebar from "../components/Sidebar";
 import { useToast } from "../components/ToastProvider";
 import { getStoredPreferences, PREFERENCES_EVENT } from "../utils/preferences";
@@ -36,6 +37,7 @@ export default function CommandesManagement() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [lang, setLang] = useState(() => getStoredPreferences().lang);
     const [currentPage, setCurrentPage] = useState(1);
+    const [deleteTarget, setDeleteTarget] = useState(null);
     const itemsPerPage = 10;
     const t = useMemo(() => getTranslations(lang), [lang]);
     const { addToast } = useToast();
@@ -124,7 +126,6 @@ export default function CommandesManagement() {
             const data = await getCamions();
             setCamions(data);
         } catch {
-            console.error(t.failedLoadTrucks);
             showWarningToast(t.toastTrucksUnavailableTitle, t.toastTrucksUnavailableDescription);
         }
     };
@@ -135,7 +136,6 @@ export default function CommandesManagement() {
             const payload = await getCommandesSummary();
             setSummary(payload?.data || []);
         } catch {
-            console.error(t.failedLoadSummary);
             setSummary([]);
             showWarningToast(t.toastSummaryUnavailableTitle, t.toastSummaryUnavailableDescription);
         } finally {
@@ -153,16 +153,24 @@ export default function CommandesManagement() {
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (confirm(t.confirmDeleteOrder)) {
-            try {
-                await deleteCommande(id);
-                showSuccessToast(t.toastOrderDeletedTitle, t.toastOrderDeletedDescription);
-                fetchCommandes();
-                fetchSummary();
-            } catch (err) {
-                showErrorToast(t.toastDeleteFailedTitle, `${t.failedDeleteOrder}${err.message}`);
-            }
+    const handleDeleteRequest = (id) => {
+        const target = commandes.find((commande) => commande.id === id) || { id };
+        setDeleteTarget(target);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) {
+            return;
+        }
+
+        try {
+            await deleteCommande(deleteTarget.id);
+            showSuccessToast(t.toastOrderDeletedTitle, t.toastOrderDeletedDescription);
+            setDeleteTarget(null);
+            fetchCommandes();
+            fetchSummary();
+        } catch (err) {
+            showErrorToast(t.toastDeleteFailedTitle, `${t.failedDeleteOrder}${err.message}`);
         }
     };
 
@@ -447,7 +455,7 @@ export default function CommandesManagement() {
                                     <CommandesTable
                                         commandes={paginatedCommandes}
                                         onEdit={handleEdit}
-                                        onDelete={handleDelete}
+                                        onDelete={handleDeleteRequest}
                                         onViewStatusLogs={handleViewStatusLogs}
                                         onGenerateFacture={handleGenerateFacture}
                                         onDownloadFacture={handleDownloadFacture}
@@ -530,6 +538,19 @@ export default function CommandesManagement() {
                     </div>
                 </div>
             </div>
+
+            <DeleteConfirmationModal
+                open={Boolean(deleteTarget)}
+                isDark={false}
+                title={t.deleteTitle}
+                message={t.confirmDeleteOrder}
+                hint={t.deleteHint}
+                itemLabel={deleteTarget?.client?.nom || `#${deleteTarget?.id}`}
+                cancelLabel={t.cancel}
+                confirmLabel={t.confirmDelete}
+                onCancel={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     );
 }
@@ -611,7 +632,11 @@ function getTranslations(lang = "en") {
             records: "records",
             totalOrders: "Total Orders",
             totalAmount: "Total Amount",
-            confirmDeleteOrder: "Are you sure you want to delete this order?",
+            deleteTitle: "Delete order?",
+            confirmDeleteOrder: "This action will permanently remove the selected order and cannot be undone.",
+            deleteHint: "Only continue if the transport record must be removed.",
+            cancel: "Cancel",
+            confirmDelete: "Delete order",
             orderDeletedSuccessfully: "Order deleted successfully",
             orderUpdatedSuccessfully: "Order updated successfully",
             orderCreatedSuccessfully: "Order created successfully",
@@ -682,7 +707,11 @@ function getTranslations(lang = "en") {
             records: "resultats",
             totalOrders: "Total commandes",
             totalAmount: "Montant total",
-            confirmDeleteOrder: "Voulez-vous vraiment supprimer cette commande ?",
+            deleteTitle: "Supprimer la commande ?",
+            confirmDeleteOrder: "Cette action supprimera définitivement la commande sélectionnée et ne peut pas être annulée.",
+            deleteHint: "Continuez uniquement si l'enregistrement transport doit être supprimé.",
+            cancel: "Annuler",
+            confirmDelete: "Supprimer la commande",
             orderDeletedSuccessfully: "Commande supprimee avec succes",
             orderUpdatedSuccessfully: "Commande mise a jour avec succes",
             orderCreatedSuccessfully: "Commande creee avec succes",
