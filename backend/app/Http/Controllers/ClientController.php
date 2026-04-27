@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
@@ -82,7 +85,26 @@ class ClientController extends Controller
      */
     public function destroy(Client $client)
     {
-        $client->delete();
+        DB::transaction(function () use ($client): void {
+            $email = $client->email;
+
+            $client->delete();
+
+            $clientRoleId = Role::query()->where('name', 'client')->value('id');
+
+            User::query()
+                ->where('email', $email)
+                ->when($clientRoleId, function ($query, $roleId) {
+                    $query->where(function ($innerQuery) use ($roleId): void {
+                        $innerQuery
+                            ->where('role', 'client')
+                            ->orWhere('role_id', $roleId);
+                    });
+                }, function ($query) {
+                    $query->where('role', 'client');
+                })
+                ->delete();
+        });
 
         return response()->noContent();
     }

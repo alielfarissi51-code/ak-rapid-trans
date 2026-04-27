@@ -7,12 +7,13 @@ const adminNavigationItems = [
   { labelKey: "dashboard", path: "/dashboard", icon: DashboardIcon },
   { labelKey: "orders", path: "/admin/commandes", icon: OrdersIcon },
   { labelKey: "users", path: "/admin/users", icon: ClientsIcon },
+  { labelKey: "clients", path: "/admin/clients", icon: ClientsIcon },
   { labelKey: "trucks", path: "/admin/camions", icon: VehiclesIcon },
   { labelKey: "settings", path: "/settings", icon: SettingsIcon },
 ];
 
 const clientNavigationItems = [
-  { labelKey: "dashboard", path: "/dashboard-client", icon: DashboardIcon },
+  { labelKey: "dashboard", path: "/client/dashboard", icon: DashboardIcon },
   { labelKey: "orders", path: "/client/orders", icon: OrdersIcon },
   { labelKey: "notifications", path: "/client/notifications", icon: NotificationsIcon },
   { labelKey: "settings", path: "/settings", icon: SettingsIcon },
@@ -23,6 +24,7 @@ const sidebarTranslations = {
     dashboard: "Dashboard",
     orders: "Orders",
     users: "Users",
+    clients: "Clients",
     trucks: "Trucks",
     settings: "Settings",
     notifications: "Notifications",
@@ -45,6 +47,7 @@ const sidebarTranslations = {
     dashboard: "Tableau de bord",
     orders: "Commandes",
     users: "Utilisateurs",
+    clients: "Clients",
     trucks: "Camions",
     settings: "Parametres",
     notifications: "Notifications",

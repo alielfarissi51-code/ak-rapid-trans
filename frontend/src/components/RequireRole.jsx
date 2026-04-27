@@ -9,6 +9,8 @@ export default function RequireRole({ allow, children }) {
   useEffect(() => {
     let active = true;
 
+    setStatus((prev) => ({ ...prev, loading: true }));
+
     const verify = async () => {
       const token = getToken();
 
@@ -35,7 +37,7 @@ export default function RequireRole({ allow, children }) {
           setStatus({
             loading: false,
             allowed: false,
-            redirectTo: role === "admin" ? "/dashboard-admin" : "/dashboard-client",
+            redirectTo: role === "admin" ? "/dashboard" : "/client/dashboard",
           });
         }
       } catch {

@@ -237,6 +237,49 @@ export const getClients = async () => {
     return parseResponse(response);
 };
 
+export const getClientById = async (id) => {
+    const response = await fetch(`${API_BASE}/admin/clients/${id}`, {
+        headers: { ...authHeaders() },
+    });
+    return parseResponse(response);
+};
+
+export const createClient = async (data) => {
+    const response = await fetch(`${API_BASE}/admin/clients`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(),
+        },
+        body: JSON.stringify(data),
+    });
+    return parseResponse(response);
+};
+
+export const updateClient = async (id, data) => {
+    const response = await fetch(`${API_BASE}/admin/clients/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(),
+        },
+        body: JSON.stringify(data),
+    });
+    return parseResponse(response);
+};
+
+export const deleteClient = async (id) => {
+    const response = await fetch(`${API_BASE}/admin/clients/${id}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() },
+    });
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || 'Failed to delete client');
+    }
+    return response.status === 204 ? {} : response.json();
+};
+
 // =============== COMMANDES (ORDERS) MANAGEMENT ===============
 export const getCommandes = async () => {
     const response = await fetch(`${API_BASE}/admin/commandes`, {
