@@ -1,8 +1,9 @@
 
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastProvider } from "./components/ToastProvider";
 import RequireRole from "./components/RequireRole";
+import { getStoredPreferences, PREFERENCES_EVENT } from "./utils/preferences";
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -17,10 +18,26 @@ const CommandesManagement = lazy(() => import("./pages/CommandesManagement"));
 const Settings = lazy(() => import("./pages/Settings"));
 
 function App() {
+  const [theme, setTheme] = useState(() => getStoredPreferences().theme === "light" ? "light" : "dark");
+
+  useEffect(() => {
+    const handler = (event) => {
+      const nextTheme = event?.detail?.theme || getStoredPreferences().theme;
+      setTheme(nextTheme === "light" ? "light" : "dark");
+    };
+
+    window.addEventListener(PREFERENCES_EVENT, handler);
+    return () => window.removeEventListener(PREFERENCES_EVENT, handler);
+  }, []);
+
+  const loadingClassName = theme === "light"
+    ? "min-h-screen bg-slate-50 text-slate-700 flex items-center justify-center"
+    : "min-h-screen bg-[#050814] text-slate-100 flex items-center justify-center";
+
   return (
     <ToastProvider>
       <BrowserRouter>
-        <Suspense fallback={<div className="min-h-screen bg-[#050814] text-slate-100 flex items-center justify-center">Loading...</div>}>
+        <Suspense fallback={<div className={loadingClassName}>Loading...</div>}>
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/register" element={<Register />} />
