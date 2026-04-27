@@ -9,7 +9,10 @@ class Camion extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['matricule', 'marque', 'capacite', 'statut'];
+    /** All valid statut values. */
+    public const STATUSES = ['disponible', 'occupe', 'en_maintenance', 'indisponible'];
+
+    protected $fillable = ['matricule', 'marque', 'capacite', 'localisation', 'statut'];
 
     public function commandes()
     {

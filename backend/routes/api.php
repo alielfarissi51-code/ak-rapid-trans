@@ -1,6 +1,7 @@
 <?php
 
 
+use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CamionController;
 use App\Http\Controllers\ClientOrderController;
@@ -23,6 +24,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/me/password', [AuthController::class, 'apiUpdatePassword']);
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
+        // Admin notifications
+        Route::get('notifications/unread', [AdminNotificationController::class, 'getUnread']);
+        Route::patch('notifications/read-all', [AdminNotificationController::class, 'markAllAsRead']);
+        Route::patch('notifications/{id}/read', [AdminNotificationController::class, 'markAsRead']);
+
         // Users and roles management
         Route::apiResource('users', UserController::class);
         Route::get('roles', [UserController::class, 'getRoles']);

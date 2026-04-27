@@ -466,3 +466,29 @@ export const markAllClientNotificationsRead = async () => {
 
     return parseResponse(response);
 };
+
+export const getAdminUnreadNotifications = async () => {
+    const response = await fetch(`${API_BASE}/admin/notifications/unread`, {
+        headers: { ...authHeaders() },
+    });
+
+    return parseResponse(response);
+};
+
+export const markAdminNotificationRead = async (id) => {
+    const response = await fetch(`${API_BASE}/admin/notifications/${id}/read`, {
+        method: 'PATCH',
+        headers: { ...authHeaders() },
+    });
+
+    return parseResponse(response);
+};
+
+export const markAllAdminNotificationsRead = async () => {
+    const response = await fetch(`${API_BASE}/admin/notifications/read-all`, {
+        method: 'PATCH',
+        headers: { ...authHeaders() },
+    });
+
+    return parseResponse(response);
+};

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
+import AdminNotificationPopup from "../components/AdminNotificationPopup";
 import Sidebar from "../components/Sidebar";
 import { clearToken, getCamions, getCommandes, getMe, getUsers, logout as apiLogout } from "../services/api";
 import { applyDocumentTheme, getStoredPreferences } from "../utils/preferences";
@@ -239,8 +240,9 @@ function Dashboard() {
                                 </div>
                             </div>
 
-                            <div className="hidden items-center gap-3 sm:flex">
-                                <div className={`rounded-full border px-4 py-2 text-sm ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-slate-700 bg-slate-900 text-slate-300"}`}>
+                            <div className="flex items-center gap-3">
+                                <AdminNotificationPopup theme={theme} />
+                                <div className={`hidden rounded-full border px-4 py-2 text-sm sm:block ${theme === "light" ? "border-slate-200 bg-white text-slate-600" : "border-slate-700 bg-slate-900 text-slate-300"}`}>
                                     {user ? `${user.name} • ${t.admin}` : t.loadingAccount}
                                 </div>
                             </div>

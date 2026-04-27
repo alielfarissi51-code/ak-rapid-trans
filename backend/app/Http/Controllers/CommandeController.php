@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ClientNotification;
 use App\Models\Commande;
+use App\Services\TruckAssignmentService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CommandeController extends Controller
 {
+    public function __construct(private readonly TruckAssignmentService $trucks) {}
+
     private function statusNotificationPayload(string $status): array
     {
         $map = [
@@ -173,19 +176,28 @@ class CommandeController extends Controller
 
             $commande->update($validated);
 
-            $newStatus = $commande->fresh()->statut;
+            $fresh      = $commande->fresh();
+            $newStatus  = (string) $fresh->statut;
             $statusChanged = $newStatus !== $oldStatus;
 
-            if ($statusChanged && $commande->user_id) {
-                $payload = $this->statusNotificationPayload((string) $newStatus);
+            if ($statusChanged) {
+                // Notify the client about the status change.
+                if ($commande->user_id) {
+                    $payload = $this->statusNotificationPayload($newStatus);
 
-                ClientNotification::create([
-                    'user_id' => (int) $commande->user_id,
-                    'commande_id' => $commande->id,
-                    'title' => $payload['title'],
-                    'message' => $payload['message'],
-                    'is_read' => false,
-                ]);
+                    ClientNotification::create([
+                        'user_id'     => (int) $commande->user_id,
+                        'commande_id' => $commande->id,
+                        'title'       => $payload['title'],
+                        'message'     => $payload['message'],
+                        'is_read'     => false,
+                    ]);
+                }
+
+                // Free the assigned truck when the order is completed or cancelled.
+                if (in_array($newStatus, ['livree', 'annulee'], true)) {
+                    $this->trucks->release($fresh);
+                }
             }
         });
 
