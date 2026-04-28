@@ -18,6 +18,10 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        if (config('app.env') === 'production') {
+            return;
+        }
+
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
         $clientRole = Role::firstOrCreate(['name' => 'client']);
 
