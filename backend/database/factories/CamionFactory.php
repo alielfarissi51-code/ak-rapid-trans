@@ -14,11 +14,13 @@ class CamionFactory extends Factory
 
     public function definition(): array
     {
+        $faker = \Faker\Factory::create();
+
         return [
-            'matricule' => strtoupper(fake()->bothify('??-####-??')),
-            'marque' => fake()->randomElement(['Volvo', 'Mercedes', 'Renault', 'MAN', 'Scania']),
-            'capacite' => fake()->numberBetween(2, 40),
-            'statut' => fake()->randomElement(['disponible', 'en_maintenance', 'indisponible']),
+            'matricule' => strtoupper($faker->bothify('??-####-??')),
+            'marque' => $faker->randomElement(['Volvo', 'Mercedes', 'Renault', 'MAN', 'Scania']),
+            'capacite' => $faker->numberBetween(2, 40),
+            'statut' => $faker->randomElement(['disponible', 'en_maintenance', 'indisponible']),
         ];
     }
 }

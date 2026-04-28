@@ -14,10 +14,12 @@ class ContactFactory extends Factory
 
     public function definition(): array
     {
+        $faker = \Faker\Factory::create();
+
         return [
-            'nom' => fake()->name(),
-            'email' => fake()->safeEmail(),
-            'message' => fake()->paragraph(),
+            'nom' => $faker->name(),
+            'email' => $faker->safeEmail(),
+            'message' => $faker->paragraph(),
         ];
     }
 }
