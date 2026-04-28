@@ -24,18 +24,19 @@ class UserFactory extends Factory
      * @return array<string, mixed>
      */
     public function definition(): array
-{
-    return [
-        'role_id' => Role::query()->where('name', 'client')->value('id')
-            ?? Role::firstOrCreate(['name' => 'client'])->id,
-        'role' => 'client',
-        'name' => $this->faker->name(),
-        'email' => $this->faker->unique()->safeEmail(),
-        'email_verified_at' => now(),
-        'password' => static::$password ??= Hash::make('password'),
-        'remember_token' => Str::random(10),
-    ];
-}
+    {
+        $clientRole = Role::query()->firstOrCreate(['name' => 'client']);
+
+        return [
+            'role_id' => $clientRole->id,
+            'role' => 'client',
+            'name' => \fake()->name(),
+            'email' => \fake()->unique()->safeEmail(),
+            'email_verified_at' => now(),
+            'password' => static::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(10),
+        ];
+    }
 
     /**
      * Indicate that the model's email address should be unverified.
