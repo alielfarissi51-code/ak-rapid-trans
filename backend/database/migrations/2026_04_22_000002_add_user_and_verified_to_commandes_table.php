@@ -22,7 +22,9 @@ return new class extends Migration
             }
         });
 
-        DB::statement('UPDATE commandes SET verified = COALESCE(verified, 0)');
+        DB::table('commandes')
+            ->whereNull('verified')
+            ->update(['verified' => false]);
     }
 
     /**
