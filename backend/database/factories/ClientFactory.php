@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Client;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Client>
@@ -14,13 +15,15 @@ class ClientFactory extends Factory
 
     public function definition(): array
     {
-        $faker = \Faker\Factory::create();
+        $firstNames = ['Alex', 'Sam', 'Nadia', 'Youssef', 'Sara', 'Omar', 'Hana', 'Imane', 'Adam', 'Lina'];
+        $lastNames = ['El Amrani', 'Bennani', 'Karim', 'Alaoui', 'Mansouri', 'Saidi', 'Fassi', 'Idrissi', 'Zahra', 'Tazi'];
+        $name = $firstNames[array_rand($firstNames)].' '.$lastNames[array_rand($lastNames)];
 
         return [
-            'nom' => $faker->name(),
-            'email' => $faker->unique()->safeEmail(),
-            'telephone' => $faker->phoneNumber(),
-            'adresse' => $faker->address(),
+            'nom' => $name,
+            'email' => Str::lower(Str::slug($name)).'@example.com',
+            'telephone' => '+212'.random_int(600000000, 799999999),
+            'adresse' => 'Casablanca, Morocco',
         ];
     }
 }

@@ -25,14 +25,16 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        $faker = \Faker\Factory::create();
         $clientRole = Role::query()->firstOrCreate(['name' => 'client']);
+        $firstNames = ['Alex', 'Sam', 'Nadia', 'Youssef', 'Sara', 'Omar', 'Hana', 'Imane', 'Adam', 'Lina'];
+        $lastNames = ['El Amrani', 'Bennani', 'Karim', 'Alaoui', 'Mansouri', 'Saidi', 'Fassi', 'Idrissi', 'Zahra', 'Tazi'];
+        $name = $firstNames[array_rand($firstNames)].' '.$lastNames[array_rand($lastNames)];
 
         return [
             'role_id' => $clientRole->id,
             'role' => 'client',
-            'name' => $faker->name(),
-            'email' => $faker->unique()->safeEmail(),
+            'name' => $name,
+            'email' => Str::lower(Str::slug($name)).'@example.com',
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),

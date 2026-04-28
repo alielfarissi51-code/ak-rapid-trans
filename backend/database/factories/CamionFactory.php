@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Camion;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Camion>
@@ -14,13 +15,13 @@ class CamionFactory extends Factory
 
     public function definition(): array
     {
-        $faker = \Faker\Factory::create();
+        $brands = ['Volvo', 'Mercedes', 'Renault', 'MAN', 'Scania'];
 
         return [
-            'matricule' => strtoupper($faker->bothify('??-####-??')),
-            'marque' => $faker->randomElement(['Volvo', 'Mercedes', 'Renault', 'MAN', 'Scania']),
-            'capacite' => $faker->numberBetween(2, 40),
-            'statut' => $faker->randomElement(['disponible', 'en_maintenance', 'indisponible']),
+            'matricule' => strtoupper(Str::random(2)).'-'.random_int(1000, 9999).'-'.strtoupper(Str::random(2)),
+            'marque' => $brands[array_rand($brands)],
+            'capacite' => random_int(2, 40),
+            'statut' => ['disponible', 'en_maintenance', 'indisponible'][array_rand(['disponible', 'en_maintenance', 'indisponible'])],
         ];
     }
 }
