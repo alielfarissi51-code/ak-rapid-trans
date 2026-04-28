@@ -18,7 +18,23 @@ return new class extends Migration
             }
         });
 
-        DB::statement("UPDATE users u LEFT JOIN roles r ON r.id = u.role_id SET u.role = COALESCE(u.role, r.name, 'client')");
+        DB::table('users')
+            ->leftJoin('roles', 'roles.id', '=', 'users.role_id')
+            ->whereNull('users.role')
+            ->orderBy('users.id')
+            ->select([
+                'users.id as id',
+                'roles.name as role_name',
+            ])
+            ->chunkById(100, function ($users): void {
+                foreach ($users as $user) {
+                    DB::table('users')
+                        ->where('id', $user->id)
+                        ->update([
+                            'role' => $user->role_name ?: 'client',
+                        ]);
+                }
+            }, 'users.id', 'id');
     }
 
     /**

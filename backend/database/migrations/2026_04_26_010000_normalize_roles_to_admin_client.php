@@ -34,7 +34,7 @@ return new class extends Migration
             ->all();
 
         DB::table('users')
-            ->whereRaw('LOWER(COALESCE(role, "")) IN (?, ?)', ['manager', 'user'])
+            ->whereRaw("LOWER(COALESCE(role, '')) IN (?, ?)", ['manager', 'user'])
             ->update([
                 'role' => 'client',
                 'role_id' => $clientRoleId,
@@ -52,7 +52,7 @@ return new class extends Migration
         }
 
         DB::table('users')
-            ->whereRaw('LOWER(COALESCE(role, "")) = ?', ['admin'])
+            ->whereRaw("LOWER(COALESCE(role, '')) = ?", ['admin'])
             ->update([
                 'role' => 'admin',
                 'role_id' => $adminRoleId,
@@ -60,7 +60,7 @@ return new class extends Migration
             ]);
 
         DB::table('users')
-            ->whereRaw('LOWER(COALESCE(role, "")) = ?', ['client'])
+            ->whereRaw("LOWER(COALESCE(role, '')) = ?", ['client'])
             ->update([
                 'role' => 'client',
                 'role_id' => $clientRoleId,

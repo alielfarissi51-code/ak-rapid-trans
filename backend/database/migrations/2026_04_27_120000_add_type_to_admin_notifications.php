@@ -7,6 +7,72 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    private function hasForeignKey(string $table, string $constraint): bool
+    {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            $row = DB::selectOne(
+                "SELECT EXISTS (
+                    SELECT 1
+                    FROM information_schema.table_constraints
+                    WHERE table_schema = current_schema()
+                      AND table_name = ?
+                      AND constraint_name = ?
+                      AND constraint_type = 'FOREIGN KEY'
+                ) AS exists",
+                [$table, $constraint]
+            );
+
+            return (bool) ($row?->exists ?? false);
+        }
+
+        $row = DB::selectOne(
+            "SELECT COUNT(*) AS aggregate
+             FROM information_schema.TABLE_CONSTRAINTS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?
+               AND CONSTRAINT_NAME = ?
+               AND CONSTRAINT_TYPE = 'FOREIGN KEY'",
+            [$table, $constraint]
+        );
+
+        return ((int) ($row?->aggregate ?? 0)) > 0;
+    }
+
+    private function hasUniqueConstraint(string $table, string $constraint): bool
+    {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            $row = DB::selectOne(
+                "SELECT EXISTS (
+                    SELECT 1
+                    FROM information_schema.table_constraints
+                    WHERE table_schema = current_schema()
+                      AND table_name = ?
+                      AND constraint_name = ?
+                      AND constraint_type = 'UNIQUE'
+                ) AS exists",
+                [$table, $constraint]
+            );
+
+            return (bool) ($row?->exists ?? false);
+        }
+
+        $row = DB::selectOne(
+            "SELECT COUNT(*) AS aggregate
+             FROM information_schema.TABLE_CONSTRAINTS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?
+               AND CONSTRAINT_NAME = ?
+               AND CONSTRAINT_TYPE = 'UNIQUE'",
+            [$table, $constraint]
+        );
+
+        return ((int) ($row?->aggregate ?? 0)) > 0;
+    }
+
     public function up(): void
     {
         // 1. Add the type column if it isn't there yet (a previous partial run may
@@ -18,43 +84,22 @@ return new class extends Migration
         }
 
         // 2. Drop the FK so we can replace the single-column unique with a composite one.
-        //    MySQL requires the index that backs the FK to be dropped AFTER the FK.
-        $hasFk = DB::select(
-            "SELECT 1 FROM information_schema.TABLE_CONSTRAINTS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME    = 'admin_notifications'
-               AND CONSTRAINT_NAME = 'admin_notifications_commande_id_foreign'
-             LIMIT 1"
-        );
-
-        $hasOldUnique = DB::select(
-            "SELECT 1 FROM information_schema.STATISTICS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME   = 'admin_notifications'
-               AND INDEX_NAME   = 'admin_notifications_commande_id_unique'
-             LIMIT 1"
-        );
-
-        $hasComposite = DB::select(
-            "SELECT 1 FROM information_schema.STATISTICS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME   = 'admin_notifications'
-               AND INDEX_NAME   = 'admin_notifs_commande_type_unique'
-             LIMIT 1"
-        );
+        $hasFk = $this->hasForeignKey('admin_notifications', 'admin_notifications_commande_id_foreign');
+        $hasOldUnique = $this->hasUniqueConstraint('admin_notifications', 'admin_notifications_commande_id_unique');
+        $hasComposite = $this->hasUniqueConstraint('admin_notifications', 'admin_notifs_commande_type_unique');
 
         Schema::table('admin_notifications', function (Blueprint $table) use ($hasFk, $hasOldUnique, $hasComposite) {
             if ($hasFk) {
                 $table->dropForeign(['commande_id']);
             }
             if ($hasOldUnique) {
-                $table->dropUnique(['commande_id']);
+                $table->dropUnique('admin_notifications_commande_id_unique');
             }
             if (! $hasComposite) {
                 $table->unique(['commande_id', 'type'], 'admin_notifs_commande_type_unique');
             }
-            // Re-add the FK (composite index on (commande_id, type) satisfies
-            // MySQL's requirement that the FK column has a leading index).
+            // Re-add the FK after the unique/index changes so both MySQL and PostgreSQL
+            // keep the relationship intact regardless of partial migration state.
             if ($hasFk) {
                 $table->foreign('commande_id')
                     ->references('id')->on('commandes')
@@ -65,14 +110,34 @@ return new class extends Migration
 
     public function down(): void
     {
+        $hasFk = $this->hasForeignKey('admin_notifications', 'admin_notifications_commande_id_foreign');
+        $hasOldUnique = $this->hasUniqueConstraint('admin_notifications', 'admin_notifications_commande_id_unique');
+        $hasComposite = $this->hasUniqueConstraint('admin_notifications', 'admin_notifs_commande_type_unique');
+
         Schema::table('admin_notifications', function (Blueprint $table) {
-            $table->dropForeign(['commande_id']);
-            $table->dropUnique('admin_notifs_commande_type_unique');
-            $table->dropColumn('type');
-            $table->unique('commande_id');
-            $table->foreign('commande_id')
-                ->references('id')->on('commandes')
-                ->nullOnDelete();
+            if (Schema::hasColumn('admin_notifications', 'type')) {
+                $table->dropColumn('type');
+            }
+        });
+
+        Schema::table('admin_notifications', function (Blueprint $table) use ($hasFk, $hasOldUnique, $hasComposite) {
+            if ($hasComposite) {
+                $table->dropUnique('admin_notifs_commande_type_unique');
+            }
+
+            if ($hasFk) {
+                $table->dropForeign(['commande_id']);
+            }
+
+            if (! $hasOldUnique) {
+                $table->unique('commande_id');
+            }
+
+            if ($hasFk) {
+                $table->foreign('commande_id')
+                    ->references('id')->on('commandes')
+                    ->nullOnDelete();
+            }
         });
     }
 };

@@ -30,7 +30,19 @@ class ReportController extends Controller
      */
     public function commandesSummary()
     {
-        $summary = DB::select('CALL sp_commandes_status_summary()');
+        try {
+            $driver = DB::connection()->getDriverName();
+
+            $summary = $driver === 'pgsql'
+                ? DB::select('SELECT * FROM sp_commandes_status_summary()')
+                : DB::select('CALL sp_commandes_status_summary()');
+        } catch (\Throwable) {
+            $summary = Commande::query()
+                ->selectRaw('statut, COUNT(*) AS total, COALESCE(SUM(prix), 0) AS total_amount')
+                ->groupBy('statut')
+                ->orderByDesc('total')
+                ->get();
+        }
 
         return response()->json([
             'data' => $summary,

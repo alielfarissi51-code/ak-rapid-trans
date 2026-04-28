@@ -20,7 +20,11 @@ class ClientOrderController extends Controller
         $clientId = (int) $request->user()->id;
 
         try {
-            $summary = DB::select('CALL sp_client_commandes_status_summary(?)', [$clientId]);
+            $driver = DB::connection()->getDriverName();
+
+            $summary = $driver === 'pgsql'
+                ? DB::select('SELECT * FROM sp_client_commandes_status_summary(?)', [$clientId])
+                : DB::select('CALL sp_client_commandes_status_summary(?)', [$clientId]);
         } catch (\Throwable) {
             $summary = Commande::query()
                 ->selectRaw('statut, COUNT(*) AS total, COALESCE(SUM(prix), 0) AS total_amount')
