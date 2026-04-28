@@ -93,6 +93,72 @@ class CommandeController extends Controller
         return $prefix.str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
     }
 
+    private function generateFactureRecord(Commande $commande, bool $shouldRegenerate = false): array
+    {
+        $lockedCommande = Commande::with(['client', 'camion', 'user'])
+            ->lockForUpdate()
+            ->findOrFail($commande->id);
+
+        $hasExistingFacture = (bool) $lockedCommande->facture_exists;
+        $isOutdated = $this->isFactureOutdated($lockedCommande);
+
+        if ($hasExistingFacture && ! $shouldRegenerate && ! $isOutdated) {
+            return [
+                'created' => false,
+                'regenerated' => false,
+                'needs_regeneration' => false,
+                'commande' => $lockedCommande,
+            ];
+        }
+
+        if ($hasExistingFacture && $isOutdated && ! $shouldRegenerate) {
+            return [
+                'created' => false,
+                'regenerated' => false,
+                'needs_regeneration' => true,
+                'commande' => $lockedCommande,
+            ];
+        }
+
+        if (! in_array($lockedCommande->statut, ['validee', 'livree'], true)) {
+            return [
+                'created' => null,
+                'regenerated' => null,
+                'needs_regeneration' => false,
+                'commande' => $lockedCommande,
+            ];
+        }
+
+        $factureNumber = $lockedCommande->facture_number ?: $this->nextFactureNumber();
+        $generatedAt = now();
+
+        $pdf = Pdf::loadView('pdf.commande-facture', [
+            'commande' => $lockedCommande,
+            'factureNumber' => $factureNumber,
+            'generatedAt' => $generatedAt,
+        ]);
+
+        $safeNumber = Str::of($factureNumber)->replace(['/', '\\', ' '], '-');
+        $path = 'factures/'.$safeNumber.'-'.Str::random(12).'.pdf';
+
+        Storage::disk('public')->put($path, $pdf->output());
+
+        $lockedCommande->update([
+            'facture_number' => $factureNumber,
+            'facture_path' => $path,
+            'facture_generated_at' => $generatedAt,
+        ]);
+
+        $lockedCommande->refresh();
+
+        return [
+            'created' => ! $hasExistingFacture,
+            'regenerated' => $hasExistingFacture,
+            'needs_regeneration' => false,
+            'commande' => $lockedCommande,
+        ];
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -198,6 +264,10 @@ class CommandeController extends Controller
                 if (in_array($newStatus, ['livree', 'annulee'], true)) {
                     $this->trucks->release($fresh);
                 }
+
+                if ($newStatus === 'livree') {
+                    $this->generateFactureRecord($fresh, true);
+                }
             }
         });
 
@@ -225,73 +295,12 @@ class CommandeController extends Controller
         $shouldRegenerate = $request->boolean('regenerate');
 
         $result = DB::transaction(function () use ($commande, $shouldRegenerate): array {
-            $lockedCommande = Commande::with(['client', 'camion', 'user'])
-                ->lockForUpdate()
-                ->findOrFail($commande->id);
-
-            $hasExistingFacture = (bool) $lockedCommande->facture_exists;
-            $isOutdated = $this->isFactureOutdated($lockedCommande);
-
-            if ($hasExistingFacture && ! $shouldRegenerate && ! $isOutdated) {
-                return [
-                    'created' => false,
-                    'regenerated' => false,
-                    'needs_regeneration' => false,
-                    'commande' => $lockedCommande,
-                ];
-            }
-
-            if ($hasExistingFacture && $isOutdated && ! $shouldRegenerate) {
-                return [
-                    'created' => false,
-                    'regenerated' => false,
-                    'needs_regeneration' => true,
-                    'commande' => $lockedCommande,
-                ];
-            }
-
-            if ($lockedCommande->statut !== 'validee') {
-                return [
-                    'created' => null,
-                    'regenerated' => null,
-                    'needs_regeneration' => false,
-                    'commande' => $lockedCommande,
-                ];
-            }
-
-            $factureNumber = $lockedCommande->facture_number ?: $this->nextFactureNumber();
-            $generatedAt = now();
-
-            $pdf = Pdf::loadView('pdf.commande-facture', [
-                'commande' => $lockedCommande,
-                'factureNumber' => $factureNumber,
-                'generatedAt' => $generatedAt,
-            ]);
-
-            $safeNumber = Str::of($factureNumber)->replace(['/', '\\', ' '], '-');
-            $path = 'factures/'.$safeNumber.'-'.Str::random(12).'.pdf';
-
-            Storage::disk('public')->put($path, $pdf->output());
-
-            $lockedCommande->update([
-                'facture_number' => $factureNumber,
-                'facture_path' => $path,
-                'facture_generated_at' => $generatedAt,
-            ]);
-
-            $lockedCommande->refresh();
-
-            return [
-                'created' => ! $hasExistingFacture,
-                'regenerated' => $hasExistingFacture,
-                'needs_regeneration' => false,
-                'commande' => $lockedCommande,
-            ];
+            return $this->generateFactureRecord($commande, $shouldRegenerate);
         });
 
         if ($result['created'] === null) {
             return response()->json([
-                'message' => 'Facture can only be generated or regenerated for validated commandes.',
+                'message' => 'Facture can only be generated or regenerated for validated or delivered commandes.',
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 

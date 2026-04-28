@@ -13,6 +13,7 @@ import {
   getMe,
   logout as apiLogout,
   getClientCommandesSummary,
+  downloadCommandeFacture,
 } from "../services/api";
 
 const clientDashboardTranslations = {
@@ -70,6 +71,9 @@ const clientDashboardTranslations = {
     truck: "Truck",
     client: "Client",
     viewDetails: "View details",
+    downloadInvoice: "Download invoice",
+    downloadingInvoice: "Downloading...",
+    invoiceReady: "Invoice ready for download",
     truckNotAssigned: "Truck not assigned yet",
     estimatedPrice: "Estimated price (DHS, optional)",
     departure: "Departure",
@@ -166,6 +170,9 @@ const clientDashboardTranslations = {
     truck: "Camion",
     client: "Client",
     viewDetails: "Voir le detail",
+    downloadInvoice: "Telecharger la facture",
+    downloadingInvoice: "Telechargement...",
+    invoiceReady: "Facture disponible au telechargement",
     truckNotAssigned: "Camion non affecte",
     estimatedPrice: "Prix estime (DHS, optionnel)",
     departure: "Depart",
@@ -220,6 +227,7 @@ function ClientDashboard() {
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [factureLoadingId, setFactureLoadingId] = useState(null);
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -501,6 +509,35 @@ function ClientDashboard() {
         description: error.message || (lang === "fr" ? "Veuillez reessayer." : "Please try again."),
       });
     }
+  };
+
+  const handleDownloadFacture = async (order) => {
+    try {
+      setFactureLoadingId(order.id);
+      await downloadCommandeFacture(order.id, `${order.facture_number || `facture-commande-${order.id}`}.pdf`);
+
+      addToast({
+        type: "success",
+        title: lang === "fr" ? "Telechargement lance" : "Download started",
+        description: lang === "fr" ? "La facture est en cours de telechargement." : "The invoice PDF is downloading.",
+      });
+    } catch (error) {
+      addToast({
+        type: "error",
+        title: lang === "fr" ? "Echec du telechargement" : "Download failed",
+        description: error.message || (lang === "fr" ? "Impossible de telecharger la facture." : "Unable to download the invoice."),
+      });
+    } finally {
+      setFactureLoadingId(null);
+    }
+  };
+
+  const canDownloadFacture = (order) => {
+    if (normalizeOrderStatus(order?.statut) !== "livree") {
+      return false;
+    }
+
+    return Boolean(order?.facture_exists ?? order?.facture_path) && !Boolean(order?.facture_outdated ?? false);
   };
 
   const hasVisibleOrders = filteredOrders.length > 0;
@@ -898,14 +935,26 @@ function ClientDashboard() {
                                     <VerificationBadge verified={Boolean(order.verified)} />
                                   </td>
                                   <td className="whitespace-nowrap px-4 py-4">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleViewDetails(order.id)}
-                                      className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${theme === "light" ? "border-cyan-300/40 bg-cyan-100 text-cyan-700 hover:bg-cyan-200" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-100 hover:border-cyan-300/40 hover:bg-cyan-500/20"}`}
-                                    >
-                                      {t.viewDetails}
-                                      <ArrowRightIcon className="h-3.5 w-3.5" />
-                                    </button>
+                                    <div className="flex flex-wrap gap-2">
+                                      {canDownloadFacture(order) && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDownloadFacture(order)}
+                                          disabled={factureLoadingId === order.id}
+                                          className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${theme === "light" ? "border-emerald-300/40 bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "border-emerald-400/20 bg-emerald-500/10 text-emerald-100 hover:border-emerald-300/40 hover:bg-emerald-500/20"}`}
+                                        >
+                                          {factureLoadingId === order.id ? t.downloadingInvoice : t.downloadInvoice}
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => handleViewDetails(order.id)}
+                                        className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${theme === "light" ? "border-cyan-300/40 bg-cyan-100 text-cyan-700 hover:bg-cyan-200" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-100 hover:border-cyan-300/40 hover:bg-cyan-500/20"}`}
+                                      >
+                                        {t.viewDetails}
+                                        <ArrowRightIcon className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}
@@ -952,14 +1001,26 @@ function ClientDashboard() {
 
                               <div className={`mt-4 flex items-center justify-between gap-3 rounded-xl border px-3 py-3 text-sm ${theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/8 bg-white/[0.02] text-slate-300"}`}>
                                 <span>{order.camion?.matricule ? `${t.truck} ${order.camion.matricule}` : t.assignedTruck}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleViewDetails(order.id)}
-                                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${theme === "light" ? "border-cyan-300/40 bg-cyan-100 text-cyan-700 hover:bg-cyan-200" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-100 hover:border-cyan-300/40 hover:bg-cyan-500/20"}`}
-                                >
-                                  {t.viewDetails}
-                                  <ArrowRightIcon className="h-3.5 w-3.5" />
-                                </button>
+                                <div className="flex flex-wrap justify-end gap-2">
+                                  {canDownloadFacture(order) && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDownloadFacture(order)}
+                                      disabled={factureLoadingId === order.id}
+                                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${theme === "light" ? "border-emerald-300/40 bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "border-emerald-400/20 bg-emerald-500/10 text-emerald-100 hover:border-emerald-300/40 hover:bg-emerald-500/20"}`}
+                                    >
+                                      {factureLoadingId === order.id ? t.downloadingInvoice : t.downloadInvoice}
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleViewDetails(order.id)}
+                                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${theme === "light" ? "border-cyan-300/40 bg-cyan-100 text-cyan-700 hover:bg-cyan-200" : "border-cyan-400/20 bg-cyan-500/10 text-cyan-100 hover:border-cyan-300/40 hover:bg-cyan-500/20"}`}
+                                  >
+                                    {t.viewDetails}
+                                    <ArrowRightIcon className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
                               </div>
                             </article>
                           ))}
@@ -1141,6 +1202,20 @@ function ClientDashboard() {
                   <MiniStat label={t.verification} value={selectedOrder.verified ? t.verified : t.nonVerified} tone={selectedOrder.verified ? "success" : "muted"} fullWidth />
                   <MiniStat label={t.clientName} value={selectedOrder.client?.nom || user?.name || t.unknownAccount} tone="neutral" fullWidth />
                 </div>
+                {canDownloadFacture(selectedOrder) && (
+                  <div className={`mt-4 rounded-2xl border px-4 py-4 ${theme === "light" ? "border-emerald-200 bg-emerald-50" : "border-emerald-400/15 bg-emerald-500/10"}`}>
+                    <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${theme === "light" ? "text-emerald-700" : "text-emerald-200"}`}>{lang === "fr" ? "Facture" : "Invoice"}</p>
+                    <p className={`mt-2 text-sm ${theme === "light" ? "text-slate-700" : "text-slate-300"}`}>{t.invoiceReady}</p>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadFacture(selectedOrder)}
+                      disabled={factureLoadingId === selectedOrder.id}
+                      className={`mt-4 inline-flex h-10 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${theme === "light" ? "border-emerald-300/40 bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "border-emerald-400/20 bg-emerald-500/10 text-emerald-100 hover:border-emerald-300/40 hover:bg-emerald-500/20"}`}
+                    >
+                      {factureLoadingId === selectedOrder.id ? t.downloadingInvoice : t.downloadInvoice}
+                    </button>
+                  </div>
+                )}
               </section>
 
               <section className={`rounded-[24px] border p-5 text-sm shadow-[0_12px_40px_rgba(0,0,0,0.18)] ${theme === "light" ? "border-slate-200 bg-white text-slate-700" : "border-slate-800 bg-[#0b1324] text-slate-300"}`}>

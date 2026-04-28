@@ -54,4 +54,14 @@ php artisan migrate
 php artisan serve
 ```
 
+## Déploiement Render
+
+Le backend est prévu pour être déployé avec le Dockerfile uniquement. Après le déploiement, exécutez manuellement les migrations :
+
+```bash
+php artisan migrate --force
+```
+
+N'exécutez pas `php artisan db:seed` automatiquement en production. Gardez le seed manuel uniquement pour les environnements de développement ou de staging contrôlés.
+
 ✅ Done

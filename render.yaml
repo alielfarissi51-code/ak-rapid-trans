@@ -1,0 +1,34 @@
+# Render blueprint for the Laravel backend.
+# The build and start steps are handled by backend/Dockerfile.
+services:
+  - type: web
+    name: ak-rapid-trans-backend
+    env: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        value: https://your-backend.onrender.com
+      - key: APP_KEY
+        value: change-me-in-render
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: your-mysql-host
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_DATABASE
+        value: your_database
+      - key: DB_USERNAME
+        value: your_username
+      - key: DB_PASSWORD
+        value: your_password
+      - key: FRONTEND_URL
+        value: https://your-frontend.onrender.com
