@@ -16,40 +16,39 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     * Only seeds demo data in non-production environments
-     */
     public function run(): void
     {
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
         $clientRole = Role::firstOrCreate(['name' => 'client']);
 
-        // Only create demo data in development environments
-        if (config('app.env') !== 'production') {
-            User::updateOrCreate([
-                'email' => 'admin@akrapidtrans.com',
-            ], [
+        User::updateOrCreate(
+            ['email' => 'admin@akrapidtrans.com'],
+            [
                 'role_id' => $adminRole->id,
                 'role' => 'admin',
                 'name' => 'Admin AK Rapid Trans',
                 'password' => Hash::make('Admin@1234'),
-            ]);
-            User::updateOrCreate([
-                'email' => 'client@akrapidtrans.com',
-            ], [
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'client@akrapidtrans.com'],
+            [
                 'role_id' => $clientRole->id,
                 'role' => 'client',
                 'name' => 'Client AK Rapid Trans',
                 'password' => Hash::make('client@1234'),
-            ]);
+            ]
+        );
 
-            User::factory(25)->create(['role_id' => $clientRole->id, 'role' => 'client']);
+        User::factory(25)->create([
+            'role_id' => $clientRole->id,
+            'role' => 'client',
+        ]);
 
-            Client::factory(30)->create();
-            Camion::factory(12)->create();
-            Commande::factory(60)->create();
-            Contact::factory(20)->create();
-        }
+        Client::factory(30)->create();
+        Camion::factory(12)->create();
+        Commande::factory(60)->create();
+        Contact::factory(20)->create();
     }
 }
