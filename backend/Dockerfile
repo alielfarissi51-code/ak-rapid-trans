@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
     APP_ENV=production \
     APP_DEBUG=false \
+    RUN_SEED=false \
     PORT=10000
 
 # Install system packages required by Laravel, PDF generation, and optional OCR support.
@@ -59,5 +60,8 @@ RUN php artisan config:cache \
 # Render routes traffic to this container on PORT, defaulting to 10000.
 EXPOSE 10000
 
+# Migrations must run at container startup (runtime), not image build time, because
+# the build stage should stay database-independent and reproducible.
+# Seeding is optional and controlled by RUN_SEED to avoid forcing demo/test data in production.
 # Laravel's built-in server serves the public/ directory, so public/index.php is exposed correctly.
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
+CMD ["sh", "-c", "php artisan config:clear && php artisan route:clear && php artisan migrate --force && if [ \"$RUN_SEED\" = \"true\" ]; then php artisan db:seed --force; fi && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
