@@ -47,7 +47,7 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
 # Ensure Laravel can write to storage and cache directories.
-RUN mkdir -p storage bootstrap/cache \
+RUN mkdir -p storage bootstrap/cache storage/framework/views resources/views \
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R ug+rwX storage bootstrap/cache
 
