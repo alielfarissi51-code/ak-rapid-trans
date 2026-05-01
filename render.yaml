@@ -1,5 +1,6 @@
 # Render blueprint for the Laravel backend.
-# The build and start steps are handled by backend/Dockerfile.
+# The build step is handled by backend/Dockerfile.
+# startCommand overrides the Dockerfile CMD so migrations are always visible here.
 services:
   - type: web
     name: ak-rapid-trans-backend
@@ -9,6 +10,9 @@ services:
     dockerfilePath: Dockerfile
     autoDeploy: true
     healthCheckPath: /
+    # Seeding is intentionally omitted here (production never seeds).
+    # For Docker-only deployments with RUN_SEED=true, the Dockerfile CMD handles it.
+    startCommand: sh -c "php artisan config:clear && php artisan route:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"
     envVars:
       - key: APP_ENV
         value: production

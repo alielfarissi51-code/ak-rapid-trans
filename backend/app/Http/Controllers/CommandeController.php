@@ -8,6 +8,7 @@ use App\Services\TruckAssignmentService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -290,8 +291,24 @@ class CommandeController extends Controller
         ]);
     }
 
+    private static function factureColumnsExist(): bool
+    {
+        static $checked = null;
+        if ($checked === null) {
+            $checked = Schema::hasColumn('commandes', 'facture_number');
+        }
+
+        return $checked;
+    }
+
     public function generateFacture(Request $request, Commande $commande)
     {
+        if (! self::factureColumnsExist()) {
+            return response()->json([
+                'message' => 'Facture feature is temporarily unavailable. A database migration is pending.',
+            ], Response::HTTP_SERVICE_UNAVAILABLE);
+        }
+
         $shouldRegenerate = $request->boolean('regenerate');
 
         $result = DB::transaction(function () use ($commande, $shouldRegenerate): array {
@@ -324,6 +341,10 @@ class CommandeController extends Controller
 
     public function downloadFacture(Request $request, Commande $commande)
     {
+        if (! self::factureColumnsExist()) {
+            abort(Response::HTTP_SERVICE_UNAVAILABLE, 'Facture feature is temporarily unavailable. A database migration is pending.');
+        }
+
         $user = $request->user();
         $role = $user?->resolvedRole() ?? '';
 
