@@ -67,4 +67,4 @@ EXPOSE 10000
 # the build stage should stay database-independent and reproducible.
 # Seeding is optional and controlled by RUN_SEED to avoid forcing demo/test data in production.
 # Laravel's built-in server serves the public/ directory, so public/index.php is exposed correctly.
-CMD ["sh", "-c", "php artisan config:clear && php artisan route:clear && php artisan migrate --force && if [ \"$RUN_SEED\" = \"true\" ]; then php artisan db:seed --force; fi && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
+CMD ["sh", "-c", "php artisan optimize:clear && php artisan migrate --force && if [ \"$RUN_SEED\" = \"true\" ]; then php artisan db:seed --force; fi && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]

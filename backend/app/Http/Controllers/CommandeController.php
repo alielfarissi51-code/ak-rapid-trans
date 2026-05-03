@@ -144,11 +144,13 @@ class CommandeController extends Controller
 
         Storage::disk('public')->put($path, $pdf->output());
 
-        $lockedCommande->update([
-            'facture_number' => $factureNumber,
-            'facture_path' => $path,
-            'facture_generated_at' => $generatedAt,
-        ]);
+        Commande::withoutTimestamps(function () use ($lockedCommande, $factureNumber, $path, $generatedAt): void {
+            $lockedCommande->update([
+                'facture_number' => $factureNumber,
+                'facture_path' => $path,
+                'facture_generated_at' => $generatedAt,
+            ]);
+        });
 
         $lockedCommande->refresh();
 
